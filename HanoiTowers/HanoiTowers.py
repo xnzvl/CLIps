@@ -1,8 +1,63 @@
+import time
 import typing
+
+
+# =============================================================================
+#  CUSTOM TYPES
+
 
 Tower = typing.List[int]
 Board = typing.Tuple[Tower, Tower, Tower]
 TowerIndex = typing.Literal[0, 1, 2]
+
+
+# =============================================================================
+#  CONSTANTS
+
+
+DISC_COUNT = MAX_DISC_RADIUS = 9
+BLOCK_CHAR = "█"
+GROUND_CHAR = "_"
+
+
+# =============================================================================
+#  PRINTING
+
+
+def get_layer_str(
+        board: Board,
+        tower_index: TowerIndex,
+        layer: int
+) -> str:
+    disc_radius = 0 \
+        if len(board[tower_index]) < layer \
+        else board[tower_index][layer - 1]
+
+    blank_char = " " if layer != 1 else GROUND_CHAR
+
+    return blank_char * (MAX_DISC_RADIUS - disc_radius) \
+        + BLOCK_CHAR * disc_radius \
+        + ("|" if disc_radius == 0 else BLOCK_CHAR) \
+        + BLOCK_CHAR * disc_radius \
+        + blank_char * (MAX_DISC_RADIUS - disc_radius)
+
+
+def print_board(
+        board: Board
+) -> None:
+    for layer in range(DISC_COUNT + 1, 0, -1):
+        separator = " " if layer != 1 else GROUND_CHAR
+
+        print(
+            separator + get_layer_str(board, 0, layer)
+            + separator + get_layer_str(board, 1, layer)
+            + separator + get_layer_str(board, 2, layer)
+            + separator
+        )
+
+
+# =============================================================================
+#  CORE
 
 
 def get_free_index(
@@ -18,6 +73,9 @@ def move_disc(
         dst_index: TowerIndex
 ) -> None:
     board[dst_index].append(board[src_index].pop())
+
+    print_board(board)
+    time.sleep(0.1)
 
 
 def move_disc_range(
@@ -43,6 +101,10 @@ def move_tower(
         dst_index: TowerIndex
 ) -> None:
     move_disc_range(board, src_index, dst_index, len(board[src_index]))
+
+
+# =============================================================================
+#  RUNNING
 
 
 def main() -> int:
