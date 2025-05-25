@@ -1,0 +1,51 @@
+from typing import Callable
+
+from src.common import Configuration, Result
+from src.game.board import Board
+from src.interactions.clicker import Clicker
+from src.interactions.observer import Observer
+from src.strategies.strategy import Strategy
+
+
+class Bot:
+    def __init__(
+            self,
+            configuration: Configuration,
+            strategy: Strategy,
+            observer_instantiator: Callable[[Configuration], Observer],
+            clicker_instantiator: Callable[[Configuration], Clicker]
+    ) -> None:
+        self._configuration = configuration
+        self._strategy = strategy
+
+        self._observer = observer_instantiator(configuration)
+        self._clicker = clicker_instantiator(configuration)
+
+        self._board = Board(configuration.dimensions.width, configuration.dimensions.height)
+
+    def solve(self, max_attempts: int = 1) -> None:
+        if max_attempts < 1:
+            raise ValueError("max_attempts must be a positive integer")
+
+        attempt_number = 0
+        result: Result = 'failure'
+        while attempt_number < max_attempts and result != 'victory':
+            attempt_number += 1
+            result = self._attempt_to_solve()
+
+            print(f'Attempt #{attempt_number}: {result}')
+
+    def _attempt_to_solve(self) -> Result:
+        game_observation = self._observer.observe_game()
+
+        while game_observation.state == 'inProgress':
+            self._board.update(game_observation.board)
+
+            for move in self._strategy.get_moves(self._board):
+                self._clicker.do(move)
+
+            game_observation = self._observer.observe_game()
+
+        result = game_observation.state
+        assert result != 'inProgress'
+        return result

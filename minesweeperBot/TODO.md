@@ -1,0 +1,3 @@
+- autodetect
+  - offsets
+  - dimensions
