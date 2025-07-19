@@ -14,3 +14,7 @@ class WebPageClicker(Clicker):
             y=self._offsets.y + move.tile.y * self._tile_size + self._tile_size // 2,
             button=move.button
         )
+
+    def reset(self) -> None:
+        # TODO
+        pass

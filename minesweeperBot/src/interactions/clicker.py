@@ -12,3 +12,7 @@ class Clicker(ABC):
     @abstractmethod
     def do(self, move: Move) -> None:
         ...
+
+    @abstractmethod
+    def reset(self) -> None:
+        ...
