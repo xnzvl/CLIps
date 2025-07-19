@@ -78,5 +78,5 @@ class Board:
                     self._observationToAction[observed](tileObservation)
 
     def is_valid(self) -> bool:
-        # TODO
+        # TODO: optional
         return False
