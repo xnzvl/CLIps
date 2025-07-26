@@ -30,8 +30,6 @@ def main() -> None:
     flag_corners(config)
 
     print()
-    print('If you don\'t see flags in all four corners then the provided configuration is wrong.')
-    print()
     print('==== PROVIDED CONFIGURATION ====')
     print('  offsets:')
     print(f'    x = {config.offsets.x}')
@@ -39,6 +37,8 @@ def main() -> None:
     print('  dimensions:')
     print(f'    width = {config.dimensions.width}')
     print(f'    height = {config.dimensions.height}')
+    print()
+    print('If you don\'t see flags in all four corners then the provided configuration is wrong.')
     print()
 
 
