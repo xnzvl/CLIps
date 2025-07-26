@@ -1,15 +1,7 @@
-from typing import NamedTuple, List, Literal, Set, Union
+from typing import NamedTuple, Literal, Union
 
+from src.game.board import Board
 
-TileObservation = Literal['O', '1', '2', '3', '4', '5', '6', '7', '8', ' ', 'F', '*', '+']
-"""
-  - `O` covered tile
-  - number presents count of mines in proximity
-  - `*space*` for an empty tile
-  - `F` flag
-  - `*` exploded mine
-  - `+` mine
-"""
 
 Result = Literal['victory', 'failure']
 
@@ -20,13 +12,11 @@ GameState = Union[Result, Literal['inProgress']]
   - `failure` - uncovered tile with a mine
 """
 
-BoardObservation = List[List[TileObservation]]
-
 MouseButton = Literal['left', 'middle', 'right']
 
 
-class GameObservation(NamedTuple):
-    board: BoardObservation
+class Game(NamedTuple):
+    board: Board
     state: GameState
 
 
@@ -49,6 +39,3 @@ class Configuration(NamedTuple):
 class Move(NamedTuple):
     button: MouseButton
     tile: Point
-
-
-NUMBER_TILE_OBSERVATION: Set[TileObservation] = {'1', '2', '3', '4', '5', '6', '7', '8'}
