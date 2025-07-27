@@ -1,22 +1,50 @@
-from typing import Tuple
+from typing import Dict, Tuple
 
 import pyautogui as pag
 
 from src.common import Configuration, GameState
 from src.game.board import Board
+from src.game.symbol import Symbol
 from src.game.tile import Tile
 from src.interactions.observer import Observer
 
 
+Colour = Tuple[int, int, int]
+
+
 TILE_SIZE = 16
 
-WHITE = 255, 255, 255
-GRAY = 189, 189, 189
-BLACK = 0, 0, 0
-RED = 255, 0, 0
+WHITE      = 255, 255, 255
+GRAY       = 189, 189, 189
+BLUE       =   0,   0, 255
+DARK_GREEN =   0, 123,   0
+RED        = 255,   0,   0
+DARK_BLUE  =   0,   0, 123
+DARK_RED   = 123,   0,   0
+DARK_CYAN  =   0, 123, 123
+BLACK      =   0,   0,   0
+DARK_GRAY  = 123, 123, 123
 
-KEY_PIXEL_X_OFFSET = 9
-KEY_PIXEL_Y_OFFSET = 10
+NUMBER_PIXEL_X_OFFSET = 9
+NUMBER_PIXEL_Y_OFFSET = 11
+
+FLAG_PIXEL_X_OFFSET = 7
+FLAG_PIXEL_Y_OFFSET = 3
+
+SYMBOL_PIXEL_X_OFFSET = 6
+SYMBOL_PIXEL_Y_OFFSET = 6
+
+PIXEL_COLOUR_TO_MINE_COUNT: Dict[Colour, int] = {
+    GRAY:       0,
+    BLUE:       1,
+    DARK_GREEN: 2,
+    RED:        3,
+    DARK_BLUE:  4,
+    DARK_RED:   5,
+    DARK_CYAN:  6,
+    BLACK:      7,
+    DARK_GRAY:  8
+}
 
 
 class WebPageObserver(Observer):
@@ -41,40 +69,42 @@ class WebPageObserver(Observer):
                 pixel_x = self._offsets.x + x * TILE_SIZE
                 pixel_y = self._offsets.y + y * TILE_SIZE
 
-                observed_pixel = pag.pixel(pixel_x, pixel_y)
-
-                if observed_pixel == WHITE:
-                    tile.set_covered()
-                elif observed_pixel == RED:
-                    tile.place_mine(True)
-                else:
-                    update_tile_based_on_pixel(
-                        tile,
-                        pag.pixel(pixel_x + KEY_PIXEL_X_OFFSET, pixel_y + KEY_PIXEL_Y_OFFSET)
-                    )
+                observe_tile(tile, pixel_x, pixel_y)
 
         return board
 
 
-def update_tile_based_on_pixel(tile: Tile, pixel: Tuple[int, int, int]) -> None:
-    match pixel:
-        case 189, 189, 189:
-            tile.set_empty()
-        case 0, 0, 255:
-            tile.set_count(1)
-        case 0, 123, 0:
-            tile.set_count(2)
-        case 255, 0, 0:
-            tile.set_count(3)
-        case 0, 0, 123:
-            tile.set_count(4)
-        case 123, 0, 0:
-            tile.set_count(5)
-        case 0, 123, 123:
-            tile.set_count(6)
-        case 0, 0, 0:
-            tile.set_count(7)
-        case 123, 123, 123:
-            tile.set_count(8)
-        case _:
-            raise ValueError('observed unexpected pixel colour')
+def observe_tile(tile: Tile, x: int, y: int) -> None:
+    corner_pixel = pag.pixel(x + 1, y + 1)
+
+    if corner_pixel == RED:
+        tile.set_symbol(Symbol.EXPLODED_MINE)
+
+    elif corner_pixel == WHITE:
+        potential_flag_pixel = pag.pixel(x + FLAG_PIXEL_X_OFFSET, y + FLAG_PIXEL_Y_OFFSET)
+
+        if potential_flag_pixel == RED:
+            tile.set_symbol(Symbol.FLAG)
+        else:
+            tile.set_symbol(Symbol.COVERED)
+
+    else:
+        number_pixel = pag.pixel(x + NUMBER_PIXEL_X_OFFSET, y + NUMBER_PIXEL_Y_OFFSET)
+
+        if number_pixel == BLACK:
+            symbol_pixel = pag.pixel(x + SYMBOL_PIXEL_X_OFFSET, y + SYMBOL_PIXEL_Y_OFFSET)
+
+            if symbol_pixel == RED:
+                tile.set_symbol(Symbol.BAD_MINE)
+            elif symbol_pixel == WHITE:
+                tile.set_symbol(Symbol.MINE)
+            else:
+                tile.set_count(PIXEL_COLOUR_TO_MINE_COUNT[number_pixel])
+
+        else:
+            mine_count = PIXEL_COLOUR_TO_MINE_COUNT.get(number_pixel)
+
+            if mine_count is None:
+                raise RuntimeError('observed unknown pixel colour')
+
+            tile.set_count(mine_count)
