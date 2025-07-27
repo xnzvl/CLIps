@@ -1,9 +1,22 @@
-from src.game.symbol import Symbol
+from typing import Literal, Union
+
+
+Sign = Literal[
+    'COVERED',
+    'FLAG',
+    'QUESTION_MARK',
+    'EXPLODED_MINE',
+    'MINE',
+    'BAD_MINE',
+    'EMPTY'
+]
+
+Symbol = Union[Sign, Literal['NUMBER']]
 
 
 class Tile:
     def __init__(self) -> None:
-        self._symbol = Symbol.COVERED
+        self._symbol: Symbol = 'COVERED'
         self._count: int | None = None
 
     def get_count(self) -> int | None:
@@ -16,22 +29,15 @@ class Tile:
             raise ValueError(f"number of mines in the proximity cannot be greater than 8 (received {count})")
 
         if count == 0:
-            self._symbol = Symbol.EMPTY
+            self._symbol = 'EMPTY'
             self._count = None
         else:
-            self._symbol = Symbol.NUMBER
+            self._symbol = 'NUMBER'
             self._count = count
 
     def get_symbol(self) -> Symbol:
         return self._symbol
 
-    def set_symbol(self, symbol: Symbol) -> None:
-        """
-        Set the symbol of on the Tile.
-        Throws ValueError on Symbol.NUMBER.
-        """
-        if symbol == Symbol.NUMBER:
-            raise ValueError("symbol cannot be NUMBER")
-
-        self._symbol = symbol
+    def set_sign(self, sign: Sign) -> None:
+        self._symbol = sign
         self._count = None

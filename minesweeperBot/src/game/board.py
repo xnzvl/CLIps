@@ -1,6 +1,5 @@
-from typing import List, Tuple
+from typing import List, Tuple, assert_never
 
-from src.game.symbol import Symbol
 from src.game.tile import Tile
 
 
@@ -41,6 +40,8 @@ class Board:
         return self._height
 
     def get_tiles(self) -> List[List[Tile]]:
+        # TODO: is this really necessary? does it make sense?
+        #       perhaps provide iterator that will iterate over tiles instead? :eyes:
         return self._tiles
 
     def get_tile_at(self, x: int, y: int) -> Tile:
@@ -60,7 +61,8 @@ class Board:
         return neighbours
 
     def is_valid(self) -> bool:
-        # TODO: optional
+        # TODO: seems easy, but it's quite tough
+        #       also, it's optional
         return False
 
     def print(self) -> None:
@@ -72,23 +74,23 @@ class Board:
 
 def print_tile(tile: Tile) -> None:
     match tile.get_symbol():
-        case Symbol.COVERED:
+        case 'COVERED':
             to_print = 'O'
-        case Symbol.EXPLODED_MINE:
+        case 'EXPLODED_MINE':
             to_print = '*'
-        case Symbol.MINE:
+        case 'MINE':
             to_print = '+'
-        case Symbol.BAD_MINE:
+        case 'BAD_MINE':
             to_print = 'X'
-        case Symbol.FLAG:
+        case 'FLAG':
             to_print = 'F'
-        case Symbol.QUESTION_MARK:
+        case 'QUESTION_MARK':
             to_print = '?'
-        case Symbol.NUMBER:
+        case 'NUMBER':
             to_print = tile.get_count()
-        case Symbol.EMPTY:
+        case 'EMPTY':
             to_print = ' '
         case _:
-            raise RuntimeError('unhandled tile symbol')
+            assert_never(tile.get_symbol())
 
     print(to_print, end='')

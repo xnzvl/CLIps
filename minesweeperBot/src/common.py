@@ -1,23 +1,7 @@
-from typing import NamedTuple, Literal, Union
+from typing import NamedTuple, Literal
 
-from src.game.board import Board
-
-
-Result = Literal['victory', 'failure']
-
-GameState = Union[Result, Literal['inProgress']]
-"""
-  - `inProgress` - game is in progress even when it's not started
-  - `victory` - game is over - all mines have been correctly flagged
-  - `failure` - uncovered tile with a mine
-"""
 
 MouseButton = Literal['left', 'middle', 'right']
-
-
-class Game(NamedTuple):
-    board: Board
-    state: GameState
 
 
 class Point(NamedTuple):
