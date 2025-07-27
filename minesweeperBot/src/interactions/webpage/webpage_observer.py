@@ -2,9 +2,9 @@ from typing import Dict, Tuple
 
 import pyautogui as pag
 
-from src.common import Configuration, GameState
+from src.common import Configuration
 from src.game.board import Board
-from src.game.symbol import Symbol
+from src.game.game import GameState
 from src.game.tile import Tile
 from src.interactions.observer import Observer
 
@@ -46,15 +46,33 @@ PIXEL_COLOUR_TO_MINE_COUNT: Dict[Colour, int] = {
     DARK_GRAY:  8
 }
 
+SMILEY_WIDTH = 26
+SMILEY_Y_OFFSET = 39
+SMILEY_EYE_PIXEL_X_OFFSET = 11
+SMILEY_EYE_PIXEL_Y_OFFSET = 10
+SMILEY_GLASSES_PIXEL_X_OFFSET = 12
+SMILEY_GLASSES_PIXEL_Y_OFFSET = 10
+
 
 class WebPageObserver(Observer):
     def __init__(self, configuration: Configuration) -> None:
         super().__init__(configuration)
 
-    def observe_state(self) -> GameState:
-        pass # TODO
+    def _observe_state(self) -> GameState:
+        x0 = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
+        y0 = self._offsets.y - SMILEY_Y_OFFSET
 
-    def observe_board(self, old_board: Board | None = None) -> Board:
+        eye_pixel = pag.pixel(x0 + SMILEY_EYE_PIXEL_X_OFFSET, y0 + SMILEY_EYE_PIXEL_Y_OFFSET)
+        if eye_pixel == BLACK:
+            glasses_pixel = pag.pixel(x0 + SMILEY_GLASSES_PIXEL_X_OFFSET, y0 + SMILEY_GLASSES_PIXEL_Y_OFFSET)
+            if glasses_pixel == BLACK:
+                return 'victory'
+            else:
+                return 'inProgress'
+        else:
+            return 'failure'
+
+    def _observe_board(self, old_board: Board | None = None) -> Board:
         if old_board is not None:
             self._check_board_size(old_board)
 
@@ -74,30 +92,31 @@ class WebPageObserver(Observer):
         return board
 
 
-def observe_tile(tile: Tile, x: int, y: int) -> None:
-    corner_pixel = pag.pixel(x + 1, y + 1)
+# TODO: split into separate function
+def observe_tile(tile: Tile, x0: int, y0: int) -> None:
+    corner_pixel = pag.pixel(x0 + 1, y0 + 1)
 
     if corner_pixel == RED:
-        tile.set_symbol(Symbol.EXPLODED_MINE)
+        tile.set_sign('EXPLODED_MINE')
 
     elif corner_pixel == WHITE:
-        potential_flag_pixel = pag.pixel(x + FLAG_PIXEL_X_OFFSET, y + FLAG_PIXEL_Y_OFFSET)
+        potential_flag_pixel = pag.pixel(x0 + FLAG_PIXEL_X_OFFSET, y0 + FLAG_PIXEL_Y_OFFSET)
 
         if potential_flag_pixel == RED:
-            tile.set_symbol(Symbol.FLAG)
+            tile.set_sign('FLAG')
         else:
-            tile.set_symbol(Symbol.COVERED)
+            tile.set_sign('COVERED')
 
     else:
-        number_pixel = pag.pixel(x + NUMBER_PIXEL_X_OFFSET, y + NUMBER_PIXEL_Y_OFFSET)
+        number_pixel = pag.pixel(x0 + NUMBER_PIXEL_X_OFFSET, y0 + NUMBER_PIXEL_Y_OFFSET)
 
         if number_pixel == BLACK:
-            symbol_pixel = pag.pixel(x + SYMBOL_PIXEL_X_OFFSET, y + SYMBOL_PIXEL_Y_OFFSET)
+            symbol_pixel = pag.pixel(x0 + SYMBOL_PIXEL_X_OFFSET, y0 + SYMBOL_PIXEL_Y_OFFSET)
 
             if symbol_pixel == RED:
-                tile.set_symbol(Symbol.BAD_MINE)
+                tile.set_sign('BAD_MINE')
             elif symbol_pixel == WHITE:
-                tile.set_symbol(Symbol.MINE)
+                tile.set_sign('MINE')
             else:
                 tile.set_count(PIXEL_COLOUR_TO_MINE_COUNT[number_pixel])
 
