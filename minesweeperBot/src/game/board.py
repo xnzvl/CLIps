@@ -1,18 +1,10 @@
-from typing import Dict, Callable, List, Tuple
+from typing import List, Tuple
 
-# from src.common import TileObservation
+from src.game.symbol import Symbol
 from src.game.tile import Tile
 
 
 class Board:
-    _observationToAction: Dict[str, Callable[[Tile], None]] = {
-        '*': lambda t: t.place_mine(True),
-        '+': lambda t: t.place_mine(False),
-        'F': lambda t: t.place_flag(),
-        'O': lambda t: t.set_covered(),
-        ' ': lambda t: t.set_empty()
-    }
-
     def __init__(self, width: int, height: int) -> None:
         if width < 1:
             raise ValueError(f'width has to be greater than 1 (provided {width})')
@@ -70,3 +62,33 @@ class Board:
     def is_valid(self) -> bool:
         # TODO: optional
         return False
+
+    def print(self) -> None:
+        for y in range(self._height):
+            for x in range(self._width):
+                print_tile(self[x, y])
+            print()
+
+
+def print_tile(tile: Tile) -> None:
+    match tile.get_symbol():
+        case Symbol.COVERED:
+            to_print = 'O'
+        case Symbol.EXPLODED_MINE:
+            to_print = '*'
+        case Symbol.MINE:
+            to_print = '+'
+        case Symbol.BAD_MINE:
+            to_print = 'X'
+        case Symbol.FLAG:
+            to_print = 'F'
+        case Symbol.QUESTION_MARK:
+            to_print = '?'
+        case Symbol.NUMBER:
+            to_print = tile.get_count()
+        case Symbol.EMPTY:
+            to_print = ' '
+        case _:
+            raise RuntimeError('unhandled tile symbol')
+
+    print(to_print, end='')
