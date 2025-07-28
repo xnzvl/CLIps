@@ -17,7 +17,6 @@ class Dimensions(NamedTuple):
 class Configuration(NamedTuple):
     offsets: Point
     dimensions: Dimensions
-    tile_size: int
 
 
 class Move(NamedTuple):

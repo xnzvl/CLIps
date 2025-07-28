@@ -9,16 +9,12 @@ class Observer(ABC):
     def __init__(self, configuration: Configuration) -> None:
         self._offsets = configuration.offsets
         self._dimensions = configuration.dimensions
-        self._tile_size = configuration.tile_size
 
     def get_offsets(self) -> Point:
         return self._offsets
 
     def get_dimensions(self) -> Dimensions:
         return self._dimensions
-
-    def get_tile_size(self) -> int:
-        return self._tile_size
 
     def observe_game(self, old_board: Board | None = None) -> Game:
         return Game(self._observe_board(old_board), self._observe_state())
