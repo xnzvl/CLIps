@@ -3,6 +3,7 @@ import sys
 import pyautogui as pag
 
 from src.common import Configuration
+from src.interactions.webpage import TILE_SIZE
 from utils.configuration_parser import parse_configuration
 
 
@@ -12,16 +13,16 @@ def flag_corners(config: Configuration) -> None:
         config.offsets.y
     )
     pag.rightClick(
-        config.offsets.x + config.dimensions.width * config.tile_size - 1,
+        config.offsets.x + config.dimensions.width * TILE_SIZE - 1,
         config.offsets.y
     )
     pag.rightClick(
-        config.offsets.x + config.dimensions.width * config.tile_size - 1,
-        config.offsets.y + config.dimensions.height * config.tile_size - 1
+        config.offsets.x + config.dimensions.width * TILE_SIZE - 1,
+        config.offsets.y + config.dimensions.height * TILE_SIZE - 1
     )
     pag.rightClick(
         config.offsets.x,
-        config.offsets.y + config.dimensions.height * config.tile_size - 1
+        config.offsets.y + config.dimensions.height * TILE_SIZE - 1
     )
 
 
