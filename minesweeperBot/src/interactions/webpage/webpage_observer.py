@@ -7,12 +7,10 @@ from src.game.board import Board
 from src.game.game import GameState
 from src.game.tile import Tile
 from src.interactions.observer import Observer
-
+from src.interactions.webpage import TILE_SIZE, SMILEY_WIDTH, SMILEY_Y_OFFSET
 
 Colour = Tuple[int, int, int]
 
-
-TILE_SIZE = 16
 
 WHITE      = 255, 255, 255
 GRAY       = 189, 189, 189
@@ -46,8 +44,6 @@ PIXEL_COLOUR_TO_MINE_COUNT: Dict[Colour, int] = {
     DARK_GRAY:  8
 }
 
-SMILEY_WIDTH = 26
-SMILEY_Y_OFFSET = 39
 SMILEY_EYE_PIXEL_X_OFFSET = 11
 SMILEY_EYE_PIXEL_Y_OFFSET = 10
 SMILEY_GLASSES_PIXEL_X_OFFSET = 12
@@ -92,38 +88,41 @@ class WebPageObserver(Observer):
         return board
 
 
-# TODO: split into separate function
+def observe_covered_tile(tile: Tile, x0: int, y0: int) -> None:
+    potential_flag_pixel = pag.pixel(x0 + FLAG_PIXEL_X_OFFSET, y0 + FLAG_PIXEL_Y_OFFSET)
+
+    if potential_flag_pixel == RED:
+        tile.set_sign('FLAG')
+    else:
+        tile.set_sign('COVERED')
+
+
+def observe_uncovered_tile(tile: Tile, x0: int, y0: int) -> None:
+    number_pixel = pag.pixel(x0 + NUMBER_PIXEL_X_OFFSET, y0 + NUMBER_PIXEL_Y_OFFSET)
+
+    if number_pixel == BLACK:
+        symbol_pixel = pag.pixel(x0 + SYMBOL_PIXEL_X_OFFSET, y0 + SYMBOL_PIXEL_Y_OFFSET)
+
+        if symbol_pixel == RED:
+            tile.set_sign('BAD_MINE')
+        elif symbol_pixel == WHITE:
+            tile.set_sign('MINE')
+        else:
+            tile.set_count(PIXEL_COLOUR_TO_MINE_COUNT[number_pixel])
+    else:
+        mine_count = PIXEL_COLOUR_TO_MINE_COUNT.get(number_pixel)
+        if mine_count is None:
+            raise RuntimeError('observed unknown pixel colour')
+
+        tile.set_count(mine_count)
+
+
 def observe_tile(tile: Tile, x0: int, y0: int) -> None:
     corner_pixel = pag.pixel(x0 + 1, y0 + 1)
 
     if corner_pixel == RED:
         tile.set_sign('EXPLODED_MINE')
-
     elif corner_pixel == WHITE:
-        potential_flag_pixel = pag.pixel(x0 + FLAG_PIXEL_X_OFFSET, y0 + FLAG_PIXEL_Y_OFFSET)
-
-        if potential_flag_pixel == RED:
-            tile.set_sign('FLAG')
-        else:
-            tile.set_sign('COVERED')
-
+        observe_covered_tile(tile, x0, y0)
     else:
-        number_pixel = pag.pixel(x0 + NUMBER_PIXEL_X_OFFSET, y0 + NUMBER_PIXEL_Y_OFFSET)
-
-        if number_pixel == BLACK:
-            symbol_pixel = pag.pixel(x0 + SYMBOL_PIXEL_X_OFFSET, y0 + SYMBOL_PIXEL_Y_OFFSET)
-
-            if symbol_pixel == RED:
-                tile.set_sign('BAD_MINE')
-            elif symbol_pixel == WHITE:
-                tile.set_sign('MINE')
-            else:
-                tile.set_count(PIXEL_COLOUR_TO_MINE_COUNT[number_pixel])
-
-        else:
-            mine_count = PIXEL_COLOUR_TO_MINE_COUNT.get(number_pixel)
-
-            if mine_count is None:
-                raise RuntimeError('observed unknown pixel colour')
-
-            tile.set_count(mine_count)
+        observe_uncovered_tile(tile, x0, y0)
