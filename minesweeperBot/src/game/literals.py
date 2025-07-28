@@ -1,7 +1,6 @@
-from typing import Literal, NamedTuple, Union
+from typing import Literal, Union
 
-from src.game.board import Board
-
+# TODO: this file/filename feels clumsy
 
 Result = Literal['victory', 'failure']
 
@@ -11,8 +10,3 @@ GameState = Union[Result, Literal['inProgress']]
   - `victory` - game is over - all mines have been correctly flagged
   - `failure` - uncovered tile with a mine
 """
-
-
-class Game(NamedTuple):
-    board: Board
-    state: GameState

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from src.common import Configuration, Dimensions, Point
 from src.game.board import Board
-from src.game.game import Game, GameState
+from src.game.literals import GameState
 
 
 class Observer(ABC):
@@ -15,9 +15,6 @@ class Observer(ABC):
 
     def get_dimensions(self) -> Dimensions:
         return self._dimensions
-
-    def observe_game(self, old_board: Board | None = None) -> Game:
-        return Game(self.observe_board(old_board), self.observe_state())
 
     def _check_board_size(self, board: Board) -> None:
         if board.get_width() != self._dimensions.width:
