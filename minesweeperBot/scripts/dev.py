@@ -10,9 +10,9 @@ def main() -> None:
     observer = WebPageObserver(configuration)
 
     b = Board(configuration.dimensions.width, configuration.dimensions.height)
-    # gs = observer.observe_game(b)
 
-    print(observer.observe_state())
+    for p, t in b:
+        print(p)
 
 
 if __name__ == '__main__':

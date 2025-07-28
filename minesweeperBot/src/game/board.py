@@ -1,6 +1,24 @@
 from typing import List, Tuple, assert_never
 
+from src.common import Dimensions, Point
 from src.game.tile import Tile
+
+
+class BoardIterator:
+    def __init__(self, tiles: List[List[Tile]], dimensions: Dimensions) -> None:
+        self._tiles = tiles
+        self._dimensions = dimensions
+        self._i = 0
+
+    def __next__(self) -> Tuple[Point, Tile]:
+        if self._i >= self._dimensions.width * self._dimensions.height:
+            raise StopIteration
+
+        x = self._i % self._dimensions.width
+        y = self._i // self._dimensions.width
+        self._i += 1
+
+        return Point(x, y), self._tiles[y][x]
 
 
 class Board:
@@ -21,6 +39,9 @@ class Board:
         x, y = key
         self._validate_position(x, y)
         return self._tiles[y][x]
+
+    def __iter__(self) -> BoardIterator:
+        return BoardIterator(self._tiles, Dimensions(self._width, self._height))
 
     def _validate_position(self, x: int, y: int) -> None:
         if x < 0:
