@@ -4,7 +4,7 @@ import pyautogui as pag
 
 from src.common import Configuration
 from src.game.board import Board
-from src.game.game import GameState
+from src.game.literals import GameState
 from src.game.tile import Tile
 from src.interactions.observer import Observer
 from src.interactions.webpage import TILE_SIZE, SMILEY_WIDTH, SMILEY_Y_OFFSET

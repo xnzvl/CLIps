@@ -40,9 +40,7 @@ OFFSET_SMILEY_DEAD_Y = 9
 OFFSET_SMILEY_SUNGLASSES_X = 9
 OFFSET_SMILEY_SUNGLASSES_Y = 10
 
-NUMBERS: t.Set[Tile] = set(
-    ['1', '2', '3', '4', '5', '6', '7', '8']
-)
+NUMBERS: t.Set[Tile] = {'1', '2', '3', '4', '5', '6', '7', '8'}
 
 COLOR_TO_TILE: t.Dict[Color, Tile] = {
     GRAY: '_',
