@@ -17,7 +17,7 @@ class Observer(ABC):
         return self._dimensions
 
     def observe_game(self, old_board: Board | None = None) -> Game:
-        return Game(self._observe_board(old_board), self._observe_state())
+        return Game(self.observe_board(old_board), self.observe_state())
 
     def _check_board_size(self, board: Board) -> None:
         if board.get_width() != self._dimensions.width:
@@ -26,9 +26,9 @@ class Observer(ABC):
             raise ValueError('Board dimensions (height) do not match')
 
     @abstractmethod
-    def _observe_state(self) -> GameState:
+    def observe_state(self) -> GameState:
         ...
 
     @abstractmethod
-    def _observe_board(self, old_board: Board | None = None) -> Board:
+    def observe_board(self, old_board: Board | None = None) -> Board:
         ...

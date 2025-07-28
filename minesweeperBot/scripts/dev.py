@@ -12,7 +12,7 @@ def main() -> None:
     b = Board(configuration.dimensions.width, configuration.dimensions.height)
     # gs = observer.observe_game(b)
 
-    print(observer._observe_state())
+    print(observer.observe_state())
 
 
 if __name__ == '__main__':

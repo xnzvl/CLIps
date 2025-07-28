@@ -54,7 +54,7 @@ class WebPageObserver(Observer):
     def __init__(self, configuration: Configuration) -> None:
         super().__init__(configuration)
 
-    def _observe_state(self) -> GameState:
+    def observe_state(self) -> GameState:
         x0 = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
         y0 = self._offsets.y - SMILEY_Y_OFFSET
 
@@ -68,7 +68,7 @@ class WebPageObserver(Observer):
         else:
             return 'failure'
 
-    def _observe_board(self, old_board: Board | None = None) -> Board:
+    def observe_board(self, old_board: Board | None = None) -> Board:
         if old_board is not None:
             self._check_board_size(old_board)
 
