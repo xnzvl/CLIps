@@ -39,11 +39,6 @@ class Board:
     def get_height(self) -> int:
         return self._height
 
-    def get_tiles(self) -> List[List[Tile]]:
-        # TODO: is this really necessary? does it make sense?
-        #       perhaps provide iterator that will iterate over tiles instead? :eyes:
-        return self._tiles
-
     def get_tile_at(self, x: int, y: int) -> Tile:
         return self[x, y]
 
