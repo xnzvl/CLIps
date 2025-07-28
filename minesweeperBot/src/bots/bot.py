@@ -1,7 +1,8 @@
 from typing import Callable
 
-from src.common import Configuration, Result
+from src.common import Configuration
 from src.game.board import Board
+from src.game.game import Result
 from src.interactions.clicker import Clicker
 from src.interactions.observer import Observer
 from src.strategies.strategy import Strategy
@@ -45,12 +46,14 @@ class Bot:
             log_attempt(attempt_number, result)
 
     def _attempt_to_solve(self) -> Result:
+        # TODO: fix
         game_observation = self._observer.observe_game()
 
         while game_observation.state == 'inProgress':
             self._board.update(game_observation.board)
 
             for move in self._strategy.get_moves(self._board):
+                # TODO: check game state after every move
                 self._clicker.do(move)
 
             game_observation = self._observer.observe_game()
