@@ -16,5 +16,5 @@ class WebPageClicker(Clicker):
         )
 
     def reset(self) -> None:
-        # TODO
+        # TODO: press reset buttton
         pass
