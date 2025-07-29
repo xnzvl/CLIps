@@ -14,6 +14,9 @@ Sign = Literal[
 Symbol = Union[Sign, Literal['NUMBER']]
 
 
+COVERED_SYMBOLS = {'COVERED', 'FLAG', 'QUESTION_MARK'}
+
+
 class Tile:
     def __init__(self) -> None:
         self._symbol: Symbol = 'COVERED'
@@ -41,3 +44,6 @@ class Tile:
     def set_sign(self, sign: Sign) -> None:
         self._symbol = sign
         self._count = None
+
+    def is_covered(self) -> bool:
+        return self._symbol in COVERED_SYMBOLS
