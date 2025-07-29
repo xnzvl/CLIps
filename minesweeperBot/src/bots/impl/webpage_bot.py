@@ -14,3 +14,6 @@ class WebPageBot(Bot):
             lambda c: WebPageObserver(c),
             lambda c: WebPageClicker(c)
         )
+
+    def _post_game_procedure(self) -> None:
+        return

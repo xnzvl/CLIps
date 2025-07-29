@@ -41,6 +41,7 @@ class Bot:
 
             log_attempt(attempt_number, result)
             self._clicker.reset()
+            self._post_game_procedure()
 
         if attempt_each:
             log_attempt(attempt_number, result)
@@ -61,6 +62,9 @@ class Bot:
         result = self._observer.observe_state()
         assert result != 'inProgress'
         return result
+
+    def _post_game_procedure(self) -> None:
+        return
 
 
 def log_attempt(attempt_number: int, result: Result) -> None:
