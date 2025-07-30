@@ -4,7 +4,7 @@ from typing import List, Tuple
 from src.common import Move, Point
 from src.game.board import Board
 from src.game.tile import Tile
-from src.strategies.strategy import Strategy
+from src.strategy.strategy import Strategy
 
 
 class RandomStrategy(Strategy):

@@ -6,7 +6,7 @@ from src.common import Configuration, Move
 from src.game.board import Board
 from src.game.literals import GameState
 from src.game.tile import Tile
-from src.mediators.mediator import Mediator
+from src.mediator.mediator import Mediator
 
 Colour = Tuple[int, int, int]
 

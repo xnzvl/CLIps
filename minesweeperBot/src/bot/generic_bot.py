@@ -3,11 +3,11 @@ from typing import Callable
 from src.common import Configuration
 from src.game.board import Board
 from src.game.literals import Result
-from src.mediators.mediator import Mediator
-from src.strategies.strategy import Strategy
+from src.mediator.mediator import Mediator
+from src.strategy.strategy import Strategy
 
 
-class Bot:
+class GenericBot:
     def __init__(
             self,
             configuration: Configuration,
