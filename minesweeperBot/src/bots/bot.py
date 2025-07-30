@@ -3,8 +3,7 @@ from typing import Callable
 from src.common import Configuration
 from src.game.board import Board
 from src.game.literals import Result
-from src.interactions.clicker import Clicker
-from src.interactions.observer import Observer
+from src.mediators.mediator import Mediator
 from src.strategies.strategy import Strategy
 
 
@@ -13,14 +12,10 @@ class Bot:
             self,
             configuration: Configuration,
             strategy: Strategy,
-            observer_instantiator: Callable[[Configuration], Observer],
-            clicker_instantiator: Callable[[Configuration], Clicker]
+            mediator_instantiator: Callable[[Configuration], Mediator]
     ) -> None:
-        self._configuration = configuration
         self._strategy = strategy
-
-        self._observer = observer_instantiator(configuration)
-        self._clicker = clicker_instantiator(configuration)
+        self._mediator = mediator_instantiator(configuration)
 
         self._board = Board(configuration.dimensions.width, configuration.dimensions.height)
 
@@ -40,31 +35,28 @@ class Bot:
                 victories += 1
 
             log_attempt(attempt_number, result)
-            self._clicker.reset()
-            self._post_game_procedure()
+            self._mediator.reset()
+            self._mediator.post_game_procedure()
 
         if attempt_each:
             log_attempt(attempt_number, result)
 
     def _attempt_to_solve(self) -> Result:
-        board = self._observer.observe_board()
+        board = self._mediator.observe_board()
 
-        while self._observer.observe_state() == 'inProgress':
+        while self._mediator.observe_state() == 'inProgress':
             i = 0
             moves = self._strategy.get_moves(board)
 
-            while self._observer.observe_state() == 'inProgress' and i < len(moves):
-                self._clicker.do(moves[i])
+            while self._mediator.observe_state() == 'inProgress' and i < len(moves):
+                self._mediator.play(moves[i])
                 i += 1
 
-            board = self._observer.observe_board(board)
+            board = self._mediator.observe_board(board)
 
-        result = self._observer.observe_state()
+        result = self._mediator.observe_state()
         assert result != 'inProgress'
         return result
-
-    def _post_game_procedure(self) -> None:
-        return
 
 
 def log_attempt(attempt_number: int, result: Result) -> None:

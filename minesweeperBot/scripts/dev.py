@@ -1,6 +1,6 @@
 import sys
 
-from src.bots.impl.webpage_bot import WebPageBot
+from src.bots.specific.webpage_bot import WebPageBot
 from src.strategies.impl.random_strategy import RandomStrategy
 from utils.configuration_parser import parse_configuration
 

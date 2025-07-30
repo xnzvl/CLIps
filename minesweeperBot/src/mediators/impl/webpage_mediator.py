@@ -2,15 +2,19 @@ from typing import Dict, Tuple
 
 import pyautogui as pag
 
-from src.common import Configuration
+from src.common import Configuration, Move
 from src.game.board import Board
 from src.game.literals import GameState
 from src.game.tile import Tile
-from src.interactions.observer import Observer
-from src.interactions.webpage import TILE_SIZE, SMILEY_WIDTH, SMILEY_Y_OFFSET
+from src.mediators.mediator import Mediator
 
 Colour = Tuple[int, int, int]
 
+
+TILE_SIZE = 16
+
+SMILEY_WIDTH = 26
+SMILEY_Y_OFFSET = 39
 
 WHITE      = 255, 255, 255
 GRAY       = 189, 189, 189
@@ -50,7 +54,7 @@ SMILEY_GLASSES_PIXEL_X_OFFSET = 12
 SMILEY_GLASSES_PIXEL_Y_OFFSET = 10
 
 
-class WebPageObserver(Observer):
+class WebPageMediator(Mediator):
     def __init__(self, configuration: Configuration) -> None:
         super().__init__(configuration)
 
@@ -86,6 +90,22 @@ class WebPageObserver(Observer):
                 observe_tile(tile, pixel_x, pixel_y)
 
         return board
+
+    def play(self, move: Move) -> None:
+        pag.click(
+            x=self._offsets.x + move.tile.x * TILE_SIZE + TILE_SIZE // 2,
+            y=self._offsets.y + move.tile.y * TILE_SIZE + TILE_SIZE // 2,
+            button=move.button
+        )
+
+    def reset(self) -> None:
+        x = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
+        y = self._offsets.y - SMILEY_Y_OFFSET
+
+        pag.leftClick(x, y)
+
+    def post_game_procedure(self) -> None:
+        return
 
 
 def observe_covered_tile(tile: Tile, x0: int, y0: int) -> None:
