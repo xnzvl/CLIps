@@ -63,16 +63,19 @@ class Board:
     def get_tile_at(self, x: int, y: int) -> Tile:
         return self[x, y]
 
-    def get_neighbours_of_tile_at(self, x: int, y: int) -> List[Tile]:
+    def get_neighbours_of_tile_at(self, x: int, y: int) -> List[Tuple[Point, Tile]]:
         self._validate_position(x, y)
-        neighbours: List[Tile] = list()
+        neighbours: List[Tuple[Point, Tile]] = list()
 
         for y_proximity in range(-1 if y != 0 else 0, 2 if y != self._height - 1 else 1):
             for x_proximity in range(-1 if x != 0 else 0, 2 if x != self._width - 1 else 1):
                 if x_proximity == 0 and y_proximity == 0:
                     continue
 
-                neighbours.append(self._tiles[y + y_proximity][x + x_proximity])
+                x_t = x + x_proximity
+                y_t = y + y_proximity
+
+                neighbours.append((Point(x_t, y_t), self[x_t, y_t]))
 
         return neighbours
 
