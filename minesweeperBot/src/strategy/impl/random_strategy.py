@@ -17,9 +17,9 @@ class RandomStrategy(Strategy):
 
         chosen_point, chosen_tile = choice(available_moves)
 
-        return [Move('left', chosen_point)] \
-            if chosen_tile.get_symbol() != 'FLAG' is None \
+        return [Move('primary', chosen_point)] \
+            if chosen_tile.get_symbol() != 'FLAG' \
             else [
-                Move('right', chosen_point),
-                Move('left', chosen_point),
+                Move('secondary', chosen_point),
+                Move('primary', chosen_point),
             ]

@@ -1,7 +1,7 @@
 from typing import NamedTuple, Literal
 
 
-MouseButton = Literal['left', 'middle', 'right']
+MouseButton = Literal['primary', 'secondary', 'middle']
 
 
 class Point(NamedTuple):
