@@ -42,17 +42,19 @@ class GenericBot:
             log_winrate(victories, max_attempts)
 
     def _attempt_to_solve(self) -> Result:
+        # TODO: perhaps create a Board from configuration?
         board = self._mediator.observe_board()
 
+        # TODO: looping here could be better (rn it's observing state 2x in a row)
         while self._mediator.observe_state() == 'inProgress':
+            board = self._mediator.observe_board(board)
+
             i = 0
             moves = self._strategy.get_moves(board)
 
             while self._mediator.observe_state() == 'inProgress' and i < len(moves):
                 self._mediator.play(moves[i])
                 i += 1
-
-            board = self._mediator.observe_board(board)
 
         result = self._mediator.observe_state()
         assert result != 'inProgress'
