@@ -39,7 +39,7 @@ class GenericBot:
             self._mediator.post_game_procedure()
 
         if attempt_each:
-            log_attempt(attempt_number, result)
+            log_winrate(victories, max_attempts)
 
     def _attempt_to_solve(self) -> Result:
         board = self._mediator.observe_board()
