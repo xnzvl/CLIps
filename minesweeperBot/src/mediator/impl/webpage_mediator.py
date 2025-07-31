@@ -57,6 +57,7 @@ SMILEY_GLASSES_PIXEL_Y_OFFSET = 10
 class WebPageMediator(Mediator):
     def __init__(self, configuration: Configuration) -> None:
         super().__init__(configuration)
+        # TODO: make pyautogui quicker
 
     def observe_state(self) -> GameState:
         x0 = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
@@ -99,8 +100,8 @@ class WebPageMediator(Mediator):
         )
 
     def reset(self) -> None:
-        x = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
-        y = self._offsets.y - SMILEY_Y_OFFSET
+        x = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2 + SMILEY_WIDTH // 2
+        y = self._offsets.y - SMILEY_Y_OFFSET + SMILEY_WIDTH // 2
 
         pag.leftClick(x, y)
 
