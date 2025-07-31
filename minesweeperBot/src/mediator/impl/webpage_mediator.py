@@ -26,6 +26,7 @@ DARK_RED   = 123,   0,   0
 DARK_CYAN  =   0, 123, 123
 BLACK      =   0,   0,   0
 DARK_GRAY  = 123, 123, 123
+YELLOW     = 255, 255,   0
 
 NUMBER_PIXEL_X_OFFSET = 9
 NUMBER_PIXEL_Y_OFFSET = 11
@@ -106,7 +107,14 @@ class WebPageMediator(Mediator):
         pag.leftClick(x, y)
 
     def post_game_procedure(self) -> None:
-        return
+        x0 = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
+        y0 = self._offsets.y - SMILEY_Y_OFFSET
+        glasses_pixel = pag.pixel(x0 + SMILEY_GLASSES_PIXEL_X_OFFSET, y0 + SMILEY_GLASSES_PIXEL_Y_OFFSET)
+
+        if glasses_pixel != YELLOW:
+            # TODO: username shouldn't be hardcoded
+            pag.write('n\'Rvs', 0.1)
+            pag.press('enter')
 
 
 def observe_covered_tile(tile: Tile, x0: int, y0: int) -> None:

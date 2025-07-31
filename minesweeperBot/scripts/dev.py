@@ -9,7 +9,7 @@ def main() -> None:
     configuration = parse_configuration(sys.argv)
 
     webpage_bot = WebPageBot(configuration, CertainRandomStrategy())
-    webpage_bot.solve(10, True)
+    webpage_bot.solve(25, True)
 
 
 if __name__ == '__main__':
