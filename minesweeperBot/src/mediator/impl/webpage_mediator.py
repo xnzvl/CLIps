@@ -1,6 +1,7 @@
-from typing import Dict, Tuple
+from typing import cast, Dict, Tuple
 
 import pyautogui as pag
+import PIL.Image
 
 from src.common import Configuration, Move
 from src.game.board import Board
@@ -58,15 +59,16 @@ SMILEY_GLASSES_PIXEL_Y_OFFSET = 10
 class WebPageMediator(Mediator):
     def __init__(self, configuration: Configuration) -> None:
         super().__init__(configuration)
-        # TODO: make pyautogui quicker
 
     def observe_state(self) -> GameState:
+        screen = pag.screenshot()
+
         x0 = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
         y0 = self._offsets.y - SMILEY_Y_OFFSET
 
-        eye_pixel = pag.pixel(x0 + SMILEY_EYE_PIXEL_X_OFFSET, y0 + SMILEY_EYE_PIXEL_Y_OFFSET)
+        eye_pixel = screen.getpixel((x0 + SMILEY_EYE_PIXEL_X_OFFSET, y0 + SMILEY_EYE_PIXEL_Y_OFFSET))
         if eye_pixel == BLACK:
-            glasses_pixel = pag.pixel(x0 + SMILEY_GLASSES_PIXEL_X_OFFSET, y0 + SMILEY_GLASSES_PIXEL_Y_OFFSET)
+            glasses_pixel = screen.getpixel((x0 + SMILEY_GLASSES_PIXEL_X_OFFSET, y0 + SMILEY_GLASSES_PIXEL_Y_OFFSET))
             if glasses_pixel == BLACK:
                 return 'victory'
             else:
@@ -82,6 +84,9 @@ class WebPageMediator(Mediator):
             if old_board is None \
             else old_board
 
+        # TODO: screenshot only relevant area
+        screen = pag.screenshot()
+
         for y in range(self._dimensions.height):
             for x in range(self._dimensions.width):
                 tile = board[x, y]
@@ -89,7 +94,7 @@ class WebPageMediator(Mediator):
                 pixel_x = self._offsets.x + x * TILE_SIZE
                 pixel_y = self._offsets.y + y * TILE_SIZE
 
-                observe_tile(tile, pixel_x, pixel_y)
+                observe_tile(screen, tile, pixel_x, pixel_y)
 
         return board
 
@@ -117,8 +122,8 @@ class WebPageMediator(Mediator):
             pag.press('enter')
 
 
-def observe_covered_tile(tile: Tile, x0: int, y0: int) -> None:
-    potential_flag_pixel = pag.pixel(x0 + FLAG_PIXEL_X_OFFSET, y0 + FLAG_PIXEL_Y_OFFSET)
+def observe_covered_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) -> None:
+    potential_flag_pixel = screen.getpixel((x0 + FLAG_PIXEL_X_OFFSET, y0 + FLAG_PIXEL_Y_OFFSET))
 
     if potential_flag_pixel == RED:
         tile.set_sign('FLAG')
@@ -126,11 +131,12 @@ def observe_covered_tile(tile: Tile, x0: int, y0: int) -> None:
         tile.set_sign('COVERED')
 
 
-def observe_uncovered_tile(tile: Tile, x0: int, y0: int) -> None:
-    number_pixel = pag.pixel(x0 + NUMBER_PIXEL_X_OFFSET, y0 + NUMBER_PIXEL_Y_OFFSET)
+def observe_uncovered_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) -> None:
+    number_pixel = screen.getpixel((x0 + NUMBER_PIXEL_X_OFFSET, y0 + NUMBER_PIXEL_Y_OFFSET))
+    number_pixel = cast(Colour, number_pixel)
 
     if number_pixel == BLACK:
-        symbol_pixel = pag.pixel(x0 + SYMBOL_PIXEL_X_OFFSET, y0 + SYMBOL_PIXEL_Y_OFFSET)
+        symbol_pixel = screen.getpixel((x0 + SYMBOL_PIXEL_X_OFFSET, y0 + SYMBOL_PIXEL_Y_OFFSET))
 
         if symbol_pixel == RED:
             tile.set_sign('BAD_MINE')
@@ -146,12 +152,12 @@ def observe_uncovered_tile(tile: Tile, x0: int, y0: int) -> None:
         tile.set_count(mine_count)
 
 
-def observe_tile(tile: Tile, x0: int, y0: int) -> None:
-    corner_pixel = pag.pixel(x0 + 1, y0 + 1)
+def observe_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) -> None:
+    corner_pixel = screen.getpixel((x0 + 1, y0 + 1))
 
     if corner_pixel == RED:
         tile.set_sign('EXPLODED_MINE')
     elif corner_pixel == WHITE:
-        observe_covered_tile(tile, x0, y0)
+        observe_covered_tile(screen, tile, x0, y0)
     else:
-        observe_uncovered_tile(tile, x0, y0)
+        observe_uncovered_tile(screen, tile, x0, y0)
