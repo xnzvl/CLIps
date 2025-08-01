@@ -6,6 +6,7 @@ from src.game.board import Board
 from src.game.tile import Tile
 
 
+# TODO: make compatible with question-mark tiles
 def random_move(board: Board) -> List[Move]:
     covered_tiles = [
         (point, tile)
@@ -47,6 +48,7 @@ def certain_flags(board: Board) -> List[Move]:
     return flag_moves
 
 
+# TODO: make compatible with question-mark tiles
 def certain_safe_moves(board: Board) -> List[Move]:
     safe_moves: List[Move] = list()
 
