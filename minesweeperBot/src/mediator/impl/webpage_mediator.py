@@ -1,4 +1,4 @@
-from typing import cast, Dict, Tuple
+from typing import cast, Dict, Never, Tuple
 
 import pyautogui as pag
 import PIL.Image
@@ -50,10 +50,10 @@ PIXEL_COLOUR_TO_MINE_COUNT: Dict[Colour, int] = {
     DARK_GRAY:  8
 }
 
-SMILEY_EYE_PIXEL_X_OFFSET = 11
-SMILEY_EYE_PIXEL_Y_OFFSET = 10
-SMILEY_GLASSES_PIXEL_X_OFFSET = 12
-SMILEY_GLASSES_PIXEL_Y_OFFSET = 10
+EMOJI_EYE_PIXEL_X_OFFSET = 11
+EMOJI_EYE_PIXEL_Y_OFFSET = 10
+EMOJI_GLASSES_PIXEL_X_OFFSET = 12
+EMOJI_GLASSES_PIXEL_Y_OFFSET = 10
 
 
 class WebPageMediator(Mediator):
@@ -66,15 +66,22 @@ class WebPageMediator(Mediator):
         x0 = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
         y0 = self._offsets.y - SMILEY_Y_OFFSET
 
-        eye_pixel = screen.getpixel((x0 + SMILEY_EYE_PIXEL_X_OFFSET, y0 + SMILEY_EYE_PIXEL_Y_OFFSET))
+        # TODO: rest of the function is quite chaotic
+        eye_pixel = screen.getpixel((x0 + EMOJI_EYE_PIXEL_X_OFFSET, y0 + EMOJI_EYE_PIXEL_Y_OFFSET))
         if eye_pixel == BLACK:
-            glasses_pixel = screen.getpixel((x0 + SMILEY_GLASSES_PIXEL_X_OFFSET, y0 + SMILEY_GLASSES_PIXEL_Y_OFFSET))
-            if glasses_pixel == BLACK:
+            glasses_pixel = screen.getpixel((x0 + EMOJI_GLASSES_PIXEL_X_OFFSET, y0 + EMOJI_GLASSES_PIXEL_Y_OFFSET))
+            if glasses_pixel == YELLOW:
+                return 'inProgress'
+            elif glasses_pixel == BLACK:
                 return 'victory'
             else:
-                return 'inProgress'
-        else:
+                raise_unexpected_pixel(glasses_pixel)
+        elif eye_pixel == (13, 12, 15):
+            return 'victory'
+        elif eye_pixel == YELLOW:
             return 'failure'
+        else:
+            raise_unexpected_pixel(eye_pixel)
 
     def observe_board(self, old_board: Board | None = None) -> Board:
         if old_board is not None:
@@ -114,12 +121,16 @@ class WebPageMediator(Mediator):
     def post_game_procedure(self) -> None:
         x0 = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
         y0 = self._offsets.y - SMILEY_Y_OFFSET
-        glasses_pixel = pag.pixel(x0 + SMILEY_GLASSES_PIXEL_X_OFFSET, y0 + SMILEY_GLASSES_PIXEL_Y_OFFSET)
+        glasses_pixel = pag.pixel(x0 + EMOJI_GLASSES_PIXEL_X_OFFSET, y0 + EMOJI_GLASSES_PIXEL_Y_OFFSET)
 
         if glasses_pixel != YELLOW:
             # TODO: username shouldn't be hardcoded
-            pag.write('n\'Rvs', 0.1)
+            pag.write('xnzvl', 0.1)
             pag.press('enter')
+
+
+def raise_unexpected_pixel(pixel: float | tuple[int, ...] | None) -> Never:
+    raise RuntimeError(f'unexpected pixel colour - {pixel}')
 
 
 def observe_covered_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) -> None:
@@ -147,7 +158,7 @@ def observe_uncovered_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int
     else:
         mine_count = PIXEL_COLOUR_TO_MINE_COUNT.get(number_pixel)
         if mine_count is None:
-            raise RuntimeError('observed unknown pixel colour')
+            raise_unexpected_pixel(number_pixel)
 
         tile.set_count(mine_count)
 
@@ -159,5 +170,7 @@ def observe_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) -> None:
         tile.set_sign('EXPLODED_MINE')
     elif corner_pixel == WHITE:
         observe_covered_tile(screen, tile, x0, y0)
-    else:
+    elif corner_pixel == GRAY:
         observe_uncovered_tile(screen, tile, x0, y0)
+    else:
+        raise_unexpected_pixel(corner_pixel)
