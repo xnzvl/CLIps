@@ -1,6 +1,6 @@
 from typing import Callable
 
-from src.common import Configuration
+from src.common import Configuration, Move, Point
 from src.game.board import Board
 from src.game.literals import Result
 from src.mediator.mediator import Mediator
@@ -29,6 +29,7 @@ class GenericBot:
 
         while attempt_number < max_attempts and (attempt_each or result != 'victory'):
             self._mediator.reset()
+            self._mediator.play(Move('primary', self._get_center_tile()))
 
             attempt_number += 1
             result = self._attempt_to_solve()
@@ -41,6 +42,9 @@ class GenericBot:
 
         if attempt_each:
             print_winrate(victories, max_attempts)
+
+    def _get_center_tile(self) -> Point:
+        return Point(self._board.get_width() // 2, self._board.get_height() // 2)
 
     def _attempt_to_solve(self) -> Result:
         # TODO: perhaps create a Board from configuration?
