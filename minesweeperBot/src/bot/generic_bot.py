@@ -28,18 +28,19 @@ class GenericBot:
         result: Result = 'failure'
 
         while attempt_number < max_attempts and (attempt_each or result != 'victory'):
+            self._mediator.reset()
+
             attempt_number += 1
             result = self._attempt_to_solve()
 
             if result == 'victory':
                 victories += 1
 
-            log_attempt(attempt_number, result)
-            self._mediator.reset()
+            print_attempt(attempt_number, result)
             self._mediator.post_game_procedure()
 
         if attempt_each:
-            log_winrate(victories, max_attempts)
+            print_winrate(victories, max_attempts)
 
     def _attempt_to_solve(self) -> Result:
         # TODO: perhaps create a Board from configuration?
@@ -61,11 +62,11 @@ class GenericBot:
         return result
 
 
-def log_attempt(attempt_number: int, result: Result) -> None:
+def print_attempt(attempt_number: int, result: Result) -> None:
     print(f'Attempt #{attempt_number}: {result}')
 
 
-def log_winrate(victories: int, attempts: int) -> None:
+def print_winrate(victories: int, attempts: int) -> None:
     print()
     print(f'Achieved {victories} victories from {attempts} attempts')
     print(f'  => winrate: {victories / attempts * 100:.3f}%')
