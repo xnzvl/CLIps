@@ -1,8 +1,9 @@
+from math import log10
 from typing import Callable
 
 from src.common import Configuration, Move, Point
 from src.game.board import Board
-from src.game.literals import Result
+from src.game.literals import Result, GameState
 from src.mediator.mediator import Mediator
 from src.strategy.strategy import Strategy
 
@@ -17,7 +18,8 @@ class GenericBot:
         self._strategy = strategy
         self._mediator = mediator_instantiator(configuration)
 
-        self._board = Board(configuration.dimensions.width, configuration.dimensions.height)
+        self._dimensions = configuration.dimensions
+        self._board = Board(self._dimensions.width, self._dimensions.height)
 
     def solve(self, max_attempts = 1, attempt_each = False) -> None:
         if max_attempts < 1:
@@ -27,9 +29,11 @@ class GenericBot:
         attempt_number = 0
         result: Result = 'failure'
 
+        opening_move = Move('primary', Point(self._dimensions.width // 2, self._dimensions.height // 2))
+
         while attempt_number < max_attempts and (attempt_each or result != 'victory'):
             self._mediator.reset()
-            self._mediator.play(Move('primary', self._get_center_tile()))
+            self._mediator.play(opening_move)
 
             attempt_number += 1
             result = self._attempt_to_solve()
@@ -37,37 +41,34 @@ class GenericBot:
             if result == 'victory':
                 victories += 1
 
-            print_attempt(attempt_number, result)
+            print_attempt(int(log10(max_attempts)) + 1, attempt_number, result)
             self._mediator.post_game_procedure()
 
         if attempt_each:
             print_winrate(victories, max_attempts)
 
-    def _get_center_tile(self) -> Point:
-        return Point(self._board.get_width() // 2, self._board.get_height() // 2)
-
     def _attempt_to_solve(self) -> Result:
-        # TODO: perhaps create a Board from configuration?
-        board = self._mediator.observe_board()
+        board = Board(self._dimensions.width, self._dimensions.height)
 
-        # TODO: looping here could be better (rn it's observing state 2x in a row)
-        while self._mediator.observe_state() == 'inProgress':
+        game_state: GameState = 'inProgress'
+        while game_state == 'inProgress':
             board = self._mediator.observe_board(board)
-
-            i = 0
             moves = self._strategy.get_moves(board)
+            i = 0
 
-            while self._mediator.observe_state() == 'inProgress' and i < len(moves):
+            while game_state == 'inProgress' and i < len(moves):
                 self._mediator.play(moves[i])
+
                 i += 1
+                game_state = self._mediator.observe_state()
 
         result = self._mediator.observe_state()
         assert result != 'inProgress'
         return result
 
 
-def print_attempt(attempt_number: int, result: Result) -> None:
-    print(f'Attempt #{attempt_number}: {result}')
+def print_attempt(max_digits: int, attempt_number: int, result: Result) -> None:
+    print(f'Attempt #{attempt_number:0{max_digits}}: {result}')
 
 
 def print_winrate(victories: int, attempts: int) -> None:
