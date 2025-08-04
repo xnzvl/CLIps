@@ -1,5 +1,5 @@
+- create testing Board
 - autodetect
   - offsets
   - dimensions
-
-- formater/linter
+- configure formater/linter
