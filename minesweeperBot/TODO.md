@@ -1,6 +1,0 @@
-- create testing Board
-- use `reduce` from `functools` more often!
-- autodetect
-  - offsets
-  - dimensions
-- configure formater/linter
