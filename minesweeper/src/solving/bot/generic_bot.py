@@ -4,8 +4,8 @@ from typing import Callable
 from src.common import Configuration, Move, Point
 from src.game.board import Board
 from src.game.literals import Result, GameState
-from src.mediator.mediator import Mediator
-from src.strategy.strategy import Strategy
+from src.solving.mediator import Mediator
+from src.solving.strategy import Strategy
 
 
 class GenericBot:

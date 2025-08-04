@@ -1,8 +1,8 @@
 import sys
 
-from src.bot.dedicated.webpage_bot import WebPageBot
-from src.strategy.impl.certain_first_strategy import CertainFirstStrategy
-from utils.configuration_parser import parse_configuration
+from src.solving.bot.impl.webpage_bot import WebPageBot
+from src.solving.strategy.impl.certain_first_strategy import CertainFirstStrategy
+from src.utils import parse_configuration
 
 
 def main() -> None:

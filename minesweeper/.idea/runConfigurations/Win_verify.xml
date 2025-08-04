@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Win:dev" type="PythonConfigurationType" factoryName="Python" folderName="Windows">
-    <module name="minesweeper" />
+  <configuration default="false" name="Win:verify" type="PythonConfigurationType" factoryName="Python" folderName="Windows">
+    <module name="minesweeperBot" />
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
@@ -13,7 +13,7 @@
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-    <option name="SCRIPT_NAME" value="scripts/dev.py" />
+    <option name="SCRIPT_NAME" value="scripts/verify/verify_webpage.py" />
     <option name="PARAMETERS" value="250 195 9 9" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />

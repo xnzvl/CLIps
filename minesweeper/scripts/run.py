@@ -1,6 +1,6 @@
 import sys
 
-from utils.configuration_parser import parse_configuration
+from src.utils import parse_configuration
 
 
 def main() -> None:

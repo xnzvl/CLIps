@@ -1,8 +1,8 @@
-from src.bot.generic_bot import GenericBot
+from src.solving.bot.generic_bot import GenericBot
 
 from src.common import Configuration
-from src.mediator.impl.webpage_mediator import WebPageMediator
-from src.strategy.strategy import Strategy
+from src.solving.mediator import WebPageMediator
+from src.solving.strategy import Strategy
 
 
 class WebPageBot(GenericBot):

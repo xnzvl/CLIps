@@ -2,8 +2,8 @@ from typing import List
 
 from src.common import Move
 from src.game.board import Board
-from src.strategy.steps import certain_flags, certain_safe_moves, random_move
-from src.strategy.strategy import Strategy
+from src.solving.strategy.steps import certain_flags, certain_safe_moves, random_move
+from src.solving.strategy.strategy import Strategy
 
 
 class CertainFirstStrategy(Strategy):
