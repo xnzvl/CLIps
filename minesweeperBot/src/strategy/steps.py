@@ -1,5 +1,5 @@
 from random import choice
-from typing import List, Set, Tuple
+from typing import Dict, List, Set, Tuple
 
 from src.common import Move, Point
 from src.game.board import Board
@@ -71,3 +71,45 @@ def certain_safe_moves(board: Board) -> List[Move]:
             safe_moves.extend([Move('primary', p) for p, _ in covered_neighbours])
 
     return safe_moves
+
+
+# TODO: make compatible with question-mark tiles
+def least_danger_moves(board: Board) -> List[Move]:
+    # TODO: code polish
+    danger_levels: Dict[Point, Tuple[int, int]] = dict()
+    for point, tile in board:
+        if tile.get_symbol() != 'NUMBER':
+            continue
+
+        neighbours = board.get_neighbours_of_tile_at(point.x, point.y)
+        flags = 0
+
+        for neighbour_point, neighbour_tile in neighbours:
+            if neighbour_tile.get_symbol() == 'FLAG':
+                flags += 1
+
+        count = tile.get_count()
+        assert count is not None
+        if flags > count:
+            raise RuntimeError('invalid state - too many flags')
+
+        danger_increase = 1 if flags < count else 0
+        for neighbour_point, neighbour_tile in neighbours:
+            if neighbour_tile.get_symbol() == 'COVERED':
+                danger_level, max_danger = danger_levels.get(neighbour_point, (0, 0))
+                danger_levels[neighbour_point] = (danger_level + danger_increase, max_danger + 1)
+
+    least_danger_moves: List[Move] = list()
+    least_danger_level = 1
+    for point, levels in danger_levels.items():
+        current_level, max_level = levels
+        danger = current_level / max_level
+
+        if danger < least_danger_level:
+            least_danger_moves.clear()
+            least_danger_level = danger
+
+        if danger == least_danger_level:
+            least_danger_moves.append(Move('primary', point))
+
+    return least_danger_moves
