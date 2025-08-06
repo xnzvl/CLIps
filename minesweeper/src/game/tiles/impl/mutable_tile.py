@@ -1,7 +1,6 @@
 from typing import override
 
-from src.game.tiles import Sign, Symbol, COVERED_SYMBOLS
-from src.game.tiles.tile import Tile
+from src.game.tiles.tile import Sign, Symbol, Tile
 
 
 class MutableTile(Tile):
@@ -35,7 +34,3 @@ class MutableTile(Tile):
     def set_sign(self, sign: Sign) -> None:
         self._symbol = sign
         self._count = None
-
-    @override
-    def is_covered(self) -> bool:
-        return self._symbol in COVERED_SYMBOLS
