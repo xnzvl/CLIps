@@ -6,10 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="42a24497-afe1-4719-9c2c-479ca3ccef69" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/dev.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/dev.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/run.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/game/grids/impl/mine_field.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/game/grids/impl/mine_field.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/game/tiles/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/game/tiles/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/game/tiles/impl/frozen_tile.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/game/tiles/impl/frozen_tile.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/game/tiles/impl/mutable_tile.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/game/tiles/impl/mutable_tile.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/game/tiles/tile.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/game/tiles/tile.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/solving/mediator/impl/webpage_mediator.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/solving/mediator/impl/webpage_mediator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/solving/strategy/impl/least_danger_strategy.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/solving/strategy/impl/least_danger_strategy.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/solving/strategy/steps.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/solving/strategy/steps.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -83,7 +85,9 @@
       <workItem from="1754328917436" duration="15667000" />
       <workItem from="1754348563376" duration="577000" />
       <workItem from="1754419951923" duration="745000" />
-      <workItem from="1754440544332" duration="572000" />
+      <workItem from="1754440544332" duration="962000" />
+      <workItem from="1754500455231" duration="3551000" />
+      <workItem from="1754507914350" duration="11752000" />
     </task>
     <servers />
   </component>

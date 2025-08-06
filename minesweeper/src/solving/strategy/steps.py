@@ -6,20 +6,21 @@ from src.game.grids.grid import Grid
 from src.game.tiles.tile import Tile
 
 
-# TODO: make compatible with question-mark tiles
-def random_move(board: Grid) -> List[Move]:
-    covered_tiles = [
-        (point, tile)
-        for point, tile in board
-        if tile.get_symbol() == 'COVERED'
-    ]
+def random_move(board: Grid, covered_only: bool = True) -> List[Move]:
+    random_moves: List[List[Move]] = list()
 
-    chosen_point, chosen_tile = choice(covered_tiles)
+    for point, tile in board:
+        symbol = tile.get_symbol()
 
-    return [Move('primary', chosen_point)]
+        if symbol == 'COVERED':
+            random_moves.append([Move('primary', point)])
+        elif not covered_only and (symbol == 'FLAG' or symbol == 'QUESTION_MARK'):
+            random_moves.append([Move('secondary', point), Move('primary', point)])
+
+    return choice(random_moves) if len(random_moves) > 0 else []
 
 
-# TODO: make compatible with question-mark tiles
+# TODO: code polish
 def certain_flags(board: Grid) -> List[Move]:
     flag_moves: List[Move] = list()
     already_flagged: Set[Point] = set()
@@ -40,15 +41,22 @@ def certain_flags(board: Grid) -> List[Move]:
             continue
 
         for p, t in covered_neighbours:
-            if p not in already_flagged and t.get_symbol() == 'COVERED':
-                already_flagged.add(p)
+            covered_symbol = t.get_symbol()
+
+            if p in already_flagged or covered_symbol == 'FLAG':
+                continue
+
+            if covered_symbol == 'COVERED':
                 flag_moves.append(Move('secondary', p))
-                t.set_sign('FLAG')
+            else:  # => covered_symbol == 'QUESTION_MARK'
+                flag_moves.extend([Move('secondary', p)] * 2)
+
+            already_flagged.add(p)
+            t.set_sign('FLAG')
 
     return flag_moves
 
 
-# TODO: make compatible with question-mark tiles
 def certain_safe_moves(board: Grid) -> List[Move]:
     safe_moves: List[Move] = list()
 
@@ -61,7 +69,7 @@ def certain_safe_moves(board: Grid) -> List[Move]:
 
         for p, t in board.get_neighbours_of_tile_at(point.x, point.y):
             symbol = t.get_symbol()
-            if symbol == 'COVERED':
+            if symbol == 'COVERED' or symbol == 'QUESTION_MARK':
                 covered_neighbours.append((p, t))
             elif symbol == 'FLAG':
                 neighbour_flags += 1
@@ -74,8 +82,8 @@ def certain_safe_moves(board: Grid) -> List[Move]:
 
 
 # TODO: make compatible with question-mark tiles
+# TODO: code polish
 def least_danger_moves(board: Grid) -> List[Move]:
-    # TODO: code polish
     danger_levels: Dict[Point, Tuple[int, int]] = dict()
     for point, tile in board:
         if tile.get_symbol() != 'NUMBER':

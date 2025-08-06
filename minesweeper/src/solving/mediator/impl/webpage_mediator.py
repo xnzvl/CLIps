@@ -56,6 +56,7 @@ EMOJI_GLASSES_PIXEL_X_OFFSET = 12
 EMOJI_GLASSES_PIXEL_Y_OFFSET = 10
 
 
+# TODO: make compatible with question-mark tiles
 class WebPageMediator(Mediator):
     def __init__(self, configuration: Configuration) -> None:
         super().__init__(configuration)
