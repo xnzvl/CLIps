@@ -3,7 +3,8 @@ from typing import List
 
 from src.common import Move
 from src.game.grids.impl.mutable_grid import MutableGrid
-from src.solving.strategy.steps import certain_flags, certain_safe_moves, least_danger_moves
+from src.solving.strategy.steps.certain import certain_flags, certain_safe_moves
+from src.solving.strategy.steps.educated import least_danger_moves
 from src.solving.strategy.strategy import Strategy
 
 

@@ -5,8 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="42a24497-afe1-4719-9c2c-479ca3ccef69" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/solving/strategy/steps/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/solving/strategy/steps/calculated.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/solving/strategy/steps/certain.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/solving/strategy/steps/educated.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/solving/strategy/steps/random.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/solving/strategy/steps.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/solving/strategy/steps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/solving/strategy/impl/certain_first_strategy.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/solving/strategy/impl/certain_first_strategy.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/solving/strategy/impl/least_danger_strategy.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/solving/strategy/impl/least_danger_strategy.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/solving/strategy/impl/random_strategy.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/solving/strategy/impl/random_strategy.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/solving/strategy/steps.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/solving/strategy/strategy.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/solving/strategy/strategy.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,23 +45,24 @@
     <option name="openDirectoriesWithSingleClick" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;minesweeper&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.steps.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "minesweeper",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "run.code.analysis.last.selected.profile": "aDefault",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\eMpx_\Documents\_main.dir\CLIps\minesweeper\src\game\tiles\impl" />
@@ -98,6 +108,29 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="steps" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="minesweeper" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/solving/strategy" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/solving/strategy/steps.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -187,6 +220,11 @@
       <option name="USE_PATTERN" value="false" />
       <method v="2" />
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.steps" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -210,11 +248,23 @@
       <workItem from="1754500455231" duration="3551000" />
       <workItem from="1754507914350" duration="11752000" />
       <workItem from="1754585944039" duration="2000" />
-      <workItem from="1754585950872" duration="9035000" />
+      <workItem from="1754585950872" duration="9568000" />
+      <workItem from="1754946132659" duration="88000" />
+      <workItem from="1755102080016" duration="146000" />
+      <workItem from="1755114486953" duration="1688000" />
+      <workItem from="1755122007871" duration="112000" />
+      <workItem from="1755179872370" duration="37000" />
+      <workItem from="1755188166005" duration="1231000" />
+      <workItem from="1755190410819" duration="1936000" />
+      <workItem from="1755195513454" duration="14728000" />
+      <workItem from="1755210980507" duration="2887000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/minesweeper$steps.coverage" NAME="steps Coverage Results" MODIFIED="1755213681116" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/solving/strategy" />
   </component>
 </project>
