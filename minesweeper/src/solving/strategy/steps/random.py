@@ -17,3 +17,5 @@ def random_move(grid: Grid, covered_only: bool = True) -> List[Move]:
             random_moves.append([Move('secondary', point), Move('primary', point)])
 
     return choice(random_moves) if len(random_moves) > 0 else []
+
+# TODO: less random -> pick a tile from edge

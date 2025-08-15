@@ -5,17 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="42a24497-afe1-4719-9c2c-479ca3ccef69" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/solving/strategy/steps/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/solving/strategy/steps/calculated.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/solving/strategy/steps/certain.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/solving/strategy/steps/educated.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/solving/strategy/steps/random.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/solving/strategy/impl/certain_first_strategy.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/solving/strategy/impl/certain_first_strategy.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/solving/strategy/impl/least_danger_strategy.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/solving/strategy/impl/least_danger_strategy.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/solving/strategy/impl/random_strategy.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/solving/strategy/impl/random_strategy.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/solving/strategy/steps.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/solving/strategy/strategy.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/solving/strategy/strategy.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/exceptions.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/exceptions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/game/grids/grid.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/game/grids/grid.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/solving/strategy/steps/calculated.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/solving/strategy/steps/calculated.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/solving/strategy/steps/certain.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/solving/strategy/steps/certain.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/solving/strategy/steps/random.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/solving/strategy/steps/random.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,6 +43,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.calculated.executor": "Run",
     "Python.steps.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
@@ -116,7 +112,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="steps" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="calculated" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="minesweeper" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -125,12 +121,12 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/solving/strategy" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/solving/strategy/steps" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/solving/strategy/steps.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/solving/strategy/steps/calculated.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -222,7 +218,7 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.steps" />
+        <item itemvalue="Python.calculated" />
       </list>
     </recent_temporary>
   </component>
@@ -257,7 +253,7 @@
       <workItem from="1755188166005" duration="1231000" />
       <workItem from="1755190410819" duration="1936000" />
       <workItem from="1755195513454" duration="14728000" />
-      <workItem from="1755210980507" duration="2887000" />
+      <workItem from="1755210980507" duration="8509000" />
     </task>
     <servers />
   </component>
@@ -265,6 +261,7 @@
     <option name="version" value="3" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/minesweeper$steps.coverage" NAME="steps Coverage Results" MODIFIED="1755213681116" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/solving/strategy" />
+    <SUITE FILE_PATH="coverage/minesweeper$steps.coverage" NAME="steps Coverage Results" MODIFIED="1755214856000" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/solving/strategy" />
+    <SUITE FILE_PATH="coverage/minesweeper$calculated.coverage" NAME="calculated Coverage Results" MODIFIED="1755218152920" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/solving/strategy/steps" />
   </component>
 </project>

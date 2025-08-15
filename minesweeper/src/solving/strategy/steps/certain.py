@@ -67,3 +67,6 @@ def certain_safe_moves(grid: Grid) -> List[Move]:
             safe_moves.extend([Move('primary', p) for p, _ in covered_neighbours])
 
     return safe_moves
+
+
+# TODO: implement fix_certain_wrong_flags() or smth like that

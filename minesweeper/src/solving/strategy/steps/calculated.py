@@ -1,8 +1,36 @@
-from typing import List
+from itertools import combinations
+from typing import List, Tuple
 
 from src.common import Move, Point
+from src.exceptions import InvalidGameStateError
 from src.game.grids.grid import Grid
 from src.game.grids.impl.mutable_grid import MutableGrid
+from src.game.tiles.tile import Tile
+
+
+def _all_possible_flag_scenarios(grid: Grid, point: Point, tile: Tile) -> List[List[Tuple[Point, Tile]]]:
+    scenarios: List[List[Tuple[Point, Tile]]] = list()
+
+    mine_count = tile.get_count()
+    assert mine_count is not None
+
+    max_to_be_flagged = mine_count - grid.count_symbol_in_neighbourhood(point.x, point.y, 'FLAG')
+    if max_to_be_flagged < 0:
+        raise InvalidGameStateError('too many flagged tiles')
+
+    for potential_flags in range(max_to_be_flagged, 0, -1):
+        for indices in combinations(
+                grid.get_neighbours_with_symbol(point.x, point.y, 'COVERED', 'QUESTION_MARK'),
+                potential_flags
+        ):
+            scenarios.append(list(indices))
+
+    return scenarios
+
+
+def _simulate_around(grid: Grid, number_point: Point) -> List[Move] | None:
+
+    return list()
 
 
 def calculate_safe_moves(grid: Grid) -> List[Move]:
@@ -13,42 +41,6 @@ def calculate_safe_moves(grid: Grid) -> List[Move]:
         flag_options = grid.get_neighbours_of_tile_at(point.x, point.y)
 
     return list()
-
-
-def _simulate_around(grid: Grid, number_point: Point) -> List[Move] | None:
-    neighbours = grid.get_neighbours_of_tile_at(number_point.x, number_point.y)
-
-    flag_count = len([None for p, t in neighbours if t.get_symbol() == 'FLAG'])
-    mines = grid[number_point.x, number_point.y].get_count()
-    assert mines is not None
-
-    if flag_count > mines:
-        return None
-
-    return list()
-
-
-def get_all_indices_for_n(n: int, from_i: int, to_i: int, current: List[int], result: List[List[int]]) -> None:
-    if n == 0:
-        result.append(current.copy())
-        return
-
-    max_i = to_i - from_i - n + 2
-    for i in range(max_i):
-        current.append(from_i + i)
-        get_all_indices_for_n(n - 1, from_i + i + 1, to_i, current, result)
-        current.pop()
-
-
-def get_all_indices(n: int, max_i: int) -> List[List[int]]:
-    result = list()
-
-    for i in range(n, 0, -1):
-        sub_result = list()
-        get_all_indices_for_n(i, 0, max_i, list(), sub_result)
-        result.extend(sub_result)
-
-    return result
 
 
 def main() -> None:
@@ -70,10 +62,6 @@ def main() -> None:
     trickier_grid.print()
 
     print()
-
-    for c in get_all_indices(3, 5):
-        print(c)
-
     return
 
 
