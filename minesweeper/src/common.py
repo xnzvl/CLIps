@@ -20,6 +20,8 @@ class Configuration(NamedTuple):
     dimensions: Dimensions
 
 
+# TODO: change!
+#       instead of button I want to be able to choose to which Symbol the tile will be turned into
 class Move(NamedTuple):
     button: MouseButton
     tile: Point
