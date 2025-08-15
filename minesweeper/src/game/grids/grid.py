@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Tuple
 
 from src.common import Point
-from src.game.tiles.tile import Tile
+from src.game.tiles.tile import Symbol, Tile
 
 
 class GridIterator(ABC):
@@ -28,9 +28,6 @@ class Grid(ABC):
     def get_height(self) -> int:
         ...
 
-    def get_tile_at(self, x: int, y: int) -> Tile:
-        return self[x, y]
-
     @abstractmethod
     def get_neighbours_of_tile_at(self, x: int, y: int) -> List[Tuple[Point, Tile]]:
         ...
@@ -42,3 +39,25 @@ class Grid(ABC):
     @abstractmethod
     def print(self) -> None:
         ...
+
+    def get_tile_at(self, x: int, y: int) -> Tile:
+        return self[x, y]
+
+    # TODO: update class usage
+    def count_symbol_in_neighbourhood(self, x: int, y: int, symbol: Symbol) -> int:
+        return len(
+            [
+                None
+                for _, neighbour in self.get_neighbours_of_tile_at(x, y)
+                if neighbour.get_symbol() == symbol
+            ]
+        )
+
+    # TODO: update class usage
+    def get_neighbours_with_symbol(self, x: int, y: int, *desired_symbols: Symbol) -> List[Tuple[Point, Tile]]:
+        white_list = set(desired_symbols)
+        return [
+            (p, t)
+            for p, t in self.get_neighbours_of_tile_at(x, y)
+            if t.get_symbol() in white_list
+        ]
