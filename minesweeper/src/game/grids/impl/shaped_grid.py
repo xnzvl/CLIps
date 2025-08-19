@@ -1,10 +1,10 @@
 from abc import ABC
-from typing import List, Tuple, assert_never, override
+from typing import List, Tuple, override
 
 from src.common import Dimensions, Point
 from src.game.grids.grid import GridIterator, Grid
 from src.game.tiles.impl.mutable_tile import MutableTile
-from src.game.tiles.tile import Tile
+from src.game.tiles.tile import Tile, tile_to_str
 
 
 class ShapedGridIterator(GridIterator):
@@ -89,29 +89,5 @@ class ShapedGrid(Grid, ABC):
     def print(self) -> None:
         for y in range(self._height):
             for x in range(self._width):
-                print_tile(self[x, y])
+                print(tile_to_str(self[x, y]), end='')
             print()
-
-
-def print_tile(tile: Tile) -> None:
-    match tile.get_symbol():
-        case 'COVERED':
-            to_print = 'O'
-        case 'EXPLODED_MINE':
-            to_print = '*'
-        case 'MINE':
-            to_print = '+'
-        case 'BAD_MINE':
-            to_print = 'X'
-        case 'FLAG':
-            to_print = 'F'
-        case 'QUESTION_MARK':
-            to_print = '?'
-        case 'NUMBER':
-            to_print = tile.get_count()
-        case 'EMPTY':
-            to_print = ' '
-        case _:
-            assert_never(tile.get_symbol())
-
-    print(to_print, end='')
