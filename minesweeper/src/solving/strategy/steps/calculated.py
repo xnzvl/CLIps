@@ -1,5 +1,5 @@
 from itertools import combinations
-from typing import List, Tuple, Set
+from typing import List, NamedTuple, Tuple, Set
 
 from src.common import Move, Point
 from src.exceptions import InvalidGameStateError
@@ -8,7 +8,14 @@ from src.game.grids.impl.mutable_grid import MutableGrid
 from src.game.tiles.tile import Tile, Sign
 
 
-def _all_possible_flag_scenarios(grid: Grid, point: Point) -> List[List[Tuple[Point, Tile]]]:
+class _SimulationState(NamedTuple):
+    currently_safe: Set[Point]
+    currently_flagged: Set[Point]
+    always_safe: Set[Point]
+    always_flagged: Set[Point]
+
+
+def all_possible_flag_scenarios(grid: Grid, point: Point) -> List[List[Tuple[Point, Tile]]]:
     scenarios: List[List[Tuple[Point, Tile]]] = list()
 
     mine_count = grid[point.x, point.y].get_count()
@@ -46,7 +53,10 @@ def _undo_flagging(grid: Grid, before_flagging: List[Tuple[Point, Sign]], simula
         simulated_flags.remove(point)
 
 
-def _try_flags_scenario(grid: Grid, scenario: List[Tuple[Point, Tile]], simulated_flags: Set[Point]) -> List[Tuple[Point, Sign]] | None:
+def try_flags_scenario(
+        grid: Grid,
+        scenario: List[Tuple[Point, Tile]]
+) -> Tuple[List[Tuple[Point, Sign]], List[Point]] | None:
     before_flagging: List[Tuple[Point, Sign]] = list()
 
     for to_flag_point, to_flag_tile in scenario:
@@ -64,52 +74,34 @@ def _try_flags_scenario(grid: Grid, scenario: List[Tuple[Point, Tile]], simulate
     return before_flagging
 
 
-# TODO: make compatible with question marks
-def _append_to_moves(moves: List[Move], scenario: List[Tuple[Point, Tile]]) -> None:
-    for p, _ in scenario:
-        moves.append(
-            Move('secondary', p)
-        )
-
-
-def _undo_scenario_from_moves_stack(moves: List[Move],scenario_length: int) -> None:
-    for _ in range(scenario_length):
-        moves.pop()
-
-
-def _simulate_around(
+def _simulate(
         grid: Grid,
         number_point: Point,
-        moves_stack: List[Move],
-        simulated_flags: Set[Point],
-        already_visited: Set[Point]
+        simulation_state: _SimulationState,
 ) -> bool:
+    mine_count = grid[number_point.x, number_point.y].get_count()
+    assert mine_count is not None
+    flags_to_simulate = mine_count - len(
+        grid.get_neighbours_with_symbol(number_point.x, number_point.y, 'FLAG')
+    )
 
+    if flags_to_simulate == 0:
+        # intersect current and always sim substates
+        return True
 
-    for scenario in _all_possible_flag_scenarios(grid, number_point):
-        affected_points = _try_flags_scenario(grid, scenario, simulated_flags)
-        if affected_points is None:
+    at_least_one_valid_scenario = False
+    for flag_scenario in all_possible_flag_scenarios(grid, number_point):
+        before_flagging = try_flags_scenario(grid, flag_scenario, simulation_state)
+        if before_flagging is None:
             continue
 
-        to_visit = set()
-        for affected_point, _ in affected_points:
-            to_visit.add(grid.get_neighbours_with_symbol(affected_point.x, affected_point.y, 'COVERED', 'QUESTION_MARK'))
+        for p, _ in flag_scenario:
+            is_valid_scenario = _simulate(grid, p, simulation_state)
+            at_least_one_valid_scenario = at_least_one_valid_scenario or is_valid_scenario
 
-        for to_visit_p, _ in affected_points:
-            _simulate_around(grid, to_visit_p, moves_stack, simulated_flags, already_visited)
+        _undo_flagging(grid, before_flagging, simulation_state)
 
-        # _append_to_moves(moves_stack, scenario)
-
-        # for n_p, _ in grid.get_neighbours_with_symbol(number_point.x, number_point.y, 'NUMBER'):
-        #     is_sim_successful = _simulate_around(grid, n_p, moves_stack, simulated_flags)
-
-        #     if is_sim_successful:
-        #         return True
-
-        # _undo_scenario_from_moves_stack(moves_stack, len(scenario))
-        # _undo_flagging(grid, affected_points, simulated_flags)
-
-    return False
+    return at_least_one_valid_scenario
 
 
 def calculate_safe_moves(grid: Grid) -> List[Move]:
@@ -123,7 +115,7 @@ def calculate_safe_moves(grid: Grid) -> List[Move]:
 
         if flags < mines:
             result = list()
-            if _simulate_around(grid, point, result, set()):
+            if _simulate(grid, point, result, set()):
                 return result
 
     return list()
