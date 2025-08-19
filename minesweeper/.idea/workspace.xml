@@ -5,11 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="42a24497-afe1-4719-9c2c-479ca3ccef69" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/minesweeper.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/minesweeper.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/game/grids/impl/shaped_grid.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/game/grids/impl/shaped_grid.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/game/tiles/tile.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/game/tiles/tile.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/solving/strategy/steps/calculated.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/solving/strategy/steps/calculated.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -269,7 +266,7 @@
       <workItem from="1755607459646" duration="435000" />
       <workItem from="1755613476934" duration="2655000" />
       <workItem from="1755619715533" duration="5356000" />
-      <workItem from="1755627677734" duration="2187000" />
+      <workItem from="1755627677734" duration="4069000" />
     </task>
     <servers />
   </component>
@@ -287,19 +284,8 @@
       </map>
     </option>
   </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/solving/strategy/steps/calculated.py</url>
-          <line>164</line>
-          <option name="timeStamp" value="14" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
-  </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/minesweeper$steps.coverage" NAME="steps Coverage Results" MODIFIED="1755214856000" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/solving/strategy" />
-    <SUITE FILE_PATH="coverage/minesweeper$calculated.coverage" NAME="calculated Coverage Results" MODIFIED="1755629841103" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/solving/strategy/steps" />
+    <SUITE FILE_PATH="coverage/minesweeper$calculated.coverage" NAME="calculated Coverage Results" MODIFIED="1755631034575" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/solving/strategy/steps" />
   </component>
 </project>

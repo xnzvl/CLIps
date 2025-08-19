@@ -21,8 +21,12 @@ class SimulationState:
 
         self.currently_visiting: Set[Point] = set()
 
-    def accept_current(self):
-        return
+    def accept_current(self) -> None:
+        # TODO: implement
+        print(f'safe:     {self.currently_safe}')
+        print(f'flagged:  {self.currently_flagged}')
+        print(f'visiting: {self.currently_visiting}')
+        print()
 
 
 class FlagScenario(NamedTuple):
@@ -105,7 +109,7 @@ def try_flags_scenario(
     return True, before_flagging
 
 
-def simulate(
+def simulate(  # TODO: code polish
         grid: Grid,
         number_point: Point,
         simulation_state: SimulationState,
@@ -136,7 +140,7 @@ def simulate(
                 if n in simulation_state.currently_visiting:
                     continue
 
-                is_valid_scenario = simulate(grid, n, simulation_state)  # TODO: fix here
+                is_valid_scenario = simulate(grid, n, simulation_state)
                 at_least_one_valid_scenario = at_least_one_valid_scenario or is_valid_scenario
 
         undo_flagging(grid, before_flagging)
