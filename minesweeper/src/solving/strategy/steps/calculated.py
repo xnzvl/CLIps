@@ -15,8 +15,16 @@ class _SimulationState(NamedTuple):
     always_flagged: Set[Point]
 
 
-def all_possible_flag_scenarios(grid: Grid, point: Point) -> List[List[Tuple[Point, Tile]]]:
-    scenarios: List[List[Tuple[Point, Tile]]] = list()
+class FlagScenario(NamedTuple):
+    flags: List[Point]
+    safe: List[Point]
+
+
+def all_possible_flag_scenarios(  # TODO: code polish
+        grid: Grid,
+        point: Point
+) -> List[FlagScenario]:
+    scenarios: List[FlagScenario] = list()
 
     mine_count = grid[point.x, point.y].get_count()
     assert mine_count is not None
@@ -25,12 +33,26 @@ def all_possible_flag_scenarios(grid: Grid, point: Point) -> List[List[Tuple[Poi
     if max_to_be_flagged < 0:
         raise InvalidGameStateError('too many flagged tiles')
 
-    for potential_flags in range(max_to_be_flagged, 0, -1):
-        for indices in combinations(
-                grid.get_neighbours_with_symbol(point.x, point.y, 'COVERED', 'QUESTION_MARK'),
-                potential_flags
-        ):
-            scenarios.append(list(indices))
+    neighbours = grid.get_neighbours_with_symbol(point.x, point.y, 'COVERED', 'QUESTION_MARK')
+
+    for potential_flags in range(max_to_be_flagged, 0, -1):  # TODO: can't I just simulate max_to_be_flagged?
+        for c in combinations([i for i in range(len(neighbours))], potential_flags):
+            safe_indices = [True for _ in range(len(neighbours))]
+
+            for flag_i in c:
+                safe_indices[flag_i] = False
+
+            safe: List[Point] = list()
+            flagged: List[Point] = list()
+
+            for i, is_safe in enumerate(safe_indices):
+                p, _ = neighbours[i]
+                if is_safe:
+                    safe.append(p)
+                else:
+                    flagged.append(p)
+
+            scenarios.append(FlagScenario(flagged, safe))
 
     return scenarios
 
@@ -55,7 +77,7 @@ def _undo_flagging(grid: Grid, before_flagging: List[Tuple[Point, Sign]], simula
 
 def try_flags_scenario(
         grid: Grid,
-        scenario: List[Tuple[Point, Tile]]
+        flag_scenario: FlagScenario,
 ) -> Tuple[List[Tuple[Point, Sign]], List[Point]] | None:
     before_flagging: List[Tuple[Point, Sign]] = list()
 

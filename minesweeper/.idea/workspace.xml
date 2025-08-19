@@ -5,6 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="42a24497-afe1-4719-9c2c-479ca3ccef69" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/minesweeper.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/minesweeper.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/solving/strategy/steps/calculated.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/solving/strategy/steps/calculated.py" afterDir="false" />
     </list>
