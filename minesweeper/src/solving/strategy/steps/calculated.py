@@ -10,11 +10,8 @@ from src.game.tiles.tile import Sign
 
 class SimulationState:
     def __init__(self) -> None:
-        self._always_safe: Set[Point] = set()
-        self._always_flagged: Set[Point] = set()
-
-        self._deemed_flaggable: Set[Point] = set()
-        self._deemed_dangerous: Set[Point] = set()
+        self._possibly_safe: Set[Point] = set()
+        self._flaggable: Set[Point] = set()
 
         self.currently_safe: Set[Point] = set()
         self.currently_flagged: Set[Point] = set()
@@ -22,11 +19,13 @@ class SimulationState:
         self.currently_visiting: Set[Point] = set()
 
     def accept_current(self) -> None:
-        # TODO: implement
-        print(f'safe:     {self.currently_safe}')
-        print(f'flagged:  {self.currently_flagged}')
-        print(f'visiting: {self.currently_visiting}')
-        print()
+        self._possibly_safe.update(self.currently_safe)
+        self._flaggable.update(self.currently_flagged)
+
+    def get_result(self) -> Tuple[Set[Point], Set[Point]]:
+        always_flagged = self._flaggable.difference(self._possibly_safe)
+        always_safe = self._possibly_safe.difference(self._flaggable)
+        return always_flagged, always_safe
 
 
 class FlagScenario(NamedTuple):
@@ -49,24 +48,23 @@ def all_possible_flag_scenarios(  # TODO: code polish
 
     neighbours = grid.get_neighbours_with_symbol(point.x, point.y, 'COVERED', 'QUESTION_MARK')
 
-    for potential_flags in range(max_to_be_flagged, 0, -1):  # TODO: can't I just simulate max_to_be_flagged?
-        for c in combinations([i for i in range(len(neighbours))], potential_flags):
-            safe_indices = [True for _ in range(len(neighbours))]
+    for c in combinations([i for i in range(len(neighbours))], max_to_be_flagged):
+        safe_indices = [True for _ in range(len(neighbours))]
 
-            for flag_i in c:
-                safe_indices[flag_i] = False
+        for flag_i in c:
+            safe_indices[flag_i] = False
 
-            safe: List[Point] = list()
-            flagged: List[Point] = list()
+        safe: List[Point] = list()
+        flagged: List[Point] = list()
 
-            for i, is_safe in enumerate(safe_indices):
-                p, _ = neighbours[i]
-                if is_safe:
-                    safe.append(p)
-                else:
-                    flagged.append(p)
+        for i, is_safe in enumerate(safe_indices):
+            p, _ = neighbours[i]
+            if is_safe:
+                safe.append(p)
+            else:
+                flagged.append(p)
 
-            scenarios.append(FlagScenario(flagged, safe))
+        scenarios.append(FlagScenario(flagged, safe))
 
     return scenarios
 
@@ -148,7 +146,8 @@ def simulate(  # TODO: code polish
         for e in flag_scenario.flags:
             simulation_state.currently_flagged.remove(e)
         for e in flag_scenario.safe:
-            simulation_state.currently_safe.remove(e)
+            if e in simulation_state.currently_safe:
+                simulation_state.currently_safe.remove(e)
 
     simulation_state.currently_visiting.remove(number_point)
     return at_least_one_valid_scenario
@@ -164,33 +163,47 @@ def calculate_safe_moves(grid: Grid) -> List[Move]:
         flags = grid.count_symbol_in_neighbourhood(point.x, point.y, 'FLAG')
 
         if flags < mines:
-            result = list()
-            if simulate(grid, point, SimulationState()):
-                return result
+            simulation_state = SimulationState()
+
+            simulation_result = simulate(grid, point, simulation_state)
+            if not simulation_result:
+                continue
+
+            always_flagged, always_safe = simulation_state.get_result()
+            if len(always_flagged) > 0 or len(always_safe) > 0:
+                print(f'always_flagged: {always_flagged}')
+                print(f'always_safe:    {always_safe}')
+                return list()  # TODO: return moves
 
     return list()
 
 
 def main() -> None:
-    simple_grid = MutableGrid(5, 2)
+    grid_a = MutableGrid(5, 2)
     for x in range(5):
-        simple_grid[x, 1].set_count(1 if x != 1 and x != 3 else 2)
+        grid_a[x, 1].set_count(1 if x != 1 and x != 3 else 2)
+    grid_a.print()
+    calculate_safe_moves(grid_a)
 
-    # simple_grid.print()
-
-
-    trickier_grid = MutableGrid(4, 3)
-    trickier_grid[0, 1].set_count(1)
-    trickier_grid[1, 1].set_count(1)
-    trickier_grid[2, 1].set_count(3)
-    trickier_grid[0, 2].set_count(0)
-    trickier_grid[1, 2].set_count(0)
-    trickier_grid[2, 2].set_count(1)
-
-    trickier_grid.print()
     print()
-    for m in calculate_safe_moves(trickier_grid):
-        print(m)
+
+    grid_b = MutableGrid(4, 3)
+    grid_b[0, 1].set_count(1)
+    grid_b[1, 1].set_count(1)
+    grid_b[2, 1].set_count(3)
+    grid_b[0, 2].set_count(0)
+    grid_b[1, 2].set_count(0)
+    grid_b[2, 2].set_count(1)
+    grid_b.print()
+    calculate_safe_moves(grid_b)
+
+    print()
+
+    grid_c = MutableGrid(3, 2)
+    for x in range(3):
+        grid_c[x, 1].set_count(1 if x != 1 else 2)
+    grid_c.print()
+    calculate_safe_moves(grid_c)
 
     return
 
