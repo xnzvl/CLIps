@@ -31,7 +31,7 @@ def certain_flags(grid: Grid) -> List[Move]:
 
         covered_neighbours = [
             (p, t)
-            for p, t in grid.get_neighbours_of_tile_at(point.x, point.y)
+            for p, t in grid.neighbourhood_of(point.x, point.y)
             if t.is_covered()
         ]
         count = tile.get_count()
@@ -55,7 +55,7 @@ def certain_safe_moves(grid: Grid) -> List[Move]:
         covered_neighbours: List[Tuple[Point, Tile]] = list()
         neighbour_flags = 0
 
-        for p, t in grid.get_neighbours_of_tile_at(point.x, point.y):
+        for p, t in grid.neighbourhood_of(point.x, point.y):
             symbol = t.get_symbol()
             if symbol == 'COVERED' or symbol == 'QUESTION_MARK':
                 covered_neighbours.append((p, t))

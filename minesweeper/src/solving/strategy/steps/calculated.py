@@ -53,7 +53,7 @@ def all_possible_flag_scenarios(  # TODO: code polish
     if max_to_be_flagged < 0:
         raise InvalidGameStateError('too many flagged tiles')
 
-    neighbours = grid.get_neighbours_with_symbol(point.x, point.y, 'COVERED', 'QUESTION_MARK')
+    neighbours = [n for n in grid.neighbourhood_with_symbol_of(point.x, point.y, 'COVERED', 'QUESTION_MARK')]
 
     for c in combinations([i for i in range(len(neighbours))], max_to_be_flagged):
         safe_indices = [True for _ in range(len(neighbours))]
@@ -77,7 +77,7 @@ def all_possible_flag_scenarios(  # TODO: code polish
 
 
 def is_violating(grid: Grid, point: Point) -> bool:
-    for number_p, number_t in grid.get_neighbours_with_symbol(point.x, point.y, 'NUMBER'):
+    for number_p, number_t in grid.neighbourhood_with_symbol_of(point.x, point.y, 'NUMBER'):
         flags_in_neighbourhood = grid.count_symbol_in_neighbourhood(number_p.x, number_p.y, 'FLAG')
         mine_count = number_t.get_count()
         assert mine_count is not None
@@ -122,7 +122,7 @@ def simulate(  # TODO: code polish
     mine_count = grid[number_point.x, number_point.y].get_count()
     assert mine_count is not None
     flags_to_simulate = mine_count - len(
-        grid.get_neighbours_with_symbol(number_point.x, number_point.y, 'FLAG')
+        [n for n in grid.neighbourhood_with_symbol_of(number_point.x, number_point.y, 'FLAG')]
     )
 
     if flags_to_simulate == 0:
@@ -141,7 +141,7 @@ def simulate(  # TODO: code polish
         simulation_state.currently_safe.update(flag_scenario.safe)
 
         for p in flag_scenario.flags:
-            for n, _ in grid.get_neighbours_with_symbol(p.x, p.y, 'NUMBER'):
+            for n, _ in grid.neighbourhood_with_symbol_of(p.x, p.y, 'NUMBER'):
                 if n in simulation_state.currently_visiting:
                     continue
 

@@ -1,9 +1,9 @@
-from typing import List, Tuple, override
+from typing import Tuple, override
 
 from src.common import Point
 from src.game.grids.grid import Grid, GridIterator
 from src.game.tiles.impl.frozen_tile import FrozenTile
-from src.game.tiles.tile import Tile
+from src.game.tiles.tile import Tile, Symbol
 
 
 class FrozenGridIterator(GridIterator):
@@ -20,25 +20,42 @@ class FrozenGrid(Grid):
     def __init__(self, grid: Grid) -> None:
         self._grid = grid
 
+    @override
     def __getitem__(self, key: Tuple[int, int]) -> Tile:
-        # TODO: use *key instead? is it a more python-ish way?
-        x, y = key
-        return self._grid[x, y]
+        return self._grid[*key]
 
+    @override
     def __iter__(self) -> GridIterator:
         return FrozenGridIterator(iter(self._grid))
 
+    @override
     def get_width(self) -> int:
         return self._grid.get_width()
 
+    @override
     def get_height(self) -> int:
         return self._grid.get_height()
 
-    def get_neighbours_of_tile_at(self, x: int, y: int) -> List[Tuple[Point, Tile]]:
-        return [(p, FrozenTile(t)) for p, t in self._grid.get_neighbours_of_tile_at(x, y)]
+    @override
+    def neighbourhood_of(self, x: int, y: int) -> GridIterator:
+        return FrozenGridIterator(self._grid.neighbourhood_of(x, y))
 
+    @override
+    def neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator:
+        return FrozenGridIterator(self._grid.neighbourhood_with_symbol_of(x, y, *desired_symbols))
+
+    @override
+    def wide_neighbourhood_of(self, x: int, y: int) -> GridIterator:
+        return FrozenGridIterator(self._grid.wide_neighbourhood_of(x, y))
+
+    @override
+    def wide_neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator:
+        return FrozenGridIterator(self._grid.wide_neighbourhood_with_symbol_of(x, y, *desired_symbols))
+
+    @override
     def is_valid(self) -> bool:
         return self._grid.is_valid()
 
+    @override
     def print(self) -> None:
         return self._grid.print()

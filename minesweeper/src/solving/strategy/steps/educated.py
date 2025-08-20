@@ -18,7 +18,7 @@ def _assess_danger_levels(grid: Grid) -> Dict[Point, Tuple[int, int]]:
         if tile.get_symbol() != 'NUMBER':
             continue
 
-        neighbours = grid.get_neighbours_of_tile_at(point.x, point.y)
+        neighbours = grid.neighbourhood_of(point.x, point.y)
         flags = reduce(_flag_reducer, neighbours, 0)
 
         count = tile.get_count()

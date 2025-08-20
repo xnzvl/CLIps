@@ -2,7 +2,7 @@ from math import log10
 from typing import Callable
 
 from src.common import Configuration, Move, Point
-from src.game.grids.impl.mutable_grid import MutableGrid
+from src.game.grids.impl.generic_grid import GenericGrid
 from src.game.literals import GameState, Result
 from src.solving.mediator.mediator import Mediator
 from src.solving.strategy.strategy import Strategy
@@ -19,7 +19,7 @@ class GenericBot:
         self._mediator = mediator_instantiator(configuration)
 
         self._dimensions = configuration.dimensions
-        self._board = MutableGrid(self._dimensions.width, self._dimensions.height)
+        self._grid = GenericGrid(self._dimensions)
 
     def solve(self, max_attempts = 1, attempt_each = False) -> None:
         if max_attempts < 1:
@@ -48,7 +48,7 @@ class GenericBot:
             print_winrate(victories, max_attempts)
 
     def _attempt_to_solve(self) -> Result:
-        board = MutableGrid(self._dimensions.width, self._dimensions.height)
+        board = GenericGrid(self._dimensions)
 
         game_state: GameState = 'inProgress'
         while game_state == 'inProgress':

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from src.common import Configuration, Dimensions, Move, Point
-from src.game.grids.impl.mutable_grid import MutableGrid
+from src.game.grids.grid import Grid
 from src.game.literals import GameState
 
 
@@ -16,10 +16,10 @@ class Mediator(ABC):
     def get_offsets(self) -> Point:
         return self._offsets
 
-    def _check_board_size(self, board: MutableGrid) -> None:
-        if board.get_width() != self._dimensions.width:
+    def _check_board_size(self, grid: Grid) -> None:
+        if grid.get_width() != self._dimensions.width:
             raise ValueError('Board dimensions (width) do not match')
-        elif board.get_height() != self._dimensions.height:
+        elif grid.get_height() != self._dimensions.height:
             raise ValueError('Board dimensions (height) do not match')
 
     @abstractmethod
@@ -27,7 +27,7 @@ class Mediator(ABC):
         ...
 
     @abstractmethod
-    def observe_board(self, old_board: MutableGrid | None = None) -> MutableGrid:
+    def observe_board(self, old_board: Grid | None = None) -> Grid:
         ...
 
     @abstractmethod

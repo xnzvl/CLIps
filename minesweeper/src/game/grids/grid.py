@@ -1,11 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple
+from typing import Self, Tuple
 
 from src.common import Point
 from src.game.tiles.tile import Symbol, Tile
 
 
 class GridIterator(ABC):
+    def __iter__(self) -> Self:
+        return self
+
     @abstractmethod
     def __next__(self) -> Tuple[Point, Tile]:
         ...
@@ -29,7 +32,20 @@ class Grid(ABC):
         ...
 
     @abstractmethod
-    def get_neighbours_of_tile_at(self, x: int, y: int) -> List[Tuple[Point, Tile]]:
+    def neighbourhood_of(self, x: int, y: int) -> GridIterator:
+        ...
+
+    # TODO: update class usage
+    @abstractmethod
+    def neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator:
+        ...
+
+    @abstractmethod
+    def wide_neighbourhood_of(self, x: int, y: int) -> GridIterator:
+        ...
+
+    @abstractmethod
+    def wide_neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator:
         ...
 
     @abstractmethod
@@ -40,24 +56,12 @@ class Grid(ABC):
     def print(self) -> None:
         ...
 
-    def get_tile_at(self, x: int, y: int) -> Tile:
-        return self[x, y]
-
     # TODO: update class usage
     def count_symbol_in_neighbourhood(self, x: int, y: int, symbol: Symbol) -> int:
         return len(
             [
                 None
-                for _, neighbour in self.get_neighbours_of_tile_at(x, y)
-                if neighbour.get_symbol() == symbol
+                for _, t in self.neighbourhood_of(x, y)
+                if t.get_symbol() == symbol
             ]
         )
-
-    # TODO: update class usage
-    def get_neighbours_with_symbol(self, x: int, y: int, *desired_symbols: Symbol) -> List[Tuple[Point, Tile]]:
-        white_list = set(desired_symbols)
-        return [
-            (p, t)
-            for p, t in self.get_neighbours_of_tile_at(x, y)
-            if t.get_symbol() in white_list
-        ]
