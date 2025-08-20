@@ -12,6 +12,7 @@ class SimulationState:
     def __init__(self) -> None:
         self._possibly_safe: Set[Point] = set()
         self._flaggable: Set[Point] = set()
+        self._longest_scenario = 0
 
         self.currently_safe: Set[Point] = set()
         self.currently_flagged: Set[Point] = set()
@@ -19,8 +20,15 @@ class SimulationState:
         self.currently_visiting: Set[Point] = set()
 
     def accept_current(self) -> None:
-        self._possibly_safe.update(self.currently_safe)
-        self._flaggable.update(self.currently_flagged)
+        scenario_length = len(self.currently_safe) + len(self.currently_flagged)
+        if scenario_length > self._longest_scenario:
+            self._possibly_safe.clear()
+            self._flaggable.clear()
+            self._longest_scenario = scenario_length
+
+        if scenario_length == self._longest_scenario:
+            self._possibly_safe.update(self.currently_safe)
+            self._flaggable.update(self.currently_flagged)
 
     def get_result(self) -> Tuple[Set[Point], Set[Point]]:
         always_flagged = self._flaggable.difference(self._possibly_safe)
@@ -173,6 +181,7 @@ def calculate_safe_moves(grid: Grid) -> List[Move]:
             if len(always_flagged) > 0 or len(always_safe) > 0:
                 print(f'always_flagged: {always_flagged}')
                 print(f'always_safe:    {always_safe}')
+
                 return list()  # TODO: return moves
 
     return list()
