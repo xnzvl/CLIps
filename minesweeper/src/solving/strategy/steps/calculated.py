@@ -4,7 +4,6 @@ from typing import List, NamedTuple, Tuple, Set
 from src.common import Move, Point
 from src.exceptions import InvalidGameStateError
 from src.game.grids.grid import Grid
-from src.game.grids.impl.mutable_grid import MutableGrid
 from src.game.tiles.tile import Sign
 
 
@@ -162,6 +161,8 @@ def simulate(  # TODO: code polish
 
 
 def calculate_safe_moves(grid: Grid) -> List[Move]:
+    moves: List[Move] = list()
+
     for point, tile in grid:
         if tile.get_symbol() != 'NUMBER':
             continue
@@ -179,43 +180,11 @@ def calculate_safe_moves(grid: Grid) -> List[Move]:
 
             always_flagged, always_safe = simulation_state.get_result()
             if len(always_flagged) > 0 or len(always_safe) > 0:
-                print(f'always_flagged: {always_flagged}')
-                print(f'always_safe:    {always_safe}')
+                for p in always_flagged:
+                    moves.append(Move('secondary', p))
+                for p in always_safe:
+                    moves.append(Move('primary', p))
 
-                return list()  # TODO: return moves
+                return moves
 
-    return list()
-
-
-def main() -> None:
-    grid_a = MutableGrid(5, 2)
-    for x in range(5):
-        grid_a[x, 1].set_count(1 if x != 1 and x != 3 else 2)
-    grid_a.print()
-    calculate_safe_moves(grid_a)
-
-    print()
-
-    grid_b = MutableGrid(4, 3)
-    grid_b[0, 1].set_count(1)
-    grid_b[1, 1].set_count(1)
-    grid_b[2, 1].set_count(3)
-    grid_b[0, 2].set_count(0)
-    grid_b[1, 2].set_count(0)
-    grid_b[2, 2].set_count(1)
-    grid_b.print()
-    calculate_safe_moves(grid_b)
-
-    print()
-
-    grid_c = MutableGrid(3, 2)
-    for x in range(3):
-        grid_c[x, 1].set_count(1 if x != 1 else 2)
-    grid_c.print()
-    calculate_safe_moves(grid_c)
-
-    return
-
-
-if __name__ == '__main__':
-    main()
+    return moves
