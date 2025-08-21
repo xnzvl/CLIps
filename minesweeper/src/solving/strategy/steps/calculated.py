@@ -181,9 +181,9 @@ def calculate_safe_moves(grid: Grid) -> List[Move]:
             always_flagged, always_safe = simulation_state.get_result()
             if len(always_flagged) > 0 or len(always_safe) > 0:
                 for p in always_flagged:
-                    moves.append(Move('secondary', p))
+                    moves.append(Move('FLAG', p))
                 for p in always_safe:
-                    moves.append(Move('primary', p))
+                    moves.append(Move('UNCOVER', p))
 
                 return moves
 

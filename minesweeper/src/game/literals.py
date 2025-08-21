@@ -2,6 +2,8 @@ from typing import Literal, Union
 
 # TODO: this file/filename feels clumsy
 
+
+# TODO: constants in caps!
 Result = Literal['victory', 'failure']
 
 GameState = Union[Result, Literal['inProgress']]

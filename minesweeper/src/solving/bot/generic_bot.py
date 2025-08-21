@@ -29,7 +29,7 @@ class GenericBot:
         attempt_number = 0
         result: Result = 'victory'
 
-        opening_move = Move('primary', Point(self._dimensions.width // 2, self._dimensions.height // 2))
+        opening_move = Move('UNCOVER', Point(self._dimensions.width // 2, self._dimensions.height // 2))
 
         while attempt_number < max_attempts and (attempt_each or result == 'victory'):
             self._mediator.reset()

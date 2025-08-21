@@ -12,10 +12,7 @@ def _flag_neighbours(covered_neighbours: List[Tuple[Point, Tile]], flag_moves: L
         if p in already_flagged or covered_symbol == 'FLAG':
             continue
 
-        if covered_symbol == 'COVERED':
-            flag_moves.append(Move('secondary', p))
-        else:  # => covered_symbol == 'QUESTION_MARK'
-            flag_moves.extend([Move('secondary', p)] * 2)
+        flag_moves.append(Move('FLAG', p))
 
         already_flagged.add(p)
         t.set_sign('FLAG')
@@ -64,7 +61,7 @@ def certain_safe_moves(grid: Grid) -> List[Move]:
 
         count = tile.get_count()
         if neighbour_flags == count:
-            safe_moves.extend([Move('primary', p) for p, _ in covered_neighbours])
+            safe_moves.extend([Move('UNCOVER', p) for p, _ in covered_neighbours])
 
     return safe_moves
 

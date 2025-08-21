@@ -50,6 +50,6 @@ def least_danger_moves(grid: Grid) -> List[Move]:
             least_danger_level = danger_level
 
         if danger_level == least_danger_level:
-            least_danger_moves_list.append(Move('primary', point))
+            least_danger_moves_list.append(Move('UNCOVER', point))
 
     return least_danger_moves_list

@@ -1,8 +1,7 @@
 from typing import NamedTuple, Literal
 
 
-MouseButton = Literal['primary', 'secondary', 'middle']
-# TODO: documentation
+Action = Literal['UNCOVER', 'FLAG', 'PLACE_QUESTION_MARK', 'CLEAR']
 
 
 class Point(NamedTuple):
@@ -20,8 +19,6 @@ class Configuration(NamedTuple):
     dimensions: Dimensions
 
 
-# TODO: change!
-#       instead of button I want to be able to choose to which Symbol the tile will be turned into
 class Move(NamedTuple):
-    button: MouseButton
+    action: Action
     tile: Point

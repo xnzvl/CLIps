@@ -1,9 +1,10 @@
-from typing import cast, Dict, Never, Tuple
+from typing import Dict, List, Literal, Never, Tuple, cast, Final
 
 import pyautogui as pag
 import PIL.Image
 
-from src.common import Configuration, Move
+from src.common import Configuration, Move, Action
+from src.exceptions import InvalidGameStateError
 from src.game.grids.grid import Grid
 from src.game.grids.impl.generic_grid import GenericGrid
 from src.game.literals import GameState
@@ -11,6 +12,7 @@ from src.game.tiles.tile import Tile
 from src.solving.mediator.mediator import Mediator
 
 Colour = Tuple[int, int, int]
+MouseButton = Literal['right', 'middle', 'left']
 
 
 TILE_SIZE = 16
@@ -18,7 +20,8 @@ TILE_SIZE = 16
 SMILEY_WIDTH = 26
 SMILEY_Y_OFFSET = 39
 
-WHITE      = 255, 255, 255
+# TODO: add final to all constants
+WHITE: Final = 255, 255, 255
 GRAY       = 189, 189, 189
 BLUE       =   0,   0, 255
 DARK_GREEN =   0, 123,   0
@@ -33,8 +36,8 @@ YELLOW     = 255, 255,   0
 NUMBER_PIXEL_X_OFFSET = 9
 NUMBER_PIXEL_Y_OFFSET = 11
 
-FLAG_PIXEL_X_OFFSET = 7
-FLAG_PIXEL_Y_OFFSET = 3
+COVERED_KEY_PIXEL_X_OFFSET = 7
+COVERED_KEY_PIXEL_Y_OFFSET = 3
 
 SYMBOL_PIXEL_X_OFFSET = 6
 SYMBOL_PIXEL_Y_OFFSET = 6
@@ -56,11 +59,30 @@ EMOJI_EYE_PIXEL_Y_OFFSET = 10
 EMOJI_GLASSES_PIXEL_X_OFFSET = 12
 EMOJI_GLASSES_PIXEL_Y_OFFSET = 10
 
+PIXEL_AND_ACTION_TO_BUTTONS: Dict[Tuple[Colour, Action], Tuple[List[MouseButton] | None, List[MouseButton]]] = {
+    (BLACK, 'FLAG'):                (None,              ['right', 'right']),
+    (BLACK, 'UNCOVER'):             (None,              ['left']          ),
+    (BLACK, 'PLACE_QUESTION_MARK'): (None,              list()            ),
+    (BLACK, 'CLEAR'):               (None,              ['right']         ),
+    (RED,   'FLAG'):                (list(),            list()            ),
+    (RED,   'UNCOVER'):             (['right', 'left'], ['right', 'left'] ),
+    (RED,   'PLACE_QUESTION_MARK'): (None,              ['right']         ),
+    (RED,   'CLEAR'):               (['right'],         ['right', 'right']),
+    (GRAY,  'FLAG'):                (['right'],         ['right']         ),
+    (GRAY,  'UNCOVER'):             (['left'],          ['left']          ),
+    (GRAY,  'PLACE_QUESTION_MARK'): (None,              ['right', 'right']),
+    (GRAY,  'CLEAR'):               (list(),            list()            ),
+}
 
-# TODO: make compatible with question-mark tiles
+
+# TODO: screenshot.getpixel() return value
+#       implement a function that will return Colour (RGB) tuple
+
+
 class WebPageMediator(Mediator):
-    def __init__(self, configuration: Configuration) -> None:
+    def __init__(self, configuration: Configuration, with_question_marks: bool) -> None:
         super().__init__(configuration)
+        self._with_question_marks = with_question_marks
 
     def observe_state(self) -> GameState:
         screen = pag.screenshot()
@@ -108,11 +130,26 @@ class WebPageMediator(Mediator):
         return grid
 
     def play(self, move: Move) -> None:
-        pag.click(
-            x=self._offsets.x + move.tile.x * TILE_SIZE + TILE_SIZE // 2,
-            y=self._offsets.y + move.tile.y * TILE_SIZE + TILE_SIZE // 2,
-            button=move.button
-        )
+        x0 = self._offsets.x + move.tile.x * TILE_SIZE
+        y0 = self._offsets.y + move.tile.y * TILE_SIZE
+
+        screenshot = pag.screenshot(region=(x0 + COVERED_KEY_PIXEL_X_OFFSET, y0 + COVERED_KEY_PIXEL_Y_OFFSET, 1, 1))
+        pixel: Colour = screenshot.getpixel((0, 0))
+
+        result = PIXEL_AND_ACTION_TO_BUTTONS.get((pixel, move.action))
+        if result is None:
+            raise_unexpected_pixel(pixel)
+
+        buttons, buttons_with_question_marks = result
+        if buttons is None:
+            raise InvalidGameStateError('question marks aren\'t enabled')
+
+        for b in (buttons_with_question_marks if self._with_question_marks else buttons):
+            pag.click(
+                x=x0 + TILE_SIZE // 2,
+                y=y0 + TILE_SIZE // 2,
+                button=b
+            )
 
     def reset(self) -> None:
         x = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2 + SMILEY_WIDTH // 2
@@ -136,10 +173,12 @@ def raise_unexpected_pixel(pixel: float | tuple[int, ...] | None) -> Never:
 
 
 def observe_covered_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) -> None:
-    potential_flag_pixel = screen.getpixel((x0 + FLAG_PIXEL_X_OFFSET, y0 + FLAG_PIXEL_Y_OFFSET))
+    key_covered_pixel = screen.getpixel((x0 + COVERED_KEY_PIXEL_X_OFFSET, y0 + COVERED_KEY_PIXEL_Y_OFFSET))
 
-    if potential_flag_pixel == RED:
+    if key_covered_pixel == RED:
         tile.set_sign('FLAG')
+    elif key_covered_pixel == BLACK:
+        tile.set_sign('QUESTION_MARK')
     else:
         tile.set_sign('COVERED')
 
