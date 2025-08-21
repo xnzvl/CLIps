@@ -114,7 +114,7 @@ def try_flags_scenario(
     return True, before_flagging
 
 
-def simulate(  # TODO: code polish
+def simulate(  # TODO: fix & code polish
         grid: Grid,
         number_point: Point,
         simulation_state: SimulationState,

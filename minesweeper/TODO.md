@@ -1,6 +1,5 @@
 - create testing Board
 - rename scripts in `scripts`
-- use `reduce` from `functools` more often!
 - autodetect
   - offsets
   - dimensions
