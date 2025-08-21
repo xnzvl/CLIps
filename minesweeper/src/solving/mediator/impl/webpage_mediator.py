@@ -11,7 +11,7 @@ from src.game.literals import GameState
 from src.game.tiles.tile import Tile
 from src.solving.mediator.mediator import Mediator
 
-Colour = Tuple[int, int, int]
+RGB = Tuple[int, int, int]
 MouseButton = Literal['right', 'middle', 'left']
 
 
@@ -42,7 +42,7 @@ COVERED_KEY_PIXEL_Y_OFFSET = 3
 SYMBOL_PIXEL_X_OFFSET = 6
 SYMBOL_PIXEL_Y_OFFSET = 6
 
-PIXEL_COLOUR_TO_MINE_COUNT: Dict[Colour, int] = {
+PIXEL_COLOUR_TO_MINE_COUNT: Dict[RGB, int] = {
     GRAY:       0,
     BLUE:       1,
     DARK_GREEN: 2,
@@ -59,7 +59,7 @@ EMOJI_EYE_PIXEL_Y_OFFSET = 10
 EMOJI_GLASSES_PIXEL_X_OFFSET = 12
 EMOJI_GLASSES_PIXEL_Y_OFFSET = 10
 
-PIXEL_AND_ACTION_TO_BUTTONS: Dict[Tuple[Colour, Action], Tuple[List[MouseButton] | None, List[MouseButton]]] = {
+PIXEL_AND_ACTION_TO_BUTTONS: Dict[Tuple[RGB, Action], Tuple[List[MouseButton] | None, List[MouseButton]]] = {
     (BLACK, 'FLAG'):                (None,              ['right', 'right']),
     (BLACK, 'UNCOVER'):             (None,              ['left']          ),
     (BLACK, 'PLACE_QUESTION_MARK'): (None,              list()            ),
@@ -75,10 +75,6 @@ PIXEL_AND_ACTION_TO_BUTTONS: Dict[Tuple[Colour, Action], Tuple[List[MouseButton]
 }
 
 
-# TODO: screenshot.getpixel() return value
-#       implement a function that will return Colour (RGB) tuple
-
-
 class WebPageMediator(Mediator):
     def __init__(self, configuration: Configuration, with_question_marks: bool) -> None:
         super().__init__(configuration)
@@ -91,9 +87,9 @@ class WebPageMediator(Mediator):
         y0 = self._offsets.y - SMILEY_Y_OFFSET
 
         # TODO: rest of the function is quite chaotic
-        eye_pixel = screen.getpixel((x0 + EMOJI_EYE_PIXEL_X_OFFSET, y0 + EMOJI_EYE_PIXEL_Y_OFFSET))
+        eye_pixel = get_rgb_from_pixel(screen, x0 + EMOJI_EYE_PIXEL_X_OFFSET, y0 + EMOJI_EYE_PIXEL_Y_OFFSET)
         if eye_pixel == BLACK:
-            glasses_pixel = screen.getpixel((x0 + EMOJI_GLASSES_PIXEL_X_OFFSET, y0 + EMOJI_GLASSES_PIXEL_Y_OFFSET))
+            glasses_pixel = get_rgb_from_pixel(screen, x0 + EMOJI_GLASSES_PIXEL_X_OFFSET, y0 + EMOJI_GLASSES_PIXEL_Y_OFFSET)
             if glasses_pixel == YELLOW:
                 return 'inProgress'
             elif glasses_pixel == BLACK:
@@ -134,7 +130,7 @@ class WebPageMediator(Mediator):
         y0 = self._offsets.y + move.tile.y * TILE_SIZE
 
         screenshot = pag.screenshot(region=(x0 + COVERED_KEY_PIXEL_X_OFFSET, y0 + COVERED_KEY_PIXEL_Y_OFFSET, 1, 1))
-        pixel: Colour = screenshot.getpixel((0, 0))
+        pixel = get_rgb_from_pixel(screenshot, 0, 0)
 
         result = PIXEL_AND_ACTION_TO_BUTTONS.get((pixel, move.action))
         if result is None:
@@ -169,11 +165,26 @@ class WebPageMediator(Mediator):
 
 
 def raise_unexpected_pixel(pixel: float | tuple[int, ...] | None) -> Never:
-    raise RuntimeError(f'unexpected pixel colour - {pixel}')
+    raise RuntimeError(f'unexpected pixel - {pixel}')
+
+
+def get_rgb_from_pixel(screen: PIL.Image.Image, x: int, y: int) -> RGB:
+    pixel = screen.getpixel((x, y))
+
+    if pixel is None:
+        raise_unexpected_pixel(pixel)
+
+    if type(pixel) == tuple:
+        tuple_pixel = cast(tuple[int, ...], pixel)
+
+        if len(tuple_pixel) >= 3:
+            return cast(RGB, tuple_pixel[:3])
+
+    raise_unexpected_pixel(pixel)
 
 
 def observe_covered_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) -> None:
-    key_covered_pixel = screen.getpixel((x0 + COVERED_KEY_PIXEL_X_OFFSET, y0 + COVERED_KEY_PIXEL_Y_OFFSET))
+    key_covered_pixel = get_rgb_from_pixel(screen, x0 + COVERED_KEY_PIXEL_X_OFFSET, y0 + COVERED_KEY_PIXEL_Y_OFFSET)
 
     if key_covered_pixel == RED:
         tile.set_sign('FLAG')
@@ -184,11 +195,10 @@ def observe_covered_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) 
 
 
 def observe_uncovered_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) -> None:
-    number_pixel = screen.getpixel((x0 + NUMBER_PIXEL_X_OFFSET, y0 + NUMBER_PIXEL_Y_OFFSET))
-    number_pixel = cast(Colour, number_pixel)
+    number_pixel = get_rgb_from_pixel(screen, x0 + NUMBER_PIXEL_X_OFFSET, y0 + NUMBER_PIXEL_Y_OFFSET)
 
     if number_pixel == BLACK:
-        symbol_pixel = screen.getpixel((x0 + SYMBOL_PIXEL_X_OFFSET, y0 + SYMBOL_PIXEL_Y_OFFSET))
+        symbol_pixel = get_rgb_from_pixel(screen, x0 + SYMBOL_PIXEL_X_OFFSET, y0 + SYMBOL_PIXEL_Y_OFFSET)
 
         if symbol_pixel == RED:
             tile.set_sign('BAD_MINE')
@@ -205,7 +215,7 @@ def observe_uncovered_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int
 
 
 def observe_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) -> None:
-    corner_pixel = screen.getpixel((x0 + 1, y0 + 1))
+    corner_pixel = get_rgb_from_pixel(screen, x0 + 1, y0 + 1)
 
     if corner_pixel == RED:
         tile.set_sign('EXPLODED_MINE')
