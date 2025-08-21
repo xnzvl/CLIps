@@ -10,7 +10,7 @@ class MineField(GenericGrid):
     def __init__(self, dimensions: Dimensions, mines: int) -> None:
         super().__init__(dimensions)
         self._mines = mines
-        self._game_state: GameState = 'inProgress'
+        self._game_state: GameState = 'IN_PROGRESS'
 
         # TODO: plant mines
 

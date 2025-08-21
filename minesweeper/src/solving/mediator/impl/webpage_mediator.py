@@ -91,15 +91,15 @@ class WebPageMediator(Mediator):
         if eye_pixel == BLACK:
             glasses_pixel = get_rgb_from_pixel(screen, x0 + EMOJI_GLASSES_PIXEL_X_OFFSET, y0 + EMOJI_GLASSES_PIXEL_Y_OFFSET)
             if glasses_pixel == YELLOW:
-                return 'inProgress'
+                return 'IN_PROGRESS'
             elif glasses_pixel == BLACK:
-                return 'victory'
+                return 'VICTORY'
             else:
                 raise_unexpected_pixel(glasses_pixel)
         elif eye_pixel == (13, 12, 15):
-            return 'victory'
+            return 'VICTORY'
         elif eye_pixel == YELLOW:
-            return 'failure'
+            return 'FAILURE'
         else:
             raise_unexpected_pixel(eye_pixel)
 

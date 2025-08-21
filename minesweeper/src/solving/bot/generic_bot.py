@@ -27,18 +27,18 @@ class GenericBot:
 
         victories = 0
         attempt_number = 0
-        result: Result = 'victory'
+        result: Result = 'VICTORY'
 
         opening_move = Move('UNCOVER', Point(self._dimensions.width // 2, self._dimensions.height // 2))
 
-        while attempt_number < max_attempts and (attempt_each or result == 'victory'):
+        while attempt_number < max_attempts and (attempt_each or result == 'VICTORY'):
             self._mediator.reset()
             self._mediator.play(opening_move)
 
             attempt_number += 1
             result = self._attempt_to_solve()
 
-            if result == 'victory':
+            if result == 'VICTORY':
                 victories += 1
 
             print_attempt(int(log10(max_attempts)) + 1, attempt_number, result)
@@ -50,20 +50,20 @@ class GenericBot:
     def _attempt_to_solve(self) -> Result:
         board = GenericGrid(self._dimensions)
 
-        game_state: GameState = 'inProgress'
-        while game_state == 'inProgress':
+        game_state: GameState = 'IN_PROGRESS'
+        while game_state == 'IN_PROGRESS':
             board = self._mediator.observe_board(board)
             moves = self._strategy.get_moves(board)
             i = 0
 
-            while game_state == 'inProgress' and i < len(moves):
+            while game_state == 'IN_PROGRESS' and i < len(moves):
                 self._mediator.play(moves[i])
 
                 i += 1
                 game_state = self._mediator.observe_state()
 
         result = self._mediator.observe_state()
-        assert result != 'inProgress'
+        assert result != 'IN_PROGRESS'
         return result
 
 
