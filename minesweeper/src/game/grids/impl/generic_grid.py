@@ -41,15 +41,14 @@ class GenericGridNeighbourhoodIterator(GridIterator):  # TODO: code polish
             if self._i > self._i_max:
                 raise StopIteration
 
-            x = self._i_offset + self._i % self._dimensions.width
-            y = self._i_offset + self._i // self._dimensions.width
+            x = (self._i_offset + self._i) % self._dimensions.width
+            y = (self._i_offset + self._i) // self._dimensions.height
             self._i += 1
 
-            point = Point(x, y)
             tile = self._tiles[y][x]
 
             if not self._with_symbols or tile.get_symbol() in self._with_symbols:  # do-while condition
-                return point, tile
+                return Point(x, y), tile
 
 
 class GenericGrid(Grid):
@@ -118,7 +117,7 @@ class GenericGrid(Grid):
     def is_valid(self) -> bool:
         # TODO: seems easy, but it's quite tough
         #       also, it's optional
-        return False
+        raise NotImplementedError()
 
     @override
     def print(self) -> None:
