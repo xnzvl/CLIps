@@ -118,7 +118,7 @@ def simulate(  # TODO: fix & code polish
         grid: Grid,
         number_point: Point,
         simulation_state: SimulationState,
-) -> bool:
+) -> None:
     mine_count = grid[number_point.x, number_point.y].get_count()
     assert mine_count is not None
     flags_to_simulate = mine_count - len(
@@ -127,11 +127,10 @@ def simulate(  # TODO: fix & code polish
 
     if flags_to_simulate == 0:
         simulation_state.accept_current()
-        return True
+        return
 
     simulation_state.currently_visiting.add(number_point)
 
-    at_least_one_valid_scenario = False
     for flag_scenario in all_possible_flag_scenarios(grid, number_point):
         is_valid, before_flagging = try_flags_scenario(grid, flag_scenario)
         if not is_valid or before_flagging is None:
@@ -145,8 +144,7 @@ def simulate(  # TODO: fix & code polish
                 if n in simulation_state.currently_visiting:
                     continue
 
-                is_valid_scenario = simulate(grid, n, simulation_state)
-                at_least_one_valid_scenario = at_least_one_valid_scenario or is_valid_scenario
+                simulate(grid, n, simulation_state)
 
         undo_flagging(grid, before_flagging)
 
@@ -157,7 +155,6 @@ def simulate(  # TODO: fix & code polish
                 simulation_state.currently_safe.remove(e)
 
     simulation_state.currently_visiting.remove(number_point)
-    return at_least_one_valid_scenario
 
 
 def calculate_safe_moves(grid: Grid) -> List[Move]:
@@ -173,10 +170,7 @@ def calculate_safe_moves(grid: Grid) -> List[Move]:
 
         if flags < mines:
             simulation_state = SimulationState()
-
-            simulation_result = simulate(grid, point, simulation_state)
-            if not simulation_result:
-                continue
+            simulate(grid, point, simulation_state)
 
             always_flagged, always_safe = simulation_state.get_result()
             if len(always_flagged) > 0 or len(always_safe) > 0:
