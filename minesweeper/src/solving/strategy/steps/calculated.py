@@ -1,9 +1,10 @@
 from itertools import combinations
 from typing import List, NamedTuple, Tuple, Set
 
-from src.common import Move, Point
+from src.common import Move, Point, Dimensions
 from src.exceptions import InvalidGameStateError
 from src.game.grids.grid import Grid
+from src.game.grids.impl.generic_grid import GenericGrid
 from src.game.tiles.tile import Sign
 
 
@@ -49,13 +50,13 @@ def all_possible_flag_scenarios(  # TODO: code polish
     mine_count = grid[point.x, point.y].get_count()
     assert mine_count is not None
 
-    max_to_be_flagged = mine_count - grid.count_symbol_in_neighbourhood(point.x, point.y, 'FLAG')
-    if max_to_be_flagged < 0:
+    to_flag = mine_count - grid.count_symbol_in_neighbourhood(point.x, point.y, 'FLAG')
+    if to_flag < 0:
         raise InvalidGameStateError('too many flagged tiles')
 
-    neighbours = [n for n in grid.neighbourhood_with_symbol_of(point.x, point.y, 'COVERED', 'QUESTION_MARK')]
+    neighbours = grid.neighbourhood_with_symbol_of(point.x, point.y, 'COVERED', 'QUESTION_MARK').to_list()
 
-    for c in combinations([i for i in range(len(neighbours))], max_to_be_flagged):
+    for c in combinations([i for i in range(len(neighbours))], to_flag):
         safe_indices = [True for _ in range(len(neighbours))]
 
         for flag_i in c:
@@ -121,12 +122,25 @@ def simulate(  # TODO: fix & code polish
 ) -> None:
     mine_count = grid[number_point.x, number_point.y].get_count()
     assert mine_count is not None
-    flags_to_simulate = mine_count - len(
-        [n for n in grid.neighbourhood_with_symbol_of(number_point.x, number_point.y, 'FLAG')]
-    )
+    flags_to_simulate = mine_count - grid.count_symbol_in_neighbourhood(number_point.x, number_point.y, 'FLAG')
 
     if flags_to_simulate == 0:
-        simulation_state.accept_current()
+        is_affected_by_simulation = False
+        for n, _ in grid.neighbourhood_of(number_point.x, number_point.y):
+            if n in simulation_state.currently_safe or n in simulation_state.currently_flagged:
+                is_affected_by_simulation = True
+                break
+
+        if is_affected_by_simulation:
+            for n, _ in grid.neighbourhood_with_symbol_of(number_point.x, number_point.y, 'NUMBER'):
+                if n in simulation_state.currently_visiting:
+                    continue
+
+                simulation_state.currently_visiting.add(n)
+                simulate(grid, n, simulation_state)
+                simulation_state.currently_visiting.remove(n)
+        else:
+            simulation_state.accept_current()
         return
 
     simulation_state.currently_visiting.add(number_point)
@@ -139,7 +153,13 @@ def simulate(  # TODO: fix & code polish
         simulation_state.currently_flagged.update(flag_scenario.flags)
         simulation_state.currently_safe.update(flag_scenario.safe)
 
+        to_visit: Set[Point] = set()
         for p in flag_scenario.flags:
+            to_visit.update(grid.neighbourhood_with_symbol_of(p.x, p.y, 'NUMBER'))
+        for p in flag_scenario.safe:
+            to_visit.update(grid.neighbourhood_with_symbol_of(p.x, p.y, 'NUMBER'))
+
+        for p, _ in to_visit:
             for n, _ in grid.neighbourhood_with_symbol_of(p.x, p.y, 'NUMBER'):
                 if n in simulation_state.currently_visiting:
                     continue
@@ -182,3 +202,28 @@ def calculate_safe_moves(grid: Grid) -> List[Move]:
                 return moves
 
     return moves
+
+
+def main() -> None:
+    grid = GenericGrid(Dimensions(6, 7))
+
+    for x, y in [(3, 0), (4, 0), (5, 0), (5, 6)]:
+        grid[x, y].set_sign('EMPTY')
+    for x, y in [(3, 1), (2, 2), (4, 6)]:
+        grid[x, y].set_count(1)
+    for x, y in [(2, 0), (2, 1), (4, 1), (5, 1), (1, 2), (3, 2), (2, 3), (5, 5)]:
+        grid[x, y].set_count(2)
+    for x, y in [(1, 3), (4, 5)]:
+        grid[x, y].set_count(3)
+    grid[3, 3].set_count(4)
+    grid[5, 3].set_count(5)
+    for x, y in [(1, 0), (1, 1), (4, 2), (5, 2), (4, 3), (4, 4), (5, 4)]:
+        grid[x, y].set_sign('FLAG')
+
+    grid.print()
+    print()
+    print(calculate_safe_moves(grid))
+
+
+if __name__ == '__main__':
+    main()
