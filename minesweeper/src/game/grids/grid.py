@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Self, Tuple
+from typing import List, Self, Tuple
 
 from src.common import Point
 from src.game.tiles.tile import Symbol, Tile
@@ -13,6 +13,8 @@ class GridIterator(ABC):
     def __next__(self) -> Tuple[Point, Tile]:
         ...
 
+    def to_list(self) -> List[Tuple[Point, Tile]]:
+        return [t for t in self]
 
 class Grid(ABC):
     @abstractmethod

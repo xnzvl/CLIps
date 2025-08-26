@@ -1,4 +1,4 @@
-from typing import List, Tuple, override
+from typing import Generator, List, Set, Tuple, override
 
 from src.common import Dimensions, Point
 from src.game.grids.grid import Grid, GridIterator
@@ -7,8 +7,8 @@ from src.game.tiles.tile import Tile, tile_to_str, Symbol
 
 
 class GenericGridIterator(GridIterator):
-    def __init__(self, tiles: List[List[Tile]], dimensions: Dimensions) -> None:
-        self._tiles = tiles
+    def __init__(self, grid: Grid, dimensions: Dimensions) -> None:
+        self._grid = grid
         self._dimensions = dimensions
         self._i = 0
 
@@ -21,34 +21,16 @@ class GenericGridIterator(GridIterator):
         y = self._i // self._dimensions.width
         self._i += 1
 
-        return Point(x, y), self._tiles[y][x]
+        return Point(x, y), self._grid[x, y]
 
 
-class GenericGridNeighbourhoodIterator(GridIterator):  # TODO: code polish
-    def __init__(self, tiles: List[List[Tile]], dimensions: Dimensions, center: Point, radius: int, with_symbols: Tuple[Symbol, ...] = ()) -> None:
-        self._tiles = tiles
-        self._dimensions = dimensions
-        self._with_symbols = set(with_symbols)
-
-        self._i = 0
-        self._i_offset = max(center.y - radius, 0) * self._dimensions.width + max(center.x - radius, 0)
-        self._i_max = min(center.y + radius, dimensions.width - 1) * self._dimensions.width + min(center.x - radius, dimensions.width - 1)
-        self._i_to_skip = center.x + center.y * dimensions.width
+class GenericGridNeighbourhoodIterator(GridIterator):
+    def __init__(self, grid: Grid, dimensions: Dimensions, center: Point, radius: int, with_symbols: Tuple[Symbol, ...] = ()) -> None:
+        self._generator = _create_generator(grid, dimensions, center, radius, set(with_symbols))
 
     @override
     def __next__(self) -> Tuple[Point, Tile]:
-        while True:  # do-while
-            if self._i > self._i_max:
-                raise StopIteration
-
-            x = (self._i_offset + self._i) % self._dimensions.width
-            y = (self._i_offset + self._i) // self._dimensions.height
-            self._i += 1
-
-            tile = self._tiles[y][x]
-
-            if not self._with_symbols or tile.get_symbol() in self._with_symbols:  # do-while condition
-                return Point(x, y), tile
+        return next(self._generator)
 
 
 class GenericGrid(Grid):
@@ -72,7 +54,7 @@ class GenericGrid(Grid):
 
     @override
     def __iter__(self) -> GridIterator:
-        return GenericGridIterator(self._tiles, self._dimensions)
+        return GenericGridIterator(self, self._dimensions)
 
     def _validate_position(self, x: int, y: int) -> None:  # TODO: could be a decorator?
         if x < 0:
@@ -96,22 +78,22 @@ class GenericGrid(Grid):
     @override
     def neighbourhood_of(self, x: int, y: int) -> GridIterator:
         self._validate_position(x, y)
-        return GenericGridNeighbourhoodIterator(self._tiles, self._dimensions, Point(x, y), 1)
+        return GenericGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 1)
 
     @override
     def neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator:
         self._validate_position(x, y)
-        return GenericGridNeighbourhoodIterator(self._tiles, self._dimensions, Point(x, y), 1, desired_symbols)
+        return GenericGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 1, desired_symbols)
 
     @override
     def wide_neighbourhood_of(self, x: int, y: int) -> GridIterator:
         self._validate_position(x, y)
-        return GenericGridNeighbourhoodIterator(self._tiles, self._dimensions, Point(x, y), 2)
+        return GenericGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 2)
 
     @override
     def wide_neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator:
         self._validate_position(x, y)
-        return GenericGridNeighbourhoodIterator(self._tiles, self._dimensions, Point(x, y), 2, desired_symbols)
+        return GenericGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 2, desired_symbols)
 
     @override
     def is_valid(self) -> bool:
@@ -125,3 +107,22 @@ class GenericGrid(Grid):
             for x in range(self._dimensions.width):
                 print(tile_to_str(self[x, y]), end='')
             print()
+
+
+def _create_generator(grid: Grid, dimensions: Dimensions, center: Point, radius: int, with_symbols: Set[Symbol]) -> Generator[Tuple[Point, Tile]]:
+    center_x, center_y = center
+
+    min_x = max(center_x - radius, 0)
+    max_x = min(center_x + radius, dimensions.width - 1)
+    min_y = max(center_y - radius, 0)
+    max_y = min(center_y + radius, dimensions.height - 1)
+
+    for y in range(min_y, max_y + 1):
+        for x in range(min_x, max_x + 1):
+            if x == center_x and y == center_y:
+                continue
+
+            tile = grid[x, y]
+
+            if not with_symbols or tile.get_symbol() in with_symbols:
+                yield Point(x, y), tile
