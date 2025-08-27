@@ -62,6 +62,7 @@ class BlessedTUI(UI):
         self._term = Terminal()
         self._term.fullscreen()
 
+        # TODO: colour these to bright_black
         self._render_header()
         self._render_grid()
         self._render_prompt()

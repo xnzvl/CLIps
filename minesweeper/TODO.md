@@ -5,3 +5,5 @@
   - dimensions
 - configure formater/linter
 - fix calculated step, because it's not working properly
+- piptools
+- pyproject.toml
