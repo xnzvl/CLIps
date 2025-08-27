@@ -1,8 +1,7 @@
 from typing import NamedTuple, Literal
 
 
-MouseButton = Literal['primary', 'secondary', 'middle']
-# TODO: documentation
+Action = Literal['UNCOVER', 'FLAG', 'PLACE_QUESTION_MARK', 'CLEAR']
 
 
 class Point(NamedTuple):
@@ -21,5 +20,5 @@ class Configuration(NamedTuple):
 
 
 class Move(NamedTuple):
-    button: MouseButton
+    action: Action
     tile: Point

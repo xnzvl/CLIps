@@ -2,10 +2,10 @@ from math import log10
 from typing import Callable
 
 from src.common import Configuration, Move, Point
-from src.game.board import Board
-from src.game.literals import Result, GameState
-from src.solving.mediator import Mediator
-from src.solving.strategy import Strategy
+from src.game.grids.impl.generic_grid import GenericGrid
+from src.game.literals import GameState, Result
+from src.mediator.mediator import Mediator
+from src.solving.strategy.strategy import Strategy
 
 
 class GenericBot:
@@ -19,7 +19,7 @@ class GenericBot:
         self._mediator = mediator_instantiator(configuration)
 
         self._dimensions = configuration.dimensions
-        self._board = Board(self._dimensions.width, self._dimensions.height)
+        self._grid = GenericGrid(self._dimensions)
 
     def solve(self, max_attempts = 1, attempt_each = False) -> None:
         if max_attempts < 1:
@@ -27,18 +27,18 @@ class GenericBot:
 
         victories = 0
         attempt_number = 0
-        result: Result = 'failure'
+        result: Result = 'VICTORY'
 
-        opening_move = Move('primary', Point(self._dimensions.width // 2, self._dimensions.height // 2))
+        opening_move = Move('UNCOVER', Point(self._dimensions.width // 2, self._dimensions.height // 2))
 
-        while attempt_number < max_attempts and (attempt_each or result != 'victory'):
+        while attempt_number < max_attempts and (attempt_each or result == 'VICTORY'):
             self._mediator.reset()
             self._mediator.play(opening_move)
 
             attempt_number += 1
             result = self._attempt_to_solve()
 
-            if result == 'victory':
+            if result == 'VICTORY':
                 victories += 1
 
             print_attempt(int(log10(max_attempts)) + 1, attempt_number, result)
@@ -48,22 +48,22 @@ class GenericBot:
             print_winrate(victories, max_attempts)
 
     def _attempt_to_solve(self) -> Result:
-        board = Board(self._dimensions.width, self._dimensions.height)
+        grid = GenericGrid(self._dimensions)
 
-        game_state: GameState = 'inProgress'
-        while game_state == 'inProgress':
-            board = self._mediator.observe_board(board)
-            moves = self._strategy.get_moves(board)
+        game_state: GameState = 'IN_PROGRESS'
+        while game_state == 'IN_PROGRESS':
+            grid = self._mediator.observe_grid(grid)
+            moves = self._strategy.get_moves(grid)
             i = 0
 
-            while game_state == 'inProgress' and i < len(moves):
+            while game_state == 'IN_PROGRESS' and i < len(moves):
                 self._mediator.play(moves[i])
 
                 i += 1
                 game_state = self._mediator.observe_state()
 
         result = self._mediator.observe_state()
-        assert result != 'inProgress'
+        assert result != 'IN_PROGRESS'
         return result
 
 

@@ -2,11 +2,12 @@ from typing import Literal, Union
 
 # TODO: this file/filename feels clumsy
 
-Result = Literal['victory', 'failure']
 
-GameState = Union[Result, Literal['inProgress']]
+Result = Literal['VICTORY', 'FAILURE']
+
+GameState = Union[Result, Literal['IN_PROGRESS']]
 """
-  - `inProgress` - game is in progress even when it's not started
-  - `victory` - game is over - all mines have been correctly flagged
-  - `failure` - uncovered tile with a mine
+  - `IN_PROGRESS` - game is in progress even when it's not started
+  - `VICTORY` - game is over - all mines have been correctly flagged
+  - `FAILURE` - uncovered tiles with a mine
 """

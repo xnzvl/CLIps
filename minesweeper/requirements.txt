@@ -1,2 +1,3 @@
+blessed
 Pillow
 pyautogui

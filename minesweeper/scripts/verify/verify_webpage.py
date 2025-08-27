@@ -3,8 +3,8 @@ import sys
 import pyautogui as pag
 
 from src.common import Configuration
-from src.solving.mediator import TILE_SIZE
-from src.utils import parse_configuration
+from src.mediator.impl.webpage_mediator import TILE_SIZE
+from src.utils.configuration_parser import parse_configuration
 
 
 def flag_corners(config: Configuration) -> None:
