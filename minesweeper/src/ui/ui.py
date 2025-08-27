@@ -11,6 +11,10 @@ class UI(ABC):
         ...
 
     @abstractmethod
+    def render_remaining_mines(self, remaining_mines: int) -> None:
+        pass
+
+    @abstractmethod
     def render_grid(self, grid: Grid) -> None:
         ...
 
