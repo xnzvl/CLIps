@@ -1,6 +1,7 @@
-- create testing Board
+- create tests
 - rename scripts in `scripts`
 - autodetect
   - offsets
   - dimensions
 - configure formater/linter
+- fix calculated step, because it's not working properly
