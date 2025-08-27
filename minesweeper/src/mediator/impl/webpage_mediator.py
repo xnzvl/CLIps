@@ -1,4 +1,4 @@
-from typing import Dict, List, Literal, Never, Tuple, cast, Final
+from typing import Dict, Final, List, Literal, Never, Tuple, cast, override
 
 import pyautogui as pag
 import PIL.Image
@@ -10,6 +10,7 @@ from src.game.grids.impl.generic_grid import GenericGrid
 from src.game.literals import GameState
 from src.game.tiles.tile import Tile
 from src.mediator.mediator import Mediator
+
 
 RGB = Tuple[int, int, int]
 MouseButton = Literal['right', 'middle', 'left']
@@ -80,6 +81,7 @@ class WebPageMediator(Mediator):
         super().__init__(configuration)
         self._with_question_marks = with_question_marks
 
+    @override
     def observe_state(self) -> GameState:
         screen = pag.screenshot()
 
@@ -103,6 +105,11 @@ class WebPageMediator(Mediator):
         else:
             raise_unexpected_pixel(eye_pixel)
 
+    @override
+    def observe_remaining_mines(self) -> int:  # TODO: implement
+        return 99
+
+    @override
     def observe_grid(self, old_grid: Grid | None = None) -> Grid:
         if old_grid is not None:
             self._check_grid_size(old_grid)
@@ -125,6 +132,7 @@ class WebPageMediator(Mediator):
 
         return grid
 
+    @override
     def play(self, move: Move) -> None:
         x0 = self._offsets.x + move.tile.x * TILE_SIZE
         y0 = self._offsets.y + move.tile.y * TILE_SIZE
@@ -147,12 +155,14 @@ class WebPageMediator(Mediator):
                 button=b
             )
 
+    @override
     def reset(self) -> None:
         x = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2 + SMILEY_WIDTH // 2
         y = self._offsets.y - SMILEY_Y_OFFSET + SMILEY_WIDTH // 2
 
         pag.leftClick(x, y)
 
+    @override
     def post_game_procedure(self) -> None:
         x0 = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
         y0 = self._offsets.y - SMILEY_Y_OFFSET

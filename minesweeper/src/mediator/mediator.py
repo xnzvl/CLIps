@@ -27,6 +27,10 @@ class Mediator(ABC):
         ...
 
     @abstractmethod
+    def observe_remaining_mines(self) -> int:
+        ...
+
+    @abstractmethod
     def observe_grid(self, old_grid: Grid | None = None) -> Grid:
         ...
 
