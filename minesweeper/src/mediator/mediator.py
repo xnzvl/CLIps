@@ -16,18 +16,18 @@ class Mediator(ABC):
     def get_offsets(self) -> Point:
         return self._offsets
 
-    def _check_board_size(self, grid: Grid) -> None:
+    def _check_grid_size(self, grid: Grid) -> None:
         if grid.get_width() != self._dimensions.width:
-            raise ValueError('Board dimensions (width) do not match')
+            raise ValueError('Grid dimensions (width) do not match')
         elif grid.get_height() != self._dimensions.height:
-            raise ValueError('Board dimensions (height) do not match')
+            raise ValueError('Grid dimensions (height) do not match')
 
     @abstractmethod
     def observe_state(self) -> GameState:
         ...
 
     @abstractmethod
-    def observe_board(self, old_board: Grid | None = None) -> Grid:
+    def observe_grid(self, old_grid: Grid | None = None) -> Grid:
         ...
 
     @abstractmethod
@@ -38,6 +38,5 @@ class Mediator(ABC):
     def reset(self) -> None:
         ...
 
-    @abstractmethod
     def post_game_procedure(self) -> None:
-        ...
+        return

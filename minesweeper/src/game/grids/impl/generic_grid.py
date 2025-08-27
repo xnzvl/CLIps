@@ -60,12 +60,12 @@ class GenericGrid(Grid):
         if x < 0:
             raise IndexError('x cannot be lower than 0')
         if x >= self._dimensions.width:
-            raise IndexError(f'x cannot be greater than width of the board ({self._dimensions.width})')
+            raise IndexError(f'x cannot be greater than width of the grid ({self._dimensions.width})')
 
         if y < 0:
             raise IndexError('y cannot be lower than 0')
         if y >= self._dimensions.height:
-            raise IndexError(f'y cannot be greater than height of the board ({self._dimensions.height})')
+            raise IndexError(f'y cannot be greater than height of the grid ({self._dimensions.height})')
 
     @override
     def get_width(self) -> int:

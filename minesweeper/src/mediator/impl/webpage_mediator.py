@@ -9,7 +9,7 @@ from src.game.grids.grid import Grid
 from src.game.grids.impl.generic_grid import GenericGrid
 from src.game.literals import GameState
 from src.game.tiles.tile import Tile
-from src.solving.mediator.mediator import Mediator
+from src.mediator.mediator import Mediator
 
 RGB = Tuple[int, int, int]
 MouseButton = Literal['right', 'middle', 'left']
@@ -103,13 +103,13 @@ class WebPageMediator(Mediator):
         else:
             raise_unexpected_pixel(eye_pixel)
 
-    def observe_board(self, old_board: Grid | None = None) -> Grid:
-        if old_board is not None:
-            self._check_board_size(old_board)
+    def observe_grid(self, old_grid: Grid | None = None) -> Grid:
+        if old_grid is not None:
+            self._check_grid_size(old_grid)
 
         grid = GenericGrid(self._dimensions) \
-            if old_board is None \
-            else old_board
+            if old_grid is None \
+            else old_grid
 
         # TODO: screenshot only relevant area
         screen = pag.screenshot()

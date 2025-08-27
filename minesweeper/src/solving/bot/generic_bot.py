@@ -4,7 +4,7 @@ from typing import Callable
 from src.common import Configuration, Move, Point
 from src.game.grids.impl.generic_grid import GenericGrid
 from src.game.literals import GameState, Result
-from src.solving.mediator.mediator import Mediator
+from src.mediator.mediator import Mediator
 from src.solving.strategy.strategy import Strategy
 
 
@@ -48,12 +48,12 @@ class GenericBot:
             print_winrate(victories, max_attempts)
 
     def _attempt_to_solve(self) -> Result:
-        board = GenericGrid(self._dimensions)
+        grid = GenericGrid(self._dimensions)
 
         game_state: GameState = 'IN_PROGRESS'
         while game_state == 'IN_PROGRESS':
-            board = self._mediator.observe_board(board)
-            moves = self._strategy.get_moves(board)
+            grid = self._mediator.observe_grid(grid)
+            moves = self._strategy.get_moves(grid)
             i = 0
 
             while game_state == 'IN_PROGRESS' and i < len(moves):
