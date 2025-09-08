@@ -7,12 +7,16 @@ from src.ui.input import Input
 
 class UI(ABC):
     @abstractmethod
+    def render_remaining_mines(self, remaining_mines: int) -> None:
+        pass
+
+    @abstractmethod
     def render_game_state(self, game_state: GameState) -> None:
         ...
 
     @abstractmethod
-    def render_remaining_mines(self, remaining_mines: int) -> None:
-        pass
+    def render_time(self, seconds: int) -> None:
+        ...
 
     @abstractmethod
     def render_grid(self, grid: Grid) -> None:
