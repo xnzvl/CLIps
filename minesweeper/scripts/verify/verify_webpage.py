@@ -3,7 +3,7 @@ import sys
 import pyautogui as pag
 
 from src.common import Configuration
-from src.mediator.impl.webpage_mediator import TILE_SIZE
+from src.game.impl.webpage_sweeper import TILE_SIZE
 from src.utils.configuration_parser import parse_configuration
 
 

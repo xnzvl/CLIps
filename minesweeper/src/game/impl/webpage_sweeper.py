@@ -7,9 +7,8 @@ from src.common import Configuration, Move, Action
 from src.exceptions import InvalidGameStateError
 from src.game.grids.grid import Grid
 from src.game.grids.impl.generic_grid import GenericGrid
-from src.game.literals import GameState
+from src.game.sweeper import GameState, Sweeper
 from src.game.tiles.tile import Tile
-from src.mediator.mediator import Mediator
 
 
 RGB = Tuple[int, int, int]
@@ -76,13 +75,17 @@ PIXEL_AND_ACTION_TO_BUTTONS: Dict[Tuple[RGB, Action], Tuple[List[MouseButton] | 
 }
 
 
-class WebPageMediator(Mediator):
+class WebPageSweeper(Sweeper):
     def __init__(self, configuration: Configuration, with_question_marks: bool) -> None:
         super().__init__(configuration)
         self._with_question_marks = with_question_marks
 
     @override
-    def observe_state(self) -> GameState:
+    def obtain_remaining_mines(self) -> int:  # TODO: implement
+        return 99999
+
+    @override
+    def obtain_state(self) -> GameState:
         screen = pag.screenshot()
 
         x0 = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
@@ -106,11 +109,11 @@ class WebPageMediator(Mediator):
             raise_unexpected_pixel(eye_pixel)
 
     @override
-    def observe_remaining_mines(self) -> int:  # TODO: implement
-        return 99
+    def obtain_time(self) -> int:
+        pass
 
     @override
-    def observe_grid(self, old_grid: Grid | None = None) -> Grid:
+    def obtain_grid(self, old_grid: Grid | None = None) -> Grid:
         if old_grid is not None:
             self._check_grid_size(old_grid)
 
@@ -163,14 +166,13 @@ class WebPageMediator(Mediator):
         pag.leftClick(x, y)
 
     @override
-    def post_game_procedure(self) -> None:
+    def sign_victory(self, name: str) -> None:
         x0 = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
         y0 = self._offsets.y - SMILEY_Y_OFFSET
         glasses_pixel = pag.pixel(x0 + EMOJI_GLASSES_PIXEL_X_OFFSET, y0 + EMOJI_GLASSES_PIXEL_Y_OFFSET)
 
         if glasses_pixel != YELLOW:
-            # TODO: username shouldn't be hardcoded
-            pag.write('xnzvl', 0.1)
+            pag.write(name, 0.1)
             pag.press('enter')
 
 

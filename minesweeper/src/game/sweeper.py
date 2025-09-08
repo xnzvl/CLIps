@@ -1,11 +1,21 @@
 from abc import ABC, abstractmethod
+from typing import Literal, Union
 
 from src.common import Configuration, Dimensions, Move, Point
 from src.game.grids.grid import Grid
-from src.game.literals import GameState
 
 
-class Mediator(ABC):
+Result = Literal['VICTORY', 'FAILURE']
+
+GameState = Union[Result, Literal['IN_PROGRESS']]
+"""
+  - `IN_PROGRESS` - game is in progress even when it's not started
+  - `VICTORY` - game is over - all mines have been correctly flagged
+  - `FAILURE` - uncovered tiles with a mine
+"""
+
+
+class Sweeper(ABC):
     def __init__(self, configuration: Configuration) -> None:
         self._dimensions = configuration.dimensions
         self._offsets = configuration.offsets
@@ -23,15 +33,19 @@ class Mediator(ABC):
             raise ValueError('Grid dimensions (height) do not match')
 
     @abstractmethod
-    def observe_state(self) -> GameState:
+    def obtain_remaining_mines(self) -> int:
         ...
 
     @abstractmethod
-    def observe_remaining_mines(self) -> int:
+    def obtain_state(self) -> GameState:
         ...
 
     @abstractmethod
-    def observe_grid(self, old_grid: Grid | None = None) -> Grid:
+    def obtain_time(self) -> int:
+        ...
+
+    @abstractmethod
+    def obtain_grid(self, old_grid: Grid | None = None) -> Grid:
         ...
 
     @abstractmethod
@@ -42,5 +56,6 @@ class Mediator(ABC):
     def reset(self) -> None:
         ...
 
-    def post_game_procedure(self) -> None:
-        return
+    @abstractmethod
+    def sign_victory(self, name: str) -> None:
+        ...

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Literal, Union, assert_never
 
+
 Sign = Literal[
     'COVERED',
     'FLAG',

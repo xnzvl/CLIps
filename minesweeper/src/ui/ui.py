@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from src.game.grids.grid import Grid
-from src.game.literals import GameState, Result
+from src.game.sweeper import GameState, Result
 from src.ui.input import Input
 
 
