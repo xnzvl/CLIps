@@ -42,5 +42,5 @@ class UI(ABC):
         ...
 
     @abstractmethod
-    def get_player_input(self) -> Input:
+    def get_player_input(self, game_state: GameState) -> Input:
         ...

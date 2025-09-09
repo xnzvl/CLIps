@@ -143,6 +143,6 @@ class BlessedTUI(UI):
         pass
 
     @override
-    def get_player_input(self) -> Input:
+    def get_player_input(self, game_state: GameState) -> Input:
         # don't forget to exit fullscreen on exit
         pass
