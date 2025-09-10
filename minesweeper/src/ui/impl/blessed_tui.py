@@ -104,7 +104,7 @@ class BlessedTUI(UI):
 
         cell_border = GRID_SHAPES['─'] * CELL_WIDTH
         for row in range(0, self._dimensions.height):
-            print(f'{row:>2}' + (' ' * CELL_WIDTH + '|') * self._dimensions.width)
+            print(f'{row:>2}' + (' ' * CELL_WIDTH + GRID_SHAPES['│']) * self._dimensions.width)
 
             if row != self._dimensions.height - 1:
                 print(
@@ -122,7 +122,7 @@ class BlessedTUI(UI):
     def _render_prompt(self) -> None:
         print()
         print(
-            self._term.bright_green('xnzvl@CLIps') +
+            self._term.bright_green('xnzvl@CLIps') +  # TODO: remove hardcoded username
             self._term.white(':') +
             self._term.bright_blue('/minesweeper') +
             self._term.white('$') + ' '
@@ -151,4 +151,4 @@ class BlessedTUI(UI):
     @override
     def get_player_input(self, game_state: GameState) -> Input:
         # don't forget to exit fullscreen on exit
-        pass
+        input()
