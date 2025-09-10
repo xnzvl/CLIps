@@ -1,24 +1,15 @@
 from math import log10
-from typing import Callable
 
-from src.common import Move, Point, Dimensions, SweeperConfiguration
+from src.common import Move, Point
 from src.game.grids.impl.generic_grid import GenericGrid
 from src.game.sweeper import GameState, Result, Sweeper
 from src.solving.strategy.strategy import Strategy
 
 
-class GenericBot:
-    def __init__(
-            self,
-            configuration: SweeperConfiguration,
-            strategy: Strategy,
-            sweeper_instantiator: Callable[[Dimensions], Sweeper]  # TODO: this is clumsy
-    ) -> None:
+class Bot:
+    def __init__(self, sweeper: Sweeper, strategy: Strategy) -> None:
         self._strategy = strategy
-        self._sweeper = sweeper_instantiator(configuration)
-
-        self._dimensions = configuration.dimensions
-        self._grid = GenericGrid(self._dimensions)
+        self._sweeper = sweeper
 
     def solve(self, max_attempts = 1, attempt_each = False) -> None:
         if max_attempts < 1:
@@ -28,7 +19,8 @@ class GenericBot:
         attempt_number = 0
         result: Result = 'VICTORY'
 
-        opening_move = Move('UNCOVER', Point(self._dimensions.width // 2, self._dimensions.height // 2))
+        dimensions = self._sweeper.get_dimensions()
+        opening_move = Move('UNCOVER', Point(dimensions.width // 2, dimensions.height // 2))
 
         while attempt_number < max_attempts and (attempt_each or result == 'VICTORY'):
             self._sweeper.reset()
@@ -47,7 +39,7 @@ class GenericBot:
             print_winrate(victories, max_attempts)
 
     def _attempt_to_solve(self) -> Result:
-        grid = GenericGrid(self._dimensions)
+        grid = GenericGrid(self._sweeper.get_dimensions())
 
         game_state: GameState = 'IN_PROGRESS'
         while game_state == 'IN_PROGRESS':
