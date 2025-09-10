@@ -5,7 +5,7 @@ from src.common import Configuration
 from src.solving.strategy.strategy import Strategy
 
 
-class WebPageBot(GenericBot):
+class WebPageBot(GenericBot):  # TODO: scrap this and create BotFactory
     def __init__(self, configuration: Configuration, strategy: Strategy, with_question_marks: bool) -> None:
         super().__init__(
             configuration,
