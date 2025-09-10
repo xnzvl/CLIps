@@ -56,6 +56,8 @@ SMILEY_FACE: Dict[GameState, str] = {  # values have to be exactly 3 chars long
 
 class BlessedTUI(UI):
     def __init__(self, dimensions: Dimensions, mines: int) -> None:
+        super().__init__()
+
         self._dimensions = dimensions
         self._mines = mines
 
@@ -125,6 +127,10 @@ class BlessedTUI(UI):
             self._term.bright_blue('/minesweeper') +
             self._term.white('$') + ' '
         )
+
+    @override
+    def render_time(self, seconds: int) -> None:
+        pass
 
     @override
     def render_game_state(self, game_state: GameState) -> None:

@@ -3,7 +3,7 @@ from typing import Dict, Final, List, Literal, Never, Tuple, cast, override
 import pyautogui as pag
 import PIL.Image
 
-from src.common import Configuration, Move, Action
+from src.common import Action, Move, WebPageSweeperConfiguration
 from src.exceptions import InvalidGameStateError
 from src.game.grids.grid import Grid
 from src.game.grids.impl.generic_grid import GenericGrid
@@ -76,8 +76,10 @@ PIXEL_AND_ACTION_TO_BUTTONS: Dict[Tuple[RGB, Action], Tuple[List[MouseButton] | 
 
 
 class WebPageSweeper(Sweeper):
-    def __init__(self, configuration: Configuration, with_question_marks: bool) -> None:
-        super().__init__(configuration)
+    def __init__(self, configuration: WebPageSweeperConfiguration, with_question_marks: bool) -> None:
+        super().__init__(configuration.dimensions)
+
+        self._offsets = configuration.offsets
         self._with_question_marks = with_question_marks
 
     @override

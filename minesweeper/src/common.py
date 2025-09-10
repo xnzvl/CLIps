@@ -1,24 +1,34 @@
-from typing import NamedTuple, Literal
+from dataclasses import dataclass
+from typing import Literal
 
 
 Action = Literal['UNCOVER', 'FLAG', 'PLACE_QUESTION_MARK', 'CLEAR']
 
 
-class Point(NamedTuple):
+@dataclass(frozen=True)
+class Point:
     x: int
     y: int
 
 
-class Dimensions(NamedTuple):
+@dataclass(frozen=True)
+class Dimensions:
     width: int
     height: int
 
 
-class Configuration(NamedTuple):
-    offsets: Point
+@dataclass(frozen=True)
+class SweeperConfiguration:
     dimensions: Dimensions
+    mines: int
 
 
-class Move(NamedTuple):
+@dataclass(frozen=True)
+class WebPageSweeperConfiguration(SweeperConfiguration):  # TODO: adapt (mines)
+    offsets: Point
+
+
+@dataclass(frozen=True)
+class Move:
     action: Action
     tile: Point

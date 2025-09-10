@@ -1,7 +1,7 @@
 from math import log10
 from typing import Callable
 
-from src.common import Configuration, Move, Point
+from src.common import Move, Point, Dimensions, SweeperConfiguration
 from src.game.grids.impl.generic_grid import GenericGrid
 from src.game.sweeper import GameState, Result, Sweeper
 from src.solving.strategy.strategy import Strategy
@@ -10,9 +10,9 @@ from src.solving.strategy.strategy import Strategy
 class GenericBot:
     def __init__(
             self,
-            configuration: Configuration,
+            configuration: SweeperConfiguration,
             strategy: Strategy,
-            sweeper_instantiator: Callable[[Configuration], Sweeper]
+            sweeper_instantiator: Callable[[Dimensions], Sweeper]  # TODO: this is clumsy
     ) -> None:
         self._strategy = strategy
         self._sweeper = sweeper_instantiator(configuration)
