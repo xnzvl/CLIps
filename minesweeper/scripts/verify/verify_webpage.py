@@ -2,12 +2,12 @@ import sys
 
 import pyautogui as pag
 
-from src.common import Configuration
+from src.common import WebPageSweeperConfiguration
 from src.game.impl.webpage_sweeper import TILE_SIZE
-from src.utils.configuration_parser import parse_configuration
+from src.utils.configuration_parser import parse_web_page_configuration
 
 
-def flag_corners(config: Configuration) -> None:
+def flag_corners(config: WebPageSweeperConfiguration) -> None:
     pag.rightClick(
         config.offsets.x,
         config.offsets.y
@@ -27,7 +27,7 @@ def flag_corners(config: Configuration) -> None:
 
 
 def main() -> None:
-    config = parse_configuration(sys.argv)
+    config = parse_web_page_configuration(sys.argv)
     flag_corners(config)
 
     print()

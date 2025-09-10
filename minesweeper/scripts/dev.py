@@ -1,15 +1,19 @@
 import sys
 
-from src.solving.bot.impl.webpage_bot import WebPageBot
-from src.solving.strategy.impl.calculated_strategy import CalculatedStrategy
-from src.utils.configuration_parser import parse_configuration
+from src.clip.runner import Runner
+from src.game.impl.webpage_sweeper import WebPageSweeper
+from src.ui.impl.blessed_tui import BlessedTUI
+from src.utils.configuration_parser import parse_web_page_configuration
 
 
 def main() -> None:
-    configuration = parse_configuration(sys.argv)
+    configuration = parse_web_page_configuration(sys.argv)
 
-    webpage_bot = WebPageBot(configuration, CalculatedStrategy(), False)
-    webpage_bot.solve(10, False)
+    blessed_tui = BlessedTUI(configuration.dimensions, 0)
+    sweeper = WebPageSweeper(configuration, False)
+
+    runner = Runner(blessed_tui, sweeper)
+    runner.go()
 
 
 if __name__ == '__main__':
