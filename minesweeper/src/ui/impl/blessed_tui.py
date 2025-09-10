@@ -62,9 +62,12 @@ class BlessedTUI(UI):
         self._mines = mines
 
         self._term = Terminal()
-        self._term.fullscreen()
 
-        # TODO: colour these to bright_black
+        self._fullscreen = self._term.fullscreen()
+        # self._fullscreen.__enter__()
+
+        print(self._term.clear, end='')
+
         self._render_header()
         self._render_grid()
         self._render_prompt()
@@ -129,20 +132,47 @@ class BlessedTUI(UI):
         )
 
     @override
+    def render_remaining_mines(self, remaining_mines: int) -> None:
+        mines = f'{min(remaining_mines, 999):>03}' \
+            if remaining_mines > 0 \
+            else f'-{max(remaining_mines, -99) * (-1):>02}'
+
+        print(
+            self._term.move_xy(2, 1) +
+            f'M:{mines}',
+            end=''
+        )
+
+    @override
     def render_time(self, seconds: int) -> None:
-        pass
+        mins, secs = divmod(seconds, 60)
+
+        if mins >= 99:
+            mins = min(mins, 99)
+            secs = min(seconds - 99 * 60, 99)
+
+        print(
+            self._term.move_xy(self._dimensions.width * 4 - 4, 1) +
+            f'{mins:>02}:{secs:>02}',
+            end=''
+        )
 
     @override
     def render_game_state(self, game_state: GameState) -> None:
-        pass
-
-    @override
-    def render_remaining_mines(self, remaining_mines: int) -> None:
-        pass
+        print(
+            self._term.move_xy((self._dimensions.width * 4) // 2, 1) +
+            SMILEY_FACE[game_state],
+            end=''
+        )
 
     @override
     def render_grid(self, grid: Grid) -> None:
-        pass
+        for point, tile in grid:
+            print(
+                self._term.move_xy(2 + point.x * 4, 4 + point.y * 2) +
+                '#',
+                end=''
+            )
 
     @override
     def render_result(self, result: Result) -> None:
@@ -151,4 +181,8 @@ class BlessedTUI(UI):
     @override
     def get_player_input(self, game_state: GameState) -> Input:
         # don't forget to exit fullscreen on exit
+        print(
+            self._term.move_xy(26, self._dimensions.height * 2 + 5),  # TODO: adapt to variable username
+            end=''
+        )
         input()

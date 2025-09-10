@@ -29,9 +29,10 @@ class Runner:
     def _update_ui(self) -> GameState:
         game_state = self._sweeper.obtain_state()
 
-        self._ui.render_remaining_mines(self._sweeper.obtain_remaining_mines())
+        # TODO: remove comments
+        self._ui.render_remaining_mines(17) # self._sweeper.obtain_remaining_mines())
         self._ui.render_game_state(game_state)
-        self._ui.render_time(self._sweeper.obtain_time())
+        self._ui.render_time(137) # self._sweeper.obtain_time())
 
         current_grid = self._sweeper.obtain_grid()
         self._ui.render_grid(current_grid)
