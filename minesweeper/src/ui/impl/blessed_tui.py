@@ -72,6 +72,9 @@ class BlessedTUI(UI):
         self._render_grid()
         self._render_prompt()
 
+    def _as_border(self, string: str) -> str:
+        return self._term.bright_black(string)
+
     def _render_header(self) -> None:
         n = (3 * self._dimensions.width + self._dimensions.width + 1 - 7) // 2
 
@@ -79,47 +82,73 @@ class BlessedTUI(UI):
         space_segment = n * ' '
 
         print(
-            HEADER_SHAPES['┌'] + line_segment +
-            HEADER_SHAPES['┬'] + HEADER_SHAPES['─'] * SMILEY_WIDTH + HEADER_SHAPES['┬']
-                               + line_segment + HEADER_SHAPES['┐']
+            self._as_border(
+                HEADER_SHAPES['┌'] + line_segment +
+                HEADER_SHAPES['┬'] + HEADER_SHAPES['─'] * SMILEY_WIDTH + HEADER_SHAPES['┬']
+                                   + line_segment + HEADER_SHAPES['┐']
+            )
         )
         print(
-            HEADER_SHAPES['│'] +
+            self._as_border(HEADER_SHAPES['│']) +
             space_segment +
-            HEADER_SHAPES['│'] + ' ' * SMILEY_WIDTH + HEADER_SHAPES['│'] +
+            self._as_border(HEADER_SHAPES['│']) + ' ' * SMILEY_WIDTH + self._as_border(HEADER_SHAPES['│']) +
             space_segment +
-            HEADER_SHAPES['│']
+            self._as_border(HEADER_SHAPES['│'])
         )
         print(
-            HEADER_SHAPES['└'] + line_segment +
-            HEADER_SHAPES['┴'] + HEADER_SHAPES['─'] * SMILEY_WIDTH + HEADER_SHAPES['┴']
-                               + line_segment + HEADER_SHAPES['┘']
+            self._as_border(
+                HEADER_SHAPES['└'] + line_segment +
+                HEADER_SHAPES['┴'] + HEADER_SHAPES['─'] * SMILEY_WIDTH + HEADER_SHAPES['┴']
+                                   + line_segment + HEADER_SHAPES['┘']
+            )
         )
 
-    def _render_grid(self) -> None:
-        print(f' {GRID_SHAPES['┌']}', end='')
+    def _render_column_header(self) -> None:
+        print(
+            self._as_border(f' {GRID_SHAPES['┌']}'),
+            end=''
+        )
+
         for column in range(self._dimensions.width):
-            print(str(column).ljust(3, GRID_SHAPES['─']), end='')
+            print(
+                self._as_border(str(column).ljust(3, GRID_SHAPES['─'])),
+                end=''
+            )
 
             if column < self._dimensions.width - 1:
-                print(GRID_SHAPES['┬'], end='')
-        print(GRID_SHAPES['┐'])
-
-        cell_border = GRID_SHAPES['─'] * CELL_WIDTH
-        for row in range(0, self._dimensions.height):
-            print(f'{row:>2}' + (' ' * CELL_WIDTH + GRID_SHAPES['│']) * self._dimensions.width)
-
-            if row != self._dimensions.height - 1:
                 print(
-                    f' {GRID_SHAPES['├']}' +
-                    (cell_border + GRID_SHAPES['┼']) * (self._dimensions.width - 1) + cell_border +
-                    GRID_SHAPES['┤']
+                    self._as_border(GRID_SHAPES['┬']),
+                    end=''
                 )
 
         print(
-            f' {GRID_SHAPES['└']}' +
-            (cell_border + GRID_SHAPES['┴']) * (self._dimensions.width - 1) + cell_border +
-            GRID_SHAPES['┘']
+            self._as_border(GRID_SHAPES['┐'])
+        )
+
+    def _render_grid(self) -> None:
+        self._render_column_header()
+
+        cell_border = GRID_SHAPES['─'] * CELL_WIDTH
+        for row in range(0, self._dimensions.height):
+            print(
+                self._as_border(f'{row:>2}' + (' ' * CELL_WIDTH + GRID_SHAPES['│']) * self._dimensions.width)
+            )
+
+            if row != self._dimensions.height - 1:
+                print(
+                    self._as_border(
+                        f' {GRID_SHAPES['├']}' +
+                        (cell_border + GRID_SHAPES['┼']) * (self._dimensions.width - 1) + cell_border +
+                        GRID_SHAPES['┤']
+                    )
+                )
+
+        print(
+            self._as_border(
+                f' {GRID_SHAPES['└']}' +
+                (cell_border + GRID_SHAPES['┴']) * (self._dimensions.width - 1) + cell_border +
+                GRID_SHAPES['┘']
+            )
         )
 
     def _render_prompt(self) -> None:
