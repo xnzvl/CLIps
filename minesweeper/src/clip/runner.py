@@ -1,5 +1,5 @@
 from src.game.grids.impl.generic_grid import GenericGrid
-from src.game.sweeper import Sweeper, GameState
+from src.game.sweeper.sweeper import GameState, Sweeper
 from src.ui.ui import UI
 
 

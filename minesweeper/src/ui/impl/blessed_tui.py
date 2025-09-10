@@ -7,7 +7,7 @@ from blessed.terminal import Terminal
 
 from src.common import Dimensions
 from src.game.grids.grid import Grid
-from src.game.sweeper import GameState, Result
+from src.game.sweeper.sweeper import GameState, Result
 from src.ui.input import Input
 from src.ui.ui import UI
 

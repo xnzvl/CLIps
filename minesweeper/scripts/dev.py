@@ -1,7 +1,7 @@
 import sys
 
 from src.clip.runner import Runner
-from src.game.impl.webpage_sweeper import WebPageSweeper
+from src.game.sweeper.impl.webpage_sweeper import WebPageSweeper
 from src.ui.impl.blessed_tui import BlessedTUI
 from src.utils.configuration_parser import parse_web_page_configuration
 

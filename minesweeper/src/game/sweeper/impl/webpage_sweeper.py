@@ -7,7 +7,7 @@ from src.common import Action, Move, WebPageSweeperConfiguration
 from src.exceptions import InvalidGameStateError
 from src.game.grids.grid import Grid
 from src.game.grids.impl.generic_grid import GenericGrid
-from src.game.sweeper import GameState, Sweeper
+from src.game.sweeper.sweeper import GameState, Sweeper
 from src.game.tiles.tile import Tile
 
 

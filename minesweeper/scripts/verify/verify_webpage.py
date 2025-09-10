@@ -3,7 +3,7 @@ import sys
 import pyautogui as pag
 
 from src.common import WebPageSweeperConfiguration
-from src.game.impl.webpage_sweeper import TILE_SIZE
+from src.game.sweeper.impl.webpage_sweeper import TILE_SIZE
 from src.utils.configuration_parser import parse_web_page_configuration
 
 

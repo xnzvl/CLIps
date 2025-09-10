@@ -2,7 +2,7 @@ from math import log10
 
 from src.common import Move, Point
 from src.game.grids.impl.generic_grid import GenericGrid
-from src.game.sweeper import GameState, Result, Sweeper
+from src.game.sweeper.sweeper import GameState, Result, Sweeper
 from src.solving.strategy.strategy import Strategy
 
 
@@ -31,7 +31,7 @@ class Bot:
 
             if result == 'VICTORY':
                 victories += 1
-                self._sweeper.sign_victory('xnzvl')
+                self._sweeper.sign_victory('xnzvl')  # TODO: username shouldn't be hardcoded
 
             print_attempt(int(log10(max_attempts)) + 1, attempt_number, result)
 

@@ -1,5 +1,5 @@
 from src.common import WebPageSweeperConfiguration
-from src.game.impl.webpage_sweeper import WebPageSweeper
+from src.game.sweeper.impl.webpage_sweeper import WebPageSweeper
 from src.solving.bot.bot import Bot
 from src.solving.strategy.strategy import Strategy
 
