@@ -1,13 +1,14 @@
 # TODO: guarantee minimal window size on Unix
 # from signal import signal, SIGWINCH  # https://blessed.readthedocs.io/en/latest/measuring.html#resizing
 
-from typing import Dict, Literal, override
+from typing import Dict, Literal, assert_never, override
 
 from blessed.terminal import Terminal
 
 from src.common import Dimensions
 from src.game.grids.grid import Grid
 from src.game.sweeper.sweeper import GameState, Result
+from src.game.tiles.tile import Tile
 from src.ui.input import Input
 from src.ui.ui import UI
 
@@ -160,6 +161,53 @@ class BlessedTUI(UI):
             self._term.white('$') + ' '
         )
 
+    def _dye_number(self, number: int) -> str:
+        num_str = str(number)
+
+        match number:
+            case 1:
+                return self._term.bright_blue(num_str)
+            case 2:
+                return self._term.bright_green(num_str)
+            case 3:
+                return self._term.bright_red(num_str)
+            case 4:
+                return self._term.blue(num_str)
+            case 5:
+                return self._term.brown(num_str)
+            case 6:
+                return self._term.cyan(num_str)
+            case 7:
+                return self._term.bright_black(num_str)
+            case 8:
+                return self._term.silver(num_str)
+
+        assert_never(number)
+
+    def _tile_representation(self, tile: Tile) -> str:
+        match tile.get_symbol():
+            case 'COVERED':
+                return '▐█▌'
+            case 'FLAG':
+                return ' F '
+            case 'QUESTION_MARK':
+                return ' ? '
+            case 'EXPLODED_MINE':
+                return ' * '
+            case 'MINE':
+                return '[*]'
+            case 'BAD_MINE':
+                return ' X '
+            case 'EMPTY':
+                return '   '
+            case 'NUMBER':
+                mines = tile.get_count()
+                assert mines is not None
+
+                return f' {self._dye_number(mines)} '
+
+        assert_never(tile.get_symbol())
+
     @override
     def render_remaining_mines(self, remaining_mines: int) -> None:
         mines = f'{min(remaining_mines, 999):>03}' \
@@ -199,7 +247,7 @@ class BlessedTUI(UI):
         for point, tile in grid:
             print(
                 self._term.move_xy(2 + point.x * 4, 4 + point.y * 2) +
-                '#',
+                self._tile_representation(tile),
                 end=''
             )
 
