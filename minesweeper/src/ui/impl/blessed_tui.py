@@ -166,21 +166,21 @@ class BlessedTUI(UI):
 
         match number:
             case 1:
-                return self._term.blue(num_str)
+                return self._term.bright_blue(num_str)
             case 2:
-                return str(number)
+                return self._term.bright_green(num_str)
             case 3:
-                return str(number)
+                return self._term.bright_red(num_str)
             case 4:
-                return str(number)
+                return self._term.blue(num_str)
             case 5:
-                return str(number)
+                return self._term.brown(num_str)
             case 6:
-                return str(number)
+                return self._term.cyan(num_str)
             case 7:
-                return str(number)
+                return self._term.bright_black(num_str)
             case 8:
-                return str(number)
+                return self._term.silver(num_str)
 
         assert_never(number)
 
