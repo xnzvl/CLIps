@@ -76,11 +76,8 @@ PIXEL_AND_ACTION_TO_BUTTONS: Dict[Tuple[RGB, Action], Tuple[List[MouseButton] | 
 
 
 class WebPageSweeper(Sweeper):
-    def __init__(self, configuration: WebPageSweeperConfiguration, with_question_marks: bool) -> None:
+    def __init__(self, configuration: WebPageSweeperConfiguration) -> None:
         super().__init__(configuration)
-
-        self._offsets = configuration.offsets
-        self._with_question_marks = with_question_marks
 
     @override
     def obtain_remaining_mines(self) -> int:  # TODO: implement
@@ -90,8 +87,8 @@ class WebPageSweeper(Sweeper):
     def obtain_state(self) -> GameState:
         screen = pag.screenshot()
 
-        x0 = self._offsets.x + (self._configuration.dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
-        y0 = self._offsets.y - SMILEY_Y_OFFSET
+        x0 = self._configuration.offsets.x + (self._configuration.dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
+        y0 = self._configuration.offsets.y - SMILEY_Y_OFFSET
 
         # TODO: rest of the function is quite chaotic
         eye_pixel = get_rgb_from_pixel(screen, x0 + EMOJI_EYE_PIXEL_X_OFFSET, y0 + EMOJI_EYE_PIXEL_Y_OFFSET)
@@ -131,8 +128,8 @@ class WebPageSweeper(Sweeper):
             for x in range(dimensions.width):
                 tile = grid[x, y]
 
-                pixel_x = self._offsets.x + x * TILE_SIZE
-                pixel_y = self._offsets.y + y * TILE_SIZE
+                pixel_x = self._configuration.offsets.x + x * TILE_SIZE
+                pixel_y = self._configuration.offsets.y + y * TILE_SIZE
 
                 observe_tile(screen, tile, pixel_x, pixel_y)
 
@@ -140,8 +137,8 @@ class WebPageSweeper(Sweeper):
 
     @override
     def play(self, move: Move) -> None:
-        x0 = self._offsets.x + move.tile.x * TILE_SIZE
-        y0 = self._offsets.y + move.tile.y * TILE_SIZE
+        x0 = self._configuration.offsets.x + move.tile.x * TILE_SIZE
+        y0 = self._configuration.offsets.y + move.tile.y * TILE_SIZE
 
         screenshot = pag.screenshot(region=(x0 + COVERED_KEY_PIXEL_X_OFFSET, y0 + COVERED_KEY_PIXEL_Y_OFFSET, 1, 1))
         pixel = get_rgb_from_pixel(screenshot, 0, 0)
@@ -154,7 +151,7 @@ class WebPageSweeper(Sweeper):
         if buttons is None:
             raise InvalidGameStateError('question marks aren\'t enabled')
 
-        for b in (buttons_with_question_marks if self._with_question_marks else buttons):
+        for b in (buttons_with_question_marks if self._configuration.question_marks else buttons):
             pag.click(
                 x=x0 + TILE_SIZE // 2,
                 y=y0 + TILE_SIZE // 2,
@@ -163,15 +160,15 @@ class WebPageSweeper(Sweeper):
 
     @override
     def reset(self) -> None:
-        x = self._offsets.x + (self._configuration.dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2 + SMILEY_WIDTH // 2
-        y = self._offsets.y - SMILEY_Y_OFFSET + SMILEY_WIDTH // 2
+        x = self._configuration.offsets.x + (self._configuration.dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2 + SMILEY_WIDTH // 2
+        y = self._configuration.offsets.y - SMILEY_Y_OFFSET + SMILEY_WIDTH // 2
 
         pag.leftClick(x, y)
 
     @override
     def sign_victory(self, name: str) -> None:
-        x0 = self._offsets.x + (self._configuration.dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
-        y0 = self._offsets.y - SMILEY_Y_OFFSET
+        x0 = self._configuration.offsets.x + (self._configuration.dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
+        y0 = self._configuration.offsets.y - SMILEY_Y_OFFSET
         glasses_pixel = pag.pixel(x0 + EMOJI_GLASSES_PIXEL_X_OFFSET, y0 + EMOJI_GLASSES_PIXEL_Y_OFFSET)
 
         if glasses_pixel != YELLOW:
