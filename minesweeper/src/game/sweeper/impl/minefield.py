@@ -7,9 +7,8 @@ from src.game.sweeper.sweeper import GameState, Sweeper
 
 class Minefield(Sweeper):
     def __init__(self, configuration: SweeperConfiguration) -> None:
-        super().__init__(configuration.dimensions)
+        super().__init__(configuration)
 
-        self._configuration = configuration
         self._mines: Set[Point] = set()
 
     @override

@@ -6,10 +6,9 @@ from src.solving.strategy.strategy import Strategy
 
 def new_web_page_bot(
         configuration: WebPageSweeperConfiguration,
-        strategy: Strategy,
-        with_question_marks: bool
+        strategy: Strategy
 ) -> Bot:
     return Bot(
-        WebPageSweeper(configuration, with_question_marks),
+        WebPageSweeper(configuration),
         strategy
     )
