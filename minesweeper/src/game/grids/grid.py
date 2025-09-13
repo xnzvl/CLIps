@@ -16,6 +16,7 @@ class GridIterator(ABC):
     def to_list(self) -> List[Tuple[Point, Tile]]:
         return [t for t in self]
 
+
 class Grid(ABC):
     @abstractmethod
     def __getitem__(self, key: Tuple[int, int]) -> Tile:
