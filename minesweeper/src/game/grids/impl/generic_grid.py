@@ -26,7 +26,26 @@ class GenericGridIterator(GridIterator):
 
 class GenericGridNeighbourhoodIterator(GridIterator):
     def __init__(self, grid: Grid, dimensions: Dimensions, center: Point, radius: int, with_symbols: Tuple[Symbol, ...] = ()) -> None:
-        self._generator = _create_generator(grid, dimensions, center, radius, set(with_symbols))
+        self._generator = GenericGridNeighbourhoodIterator._create_generator(grid, dimensions, center, radius, set(with_symbols))
+
+    @staticmethod
+    def _create_generator(grid: Grid, dimensions: Dimensions, center: Point, radius: int, with_symbols: Set[Symbol]) -> Generator[Tuple[Point, Tile]]:
+        center_x, center_y = center
+
+        min_x = max(center_x - radius, 0)
+        max_x = min(center_x + radius, dimensions.width - 1)
+        min_y = max(center_y - radius, 0)
+        max_y = min(center_y + radius, dimensions.height - 1)
+
+        for y in range(min_y, max_y + 1):
+            for x in range(min_x, max_x + 1):
+                if x == center_x and y == center_y:
+                    continue
+
+                tile = grid[x, y]
+
+                if not with_symbols or tile.get_symbol() in with_symbols:
+                    yield Point(x, y), tile
 
     @override
     def __next__(self) -> Tuple[Point, Tile]:
@@ -56,7 +75,7 @@ class GenericGrid(Grid):
     def __iter__(self) -> GridIterator:
         return GenericGridIterator(self, self._dimensions)
 
-    def _validate_position(self, x: int, y: int) -> None:  # TODO: could be a decorator?
+    def _validate_position(self, x: int, y: int) -> None:
         if x < 0:
             raise IndexError('x cannot be lower than 0')
         if x >= self._dimensions.width:
@@ -107,22 +126,3 @@ class GenericGrid(Grid):
             for x in range(self._dimensions.width):
                 print(tile_to_str(self[x, y]), end='')
             print()
-
-
-def _create_generator(grid: Grid, dimensions: Dimensions, center: Point, radius: int, with_symbols: Set[Symbol]) -> Generator[Tuple[Point, Tile]]:
-    center_x, center_y = center
-
-    min_x = max(center_x - radius, 0)
-    max_x = min(center_x + radius, dimensions.width - 1)
-    min_y = max(center_y - radius, 0)
-    max_y = min(center_y + radius, dimensions.height - 1)
-
-    for y in range(min_y, max_y + 1):
-        for x in range(min_x, max_x + 1):
-            if x == center_x and y == center_y:
-                continue
-
-            tile = grid[x, y]
-
-            if not with_symbols or tile.get_symbol() in with_symbols:
-                yield Point(x, y), tile
