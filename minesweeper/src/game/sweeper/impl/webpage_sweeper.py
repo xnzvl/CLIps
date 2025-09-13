@@ -77,7 +77,7 @@ PIXEL_AND_ACTION_TO_BUTTONS: Dict[Tuple[RGB, Action], Tuple[List[MouseButton] | 
 
 class WebPageSweeper(Sweeper):
     def __init__(self, configuration: WebPageSweeperConfiguration, with_question_marks: bool) -> None:
-        super().__init__(configuration.dimensions)
+        super().__init__(configuration)
 
         self._offsets = configuration.offsets
         self._with_question_marks = with_question_marks
@@ -90,7 +90,7 @@ class WebPageSweeper(Sweeper):
     def obtain_state(self) -> GameState:
         screen = pag.screenshot()
 
-        x0 = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
+        x0 = self._offsets.x + (self._configuration.dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
         y0 = self._offsets.y - SMILEY_Y_OFFSET
 
         # TODO: rest of the function is quite chaotic
@@ -119,15 +119,16 @@ class WebPageSweeper(Sweeper):
         if old_grid is not None:
             self._check_grid_size(old_grid)
 
-        grid = GenericGrid(self._dimensions) \
+        dimensions = self._configuration.dimensions
+        grid = GenericGrid(dimensions) \
             if old_grid is None \
             else old_grid
 
         # TODO: screenshot only relevant area
         screen = pag.screenshot()
 
-        for y in range(self._dimensions.height):
-            for x in range(self._dimensions.width):
+        for y in range(dimensions.height):
+            for x in range(dimensions.width):
                 tile = grid[x, y]
 
                 pixel_x = self._offsets.x + x * TILE_SIZE
@@ -162,14 +163,14 @@ class WebPageSweeper(Sweeper):
 
     @override
     def reset(self) -> None:
-        x = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2 + SMILEY_WIDTH // 2
+        x = self._offsets.x + (self._configuration.dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2 + SMILEY_WIDTH // 2
         y = self._offsets.y - SMILEY_Y_OFFSET + SMILEY_WIDTH // 2
 
         pag.leftClick(x, y)
 
     @override
     def sign_victory(self, name: str) -> None:
-        x0 = self._offsets.x + (self._dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
+        x0 = self._offsets.x + (self._configuration.dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
         y0 = self._offsets.y - SMILEY_Y_OFFSET
         glasses_pixel = pag.pixel(x0 + EMOJI_GLASSES_PIXEL_X_OFFSET, y0 + EMOJI_GLASSES_PIXEL_Y_OFFSET)
 

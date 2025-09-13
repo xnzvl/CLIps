@@ -21,6 +21,7 @@ class Dimensions:
 class SweeperConfiguration:
     dimensions: Dimensions
     mines: int
+    question_marks: bool
 
 
 @dataclass(frozen=True)

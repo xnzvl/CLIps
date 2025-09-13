@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Literal, Union
 
-from src.common import Dimensions, Move
+from src.common import Dimensions, Move, SweeperConfiguration
 from src.game.grids.grid import Grid
 
 
@@ -16,16 +16,16 @@ GameState = Union[Result, Literal['IN_PROGRESS']]
 
 
 class Sweeper(ABC):
-    def __init__(self, dimensions: Dimensions) -> None:
-        self._dimensions = dimensions
+    def __init__(self, configuration: SweeperConfiguration) -> None:
+        self._configuration = configuration
 
     def get_dimensions(self) -> Dimensions:
-        return self._dimensions
+        return self._configuration.dimensions
 
     def _check_grid_size(self, grid: Grid) -> None:
-        if grid.get_width() != self._dimensions.width:
+        if grid.get_width() != self._configuration.dimensions.width:
             raise ValueError('Grid dimensions (width) do not match')
-        elif grid.get_height() != self._dimensions.height:
+        elif grid.get_height() != self._configuration.dimensions.height:
             raise ValueError('Grid dimensions (height) do not match')
 
     @abstractmethod

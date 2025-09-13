@@ -18,7 +18,8 @@ def parse_configuration(argv: List[str]) -> SweeperConfiguration:
 
     return SweeperConfiguration(
         dimensions=Dimensions(ns.width, ns.height),
-        mines=ns.mines
+        mines=ns.mines,
+        question_marks=False  # TODO: actually parse
     )
 
 
@@ -34,5 +35,6 @@ def parse_web_page_configuration(argv: List[str]) -> WebPageSweeperConfiguration
     return WebPageSweeperConfiguration(
         dimensions=Dimensions(ns.width, ns.height),
         mines=ns.mines,
+        question_marks=False,  # TODO: actually parse
         offsets=Point(ns.x_offset, ns.y_offset)
     )
