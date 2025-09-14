@@ -10,7 +10,7 @@ def _add_core_arguments(parser: ArgumentParser) -> None:
     parser.add_argument('mines', metavar='MINES', type=int, help='number of mines')
 
 
-def parse_configuration(argv: List[str]) -> SweeperConfiguration:
+def parse_sweeper_configuration(argv: List[str]) -> SweeperConfiguration:
     parser = ArgumentParser(prog=argv[0])
 
     _add_core_arguments(parser)
@@ -23,7 +23,7 @@ def parse_configuration(argv: List[str]) -> SweeperConfiguration:
     )
 
 
-def parse_web_page_configuration(argv: List[str]) -> WebPageSweeperConfiguration:
+def parse_web_page_sweeper_configuration(argv: List[str]) -> WebPageSweeperConfiguration:
     parser = ArgumentParser(prog=argv[0])
 
     parser.add_argument('x_offset', metavar='X_OFFSET', type=int, help='X offset')
