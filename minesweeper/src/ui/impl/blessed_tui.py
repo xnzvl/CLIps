@@ -178,7 +178,7 @@ class BlessedTUI(UI):
             case 6:
                 return self._term.cyan(num_str)
             case 7:
-                return self._term.bright_black(num_str)
+                return self._term.dimgray(num_str)
             case 8:
                 return self._term.silver(num_str)
 

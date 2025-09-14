@@ -10,7 +10,7 @@ def main() -> None:
     configuration = parse_web_page_configuration(sys.argv)
 
     blessed_tui = BlessedTUI(configuration.dimensions, 0)
-    sweeper = WebPageSweeper(configuration, False)
+    sweeper = WebPageSweeper(configuration)
 
     runner = Runner(blessed_tui, sweeper)
     runner.go()
