@@ -1,10 +1,10 @@
 import sys
 
-from src.utils.configuration_parser import parse_configuration
+from src.utils.configuration_parser import parse_sweeper_configuration
 
 
 def main() -> None:
-    configuration = parse_configuration(sys.argv)
+    configuration = parse_sweeper_configuration(sys.argv)
     print(configuration)
 
 
