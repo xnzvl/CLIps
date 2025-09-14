@@ -22,6 +22,8 @@ class Sweeper(ABC, Generic[T]):
     def __init__(self, configuration: T) -> None:
         self._configuration = configuration
 
+        # TODO: check mine count - if it makes sense or not
+
     def get_dimensions(self) -> Dimensions:
         return self._configuration.dimensions
 
