@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Generic, Literal, TypeVar, Union
+from typing import Literal, TypeVar
 
 from src.common import Dimensions, Move, SweeperConfiguration
 from src.game.grids.grid import Grid
@@ -10,7 +10,7 @@ T = TypeVar('T', bound=SweeperConfiguration)
 
 Result = Literal['VICTORY', 'FAILURE']
 
-GameState = Union[Result, Literal['IN_PROGRESS']]
+GameState = Literal[Result, 'IN_PROGRESS']
 """
   - `IN_PROGRESS` - game is in progress even when it's not started
   - `VICTORY` - game is over - all mines have been correctly flagged
@@ -18,7 +18,7 @@ GameState = Union[Result, Literal['IN_PROGRESS']]
 """
 
 
-class Sweeper(ABC, Generic[T]):
+class Sweeper[T](ABC):
     def __init__(self, configuration: T) -> None:
         self._configuration = configuration
 
