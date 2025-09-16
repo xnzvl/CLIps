@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 
-Action = Literal['UNCOVER', 'FLAG', 'PLACE_QUESTION_MARK', 'CLEAR']
+Action = Literal['UNCOVER', 'FLAG', 'QUESTION_MARK', 'CLEAR']
 
 
 @dataclass(frozen=True)
