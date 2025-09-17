@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Literal, TypeVar
+from typing import Generic, Literal, TypeVar
 
 from src.common import Dimensions, Move, SweeperConfiguration
 from src.game.grids.grid import Grid
@@ -18,7 +18,7 @@ GameState = Literal[Result, 'IN_PROGRESS']
 """
 
 
-class Sweeper[T](ABC):
+class Sweeper(ABC, Generic[T]):
     def __init__(self, configuration: T) -> None:
         self._configuration = configuration
 
