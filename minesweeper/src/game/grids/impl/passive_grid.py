@@ -2,11 +2,11 @@ from typing import Generator, List, Set, Tuple, override
 
 from src.common import Dimensions, Point
 from src.game.grids.grid import Grid, GridIterator
-from src.game.tiles.impl.mutable_tile import MutableTile
+from src.game.tiles.impl.passive_tile import PassiveTile
 from src.game.tiles.tile import Tile, tile_to_str, Symbol
 
 
-class GenericGridIterator(GridIterator):
+class PassiveGridIterator(GridIterator):
     def __init__(self, grid: Grid, dimensions: Dimensions) -> None:
         self._grid = grid
         self._dimensions = dimensions
@@ -24,9 +24,9 @@ class GenericGridIterator(GridIterator):
         return Point(x, y), self._grid[x, y]
 
 
-class GenericGridNeighbourhoodIterator(GridIterator):
+class PassiveGridNeighbourhoodIterator(GridIterator):
     def __init__(self, grid: Grid, dimensions: Dimensions, center: Point, radius: int, with_symbols: Tuple[Symbol, ...] = ()) -> None:
-        self._generator = GenericGridNeighbourhoodIterator._create_generator(grid, dimensions, center, radius, set(with_symbols))
+        self._generator = PassiveGridNeighbourhoodIterator._create_generator(grid, dimensions, center, radius, set(with_symbols))
 
     @staticmethod
     def _create_generator(grid: Grid, dimensions: Dimensions, center: Point, radius: int, with_symbols: Set[Symbol]) -> Generator[Tuple[Point, Tile]]:
@@ -52,7 +52,7 @@ class GenericGridNeighbourhoodIterator(GridIterator):
         return next(self._generator)
 
 
-class GenericGrid(Grid):
+class PassiveGrid(Grid):
     def __init__(self, dimensions: Dimensions) -> None:
         if dimensions.width < 1:
             raise ValueError(f'width has to be greater than 1 (provided {dimensions.width})')
@@ -61,7 +61,7 @@ class GenericGrid(Grid):
 
         self._dimensions = dimensions
         self._tiles: List[List[Tile]] = ([
-            [MutableTile() for _ in range(dimensions.width)]
+            [PassiveTile() for _ in range(dimensions.width)]
             for _ in range(dimensions.height)
         ])
 
@@ -73,7 +73,7 @@ class GenericGrid(Grid):
 
     @override
     def __iter__(self) -> GridIterator:
-        return GenericGridIterator(self, self._dimensions)
+        return PassiveGridIterator(self, self._dimensions)
 
     def _validate_position(self, x: int, y: int) -> None:
         if x < 0:
@@ -97,22 +97,22 @@ class GenericGrid(Grid):
     @override
     def neighbourhood_of(self, x: int, y: int) -> GridIterator:
         self._validate_position(x, y)
-        return GenericGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 1)
+        return PassiveGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 1)
 
     @override
     def neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator:
         self._validate_position(x, y)
-        return GenericGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 1, desired_symbols)
+        return PassiveGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 1, desired_symbols)
 
     @override
     def wide_neighbourhood_of(self, x: int, y: int) -> GridIterator:
         self._validate_position(x, y)
-        return GenericGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 2)
+        return PassiveGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 2)
 
     @override
     def wide_neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator:
         self._validate_position(x, y)
-        return GenericGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 2, desired_symbols)
+        return PassiveGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 2, desired_symbols)
 
     @override
     def is_valid(self) -> bool:
