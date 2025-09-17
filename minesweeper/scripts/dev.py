@@ -1,19 +1,18 @@
-import sys
-
-from src.clip.runner import Runner
-from src.game.sweeper.impl.webpage_sweeper import WebPageSweeper
-from src.ui.impl.blessed_tui import BlessedTUI
-from src.utils.configuration_parser import parse_web_page_sweeper_configuration
+from src.ui.tui.tui_input_parser import create_input_parser
 
 
 def main() -> None:
-    configuration = parse_web_page_sweeper_configuration(sys.argv)
+    p = create_input_parser(True)
 
-    blessed_tui = BlessedTUI(configuration.dimensions, 0)
-    sweeper = WebPageSweeper(configuration)
+    try:
+        ns = p.parse_args(input().split())
+        print(ns)
+    except SystemExit:
+        print('Attempted exit (most likely by argparse)')
+    except KeyboardInterrupt:
+        print('Attempted keyboard interrupt')
 
-    runner = Runner(blessed_tui, sweeper)
-    runner.go()
+    input('THE END! Press Enter to continue...')
 
 
 if __name__ == '__main__':
