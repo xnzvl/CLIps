@@ -6,7 +6,7 @@ import PIL.Image
 from src.common import Action, Move, WebPageSweeperConfiguration
 from src.exceptions import InvalidGameStateError
 from src.game.grids.grid import Grid
-from src.game.grids.impl.generic_grid import GenericGrid
+from src.game.grids.impl.passive_grid import PassiveGrid
 from src.game.sweeper.sweeper import GameState, Sweeper
 from src.game.tiles.tile import Tile
 
@@ -117,7 +117,7 @@ class WebPageSweeper(Sweeper):
             self._check_grid_size(old_grid)
 
         dimensions = self._configuration.dimensions
-        grid = GenericGrid(dimensions) \
+        grid = PassiveGrid(dimensions) \
             if old_grid is None \
             else old_grid
 

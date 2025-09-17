@@ -1,7 +1,7 @@
 from math import log10
 
 from src.common import Move, Point
-from src.game.grids.impl.generic_grid import GenericGrid
+from src.game.grids.impl.passive_grid import PassiveGrid
 from src.game.sweeper.sweeper import GameState, Result, Sweeper
 from src.solving.strategy.strategy import Strategy
 
@@ -39,7 +39,7 @@ class Bot:
             print_winrate(victories, max_attempts)
 
     def _attempt_to_solve(self) -> Result:
-        grid = GenericGrid(self._sweeper.get_dimensions())
+        grid = PassiveGrid(self._sweeper.get_dimensions())
 
         game_state: GameState = 'IN_PROGRESS'
         while game_state == 'IN_PROGRESS':

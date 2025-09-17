@@ -1,4 +1,4 @@
-from src.game.grids.impl.generic_grid import GenericGrid
+from src.game.grids.impl.passive_grid import PassiveGrid
 from src.game.sweeper.sweeper import GameState, Sweeper
 from src.ui.ui import UI
 
@@ -8,7 +8,7 @@ class Runner:
         self._ui = ui
         self._sweeper = sweeper
 
-        self._grid_cache = GenericGrid(sweeper.get_dimensions())
+        self._grid_cache = PassiveGrid(sweeper.get_dimensions())
 
     def go(self) -> None:
         while True:

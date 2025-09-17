@@ -4,7 +4,7 @@ from typing import List, NamedTuple, Tuple, Set
 from src.common import Move, Point, Dimensions
 from src.exceptions import InvalidGameStateError
 from src.game.grids.grid import Grid
-from src.game.grids.impl.generic_grid import GenericGrid
+from src.game.grids.impl.passive_grid import PassiveGrid
 from src.game.tiles.tile import Sign
 
 
@@ -205,7 +205,7 @@ def calculate_safe_moves(grid: Grid) -> List[Move]:
 
 
 def main() -> None:
-    grid = GenericGrid(Dimensions(6, 7))
+    grid = PassiveGrid(Dimensions(6, 7))
 
     for x, y in [(3, 0), (4, 0), (5, 0), (5, 6)]:
         grid[x, y].set_sign('EMPTY')
