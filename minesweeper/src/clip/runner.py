@@ -1,30 +1,32 @@
-from src.game.grids.impl.passive_grid import PassiveGrid
+from src.common import SweeperConfiguration
+from src.game.grids import GenericGrid, Grid
 from src.game.sweeper.sweeper import GameState, Sweeper
+from src.game.tiles import MutableTile, Tile
 from src.ui.ui import UI
 
 
 class Runner:
-    def __init__(self, ui: UI, sweeper: Sweeper) -> None:
+    def __init__(self, ui: UI, sweeper: Sweeper[SweeperConfiguration]) -> None:
         self._ui = ui
         self._sweeper = sweeper
 
-        self._grid_cache = PassiveGrid(sweeper.get_dimensions())
+        self._grid_cache: Grid[Tile] = GenericGrid(sweeper.get_dimensions(), lambda: MutableTile())
 
     def go(self) -> None:
         while True:
             game_state = self._update_ui()
             player_input = self._ui.get_player_input(game_state)
 
-            if player_input.type == 'MOVE':
-                move = player_input.move
-                assert move is not None
-                self._sweeper.play(move)
-
-            elif player_input.type == 'RESET':
+            if player_input.type == 'RESET':
                 self._sweeper.reset()
 
             elif player_input.type == 'QUIT':
                 break
+
+            else:
+                move = player_input.move
+                assert move is not None
+                self._sweeper.play(move)
 
     def _update_ui(self) -> GameState:
         game_state = self._sweeper.obtain_state()
