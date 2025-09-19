@@ -77,7 +77,7 @@ class MutableTile(Tile):
         self._count = None
 
 
-class TranspaTile(MutableTile, ABC):
+class TranspaTile(MutableTile):
     def __init__(self) -> None:
         super().__init__()
         self._is_transparent = True
