@@ -1,4 +1,7 @@
+# TODO: __all__
+
 # TODO: actually use? instead of tuple with Nones
+#       move to separate file
 class Attempt[X, Y]:
     @staticmethod
     def success(value: X) -> 'Attempt[X, Y]':
