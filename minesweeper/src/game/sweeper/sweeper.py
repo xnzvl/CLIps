@@ -1,12 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Generic, Literal, TypeVar
+from typing import Literal
 
 from src.common import Dimensions, Move, SweeperConfiguration
-from src.game.grids.grid import Grid
-
-
-T = TypeVar('T', bound=SweeperConfiguration)
-
+from src.game.grids import Grid
+from src.game.tiles import Tile
 
 Result = Literal['VICTORY', 'FAILURE']
 
@@ -18,8 +15,8 @@ GameState = Literal[Result, 'IN_PROGRESS']
 """
 
 
-class Sweeper(ABC, Generic[T]):
-    def __init__(self, configuration: T) -> None:
+class Sweeper[C: SweeperConfiguration](ABC):
+    def __init__(self, configuration: C) -> None:
         self._configuration = configuration
 
         # TODO: check mine count - if it makes sense or not
@@ -27,7 +24,7 @@ class Sweeper(ABC, Generic[T]):
     def get_dimensions(self) -> Dimensions:
         return self._configuration.dimensions
 
-    def _check_grid_size(self, grid: Grid) -> None:
+    def _check_grid_size(self, grid: Grid[Tile]) -> None:
         if grid.get_width() != self._configuration.dimensions.width:
             raise ValueError('Grid dimensions (width) do not match')
         elif grid.get_height() != self._configuration.dimensions.height:
@@ -46,7 +43,7 @@ class Sweeper(ABC, Generic[T]):
         ...
 
     @abstractmethod
-    def obtain_grid(self, old_grid: Grid | None = None) -> Grid:
+    def obtain_grid[T: Tile](self, old_grid: Grid[T] | None = None) -> Grid[T]:
         ...
 
     @abstractmethod

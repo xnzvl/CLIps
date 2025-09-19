@@ -1,9 +1,9 @@
 from typing import override
 
-from src.game.tiles.tile import Sign, Symbol, Tile
+from src.game.tiles import Sign, Symbol, Tile
 
 
-class PassiveTile(Tile):
+class MutableTile(Tile):
     def __init__(self) -> None:
         self._symbol: Symbol = 'COVERED'
         self._count: int | None = None

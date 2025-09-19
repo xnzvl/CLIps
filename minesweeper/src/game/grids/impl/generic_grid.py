@@ -1,19 +1,18 @@
-from typing import Generator, List, Set, Tuple, override
+from typing import Callable, Generator, List, Set, Tuple, override
 
 from src.common import Dimensions, Point
-from src.game.grids.grid import Grid, GridIterator
-from src.game.tiles.impl.passive_tile import PassiveTile
-from src.game.tiles.tile import Tile, tile_to_str, Symbol
+from src.game.grids import GridIterator, Grid
+from src.game.tiles import Tile, Symbol, tile_to_char
 
 
-class PassiveGridIterator(GridIterator):
-    def __init__(self, grid: Grid, dimensions: Dimensions) -> None:
+class GenericGridIterator[T: Tile](GridIterator[T]):
+    def __init__(self, grid: Grid[T], dimensions: Dimensions) -> None:
         self._grid = grid
         self._dimensions = dimensions
         self._i = 0
 
     @override
-    def __next__(self) -> Tuple[Point, Tile]:
+    def __next__(self) -> Tuple[Point, T]:
         if self._i >= self._dimensions.width * self._dimensions.height:
             raise StopIteration
 
@@ -24,13 +23,13 @@ class PassiveGridIterator(GridIterator):
         return Point(x, y), self._grid[x, y]
 
 
-class PassiveGridNeighbourhoodIterator(GridIterator):
-    def __init__(self, grid: Grid, dimensions: Dimensions, center: Point, radius: int, with_symbols: Tuple[Symbol, ...] = ()) -> None:
-        self._generator = PassiveGridNeighbourhoodIterator._create_generator(grid, dimensions, center, radius, set(with_symbols))
+class GenericGridNeighbourhoodIterator[T: Tile](GridIterator[T]):
+    def __init__(self, grid: Grid[T], dimensions: Dimensions, center: Point, radius: int, with_symbols: Tuple[Symbol, ...] = ()) -> None:
+        self._generator = GenericGridNeighbourhoodIterator._create_generator(grid, dimensions, center, radius, set(with_symbols))
 
     @staticmethod
-    def _create_generator(grid: Grid, dimensions: Dimensions, center: Point, radius: int, with_symbols: Set[Symbol]) -> Generator[Tuple[Point, Tile]]:
-        center_x, center_y = center
+    def _create_generator(grid: Grid[T], dimensions: Dimensions, center: Point, radius: int, with_symbols: Set[Symbol]) -> Generator[Tuple[Point, T]]:
+        center_x, center_y = center.x, center.y
 
         min_x = max(center_x - radius, 0)
         max_x = min(center_x + radius, dimensions.width - 1)
@@ -48,32 +47,38 @@ class PassiveGridNeighbourhoodIterator(GridIterator):
                     yield Point(x, y), tile
 
     @override
-    def __next__(self) -> Tuple[Point, Tile]:
+    def __next__(self) -> Tuple[Point, T]:
         return next(self._generator)
 
 
-class PassiveGrid(Grid):
-    def __init__(self, dimensions: Dimensions) -> None:
+class GenericGrid[T: Tile](Grid[T]):
+    @classmethod
+    def validate_dimensions(cls, dimensions: Dimensions) -> None:
         if dimensions.width < 1:
             raise ValueError(f'width has to be greater than 1 (provided {dimensions.width})')
         if dimensions.height < 1:
             raise ValueError(f'height has to be greater than 1 (provided {dimensions.height})')
 
+    def __init__(self, dimensions: Dimensions, tile_producer: Callable[[], T]) -> None:
+        GenericGrid.validate_dimensions(dimensions)
+
         self._dimensions = dimensions
-        self._tiles: List[List[Tile]] = ([
-            [PassiveTile() for _ in range(dimensions.width)]
+        self._tiles: List[List[T]] = ([
+            [tile_producer() for _ in range(dimensions.width)]
             for _ in range(dimensions.height)
         ])
 
     @override
-    def __getitem__(self, key: Tuple[int, int]) -> Tile:
-        x, y = key
-        self._validate_position(x, y)
-        return self._tiles[y][x]
+    def __getitem__(self, key: Tuple[int, int] | Point) -> T:
+        if isinstance(key, Point):
+            return self._tiles[key.y][key.x]
+        else:
+            x, y = key
+            return self._tiles[y][x]
 
     @override
-    def __iter__(self) -> GridIterator:
-        return PassiveGridIterator(self, self._dimensions)
+    def __iter__(self) -> GridIterator[T]:
+        return GenericGridIterator(self, self._dimensions)
 
     def _validate_position(self, x: int, y: int) -> None:
         if x < 0:
@@ -95,24 +100,24 @@ class PassiveGrid(Grid):
         return self._dimensions.height
 
     @override
-    def neighbourhood_of(self, x: int, y: int) -> GridIterator:
+    def neighbourhood_of(self, x: int, y: int) -> GridIterator[T]:
         self._validate_position(x, y)
-        return PassiveGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 1)
+        return GenericGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 1)
 
     @override
-    def neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator:
+    def neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator[T]:
         self._validate_position(x, y)
-        return PassiveGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 1, desired_symbols)
+        return GenericGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 1, desired_symbols)
 
     @override
-    def wide_neighbourhood_of(self, x: int, y: int) -> GridIterator:
+    def wide_neighbourhood_of(self, x: int, y: int) -> GridIterator[T]:
         self._validate_position(x, y)
-        return PassiveGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 2)
+        return GenericGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 2)
 
     @override
-    def wide_neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator:
+    def wide_neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator[T]:
         self._validate_position(x, y)
-        return PassiveGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 2, desired_symbols)
+        return GenericGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 2, desired_symbols)
 
     @override
     def is_valid(self) -> bool:
@@ -124,5 +129,5 @@ class PassiveGrid(Grid):
     def print(self) -> None:
         for y in range(self._dimensions.height):
             for x in range(self._dimensions.width):
-                print(tile_to_str(self[x, y]), end='')
+                print(tile_to_char(self[x, y]), end='')
             print()

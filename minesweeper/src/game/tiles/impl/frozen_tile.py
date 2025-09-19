@@ -1,7 +1,7 @@
 from typing import override
 
 from src.exceptions import FrozenInstanceError
-from src.game.tiles.tile import Sign, Symbol, Tile
+from src.game.tiles import Sign, Symbol, Tile
 
 
 class FrozenTile(Tile):

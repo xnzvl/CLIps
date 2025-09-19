@@ -1,4 +1,3 @@
-from math import floor
 from time import time
 from typing import Set, override
 from random import randint
@@ -34,6 +33,9 @@ class Minefield(Sweeper):
             planted_mines.add(new_mine)
             self._field[new_mine].set_sign('MINE')
 
+    def _flood_reveal(self) -> None:
+        pass
+
     @override
     def obtain_remaining_mines(self) -> int:
         return self._configuration.mines - self._flags_placed
@@ -44,7 +46,7 @@ class Minefield(Sweeper):
 
     @override
     def obtain_time(self) -> int:
-        return floor(time()) - self._start_time
+        return int(time()) - self._start_time
 
     @override
     def obtain_grid(self, old_grid: Grid[Tile] | None = None) -> Grid[Tile]:
@@ -74,7 +76,7 @@ class Minefield(Sweeper):
 
         if self._start_time is None:
             self._plant_mines(move.tile)
-            self._start_time = floor(time())
+            self._start_time = int(time())
 
     @override
     def reset(self) -> None:

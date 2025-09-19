@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Literal, Union, assert_never
+from typing import Literal, assert_never
 
 
 Sign = Literal[
@@ -12,15 +12,12 @@ Sign = Literal[
     'EMPTY'
 ]
 
-Symbol = Union[Sign, Literal['NUMBER']]
-
-
-COVERED_SYMBOLS = {'COVERED', 'FLAG', 'QUESTION_MARK'}
+Symbol = Literal[Sign, Literal['NUMBER']]
 
 
 class Tile(ABC):
     def __str__(self) -> str:
-        return f'{type(self).__name__}({tile_to_str(self)})'
+        return f'{type(self).__name__}({tile_to_char(self)})'
 
     @abstractmethod
     def get_count(self) -> int | None:
@@ -39,28 +36,31 @@ class Tile(ABC):
         ...
 
     def is_covered(self) -> bool:
-        return self.get_symbol() in COVERED_SYMBOLS
+        match self.get_symbol():
+            case 'COVERED' | 'FLAG' | 'QUESTION_MARK':
+                return True
+        return False
 
 
-def tile_to_str(tile: Tile) -> str:
-    match tile.get_symbol():
+def tile_to_char(tile: Tile) -> str:
+    symbol = tile.get_symbol()
+
+    match symbol:
         case 'COVERED':
-            the_string = 'O'
+            return 'O'
         case 'EXPLODED_MINE':
-            the_string = '*'
+            return '*'
         case 'MINE':
-            the_string = '+'
+            return '+'
         case 'BAD_MINE':
-            the_string = 'X'
+            return 'X'
         case 'FLAG':
-            the_string = 'F'
+            return 'F'
         case 'QUESTION_MARK':
-            the_string = '?'
+            return '?'
         case 'NUMBER':
-            the_string = tile.get_count()
+            return str(tile.get_count())
         case 'EMPTY':
-            the_string = ' '
+            return ' '
         case _:
-            assert_never(tile.get_symbol())
-
-    return the_string
+            assert_never(symbol)
