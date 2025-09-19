@@ -5,5 +5,7 @@
   - dimensions
 - configure formater/linter
 - fix calculated step, because it's not working properly
-- piptools
-- pyproject.toml
+- X piptools
+- X pyproject.toml
+- use __all__ in __init__s
+  - adapt imports
