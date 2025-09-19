@@ -3,6 +3,7 @@ from typing import Callable
 
 from src.game.grids.grid import Grid
 from src.game.sweeper.sweeper import GameState, Result
+from src.game.tiles import Tile
 from src.ui.input import Input
 from src.ui.repeater import Repeater
 
@@ -34,7 +35,7 @@ class UI(ABC):
         ...
 
     @abstractmethod
-    def render_grid(self, grid: Grid) -> None:
+    def render_grid[T: Tile](self, grid: Grid[T]) -> None:
         ...
 
     @abstractmethod
