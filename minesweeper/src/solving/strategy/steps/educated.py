@@ -2,8 +2,8 @@ from functools import reduce
 from typing import Dict, List, Tuple
 
 from src.common import Move, Point
-from src.game.grids.grid import Grid
-from src.game.tiles.tile import Tile
+from src.game.grids import Grid
+from src.game.tiles import Tile
 
 
 def _flag_reducer(accumulator: int, t: Tuple[Point, Tile]) -> int:
@@ -11,7 +11,7 @@ def _flag_reducer(accumulator: int, t: Tuple[Point, Tile]) -> int:
     return (accumulator + 1) if tile.get_symbol() == 'FLAG' else accumulator
 
 
-def _assess_danger_levels(grid: Grid) -> Dict[Point, Tuple[int, int]]:
+def _assess_danger_levels[T: Tile](grid: Grid[T]) -> Dict[Point, Tuple[int, int]]:
     danger_levels: Dict[Point, Tuple[int, int]] = dict()
 
     for point, tile in grid:
@@ -36,11 +36,11 @@ def _assess_danger_levels(grid: Grid) -> Dict[Point, Tuple[int, int]]:
     return danger_levels
 
 
-def least_danger_moves(grid: Grid) -> List[Move]:
+def least_danger_moves[T: Tile](grid: Grid[T]) -> List[Move]:
     danger_levels = _assess_danger_levels(grid)
 
     least_danger_moves_list: List[Move] = list()
-    least_danger_level = 1
+    least_danger_level = 1.0
     for point, danger_stats in danger_levels.items():
         current_danger_level, max_level = danger_stats
         danger_level = current_danger_level / max_level

@@ -2,10 +2,11 @@ from random import choice
 from typing import List
 
 from src.common import Move
-from src.game.grids.grid import Grid
+from src.game.grids import Grid
+from src.game.tiles import Tile
 
 
-def random_move(grid: Grid) -> List[Move]:  # TODO: more customizable! (only edge ones, only COVERED)
+def random_move[T: Tile](grid: Grid[T]) -> List[Move]:  # TODO: more customizable! (only edge ones, only COVERED)
     random_moves: List[Move] = list()
 
     for point, tile in grid:
