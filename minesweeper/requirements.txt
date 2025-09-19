@@ -1,4 +1,7 @@
 blessed
 Pillow
+
 pyautogui
-mypy
+types-PyAutoGUI  # dev
+
+mypy  # dev
