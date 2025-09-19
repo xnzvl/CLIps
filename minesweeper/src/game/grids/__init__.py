@@ -5,10 +5,7 @@ from src.common import Dimensions, Point
 from src.game.tiles import FrozenTile, Symbol, Tile, tile_to_char
 
 
-T = TypeVar('T', bound=Tile)
-
-
-class GridIterator[T](ABC):
+class GridIterator[T: Tile](ABC):
     def __iter__(self) -> Self:
         return self
 
@@ -20,7 +17,7 @@ class GridIterator[T](ABC):
         return [t for t in self]
 
 
-class Grid[T](ABC):
+class Grid[T: Tile](ABC):
     @abstractmethod
     def __getitem__(self, key: Tuple[int, int] | Point) -> T:
         ...
@@ -73,7 +70,7 @@ class Grid[T](ABC):
         )
 
 
-class GenericGridIterator[T](GridIterator[T]):
+class GenericGridIterator[T: Tile](GridIterator[T]):
     def __init__(self, grid: Grid[T], dimensions: Dimensions) -> None:
         self._grid = grid
         self._dimensions = dimensions
@@ -91,13 +88,13 @@ class GenericGridIterator[T](GridIterator[T]):
         return Point(x, y), self._grid[x, y]
 
 
-class GenericGridNeighbourhoodIterator[T](GridIterator[T]):
+class GenericGridNeighbourhoodIterator[T: Tile](GridIterator[T]):
     def __init__(self, grid: Grid[T], dimensions: Dimensions, center: Point, radius: int, with_symbols: Tuple[Symbol, ...] = ()) -> None:
         self._generator = GenericGridNeighbourhoodIterator._create_generator(grid, dimensions, center, radius, set(with_symbols))
 
     @staticmethod
-    def _create_generator(grid: Grid[T], dimensions: Dimensions, center: Point, radius: int, with_symbols: Set[Symbol]) -> Generator[Tuple[Point, Tile]]:
-        center_x, center_y = center
+    def _create_generator(grid: Grid[T], dimensions: Dimensions, center: Point, radius: int, with_symbols: Set[Symbol]) -> Generator[Tuple[Point, T]]:
+        center_x, center_y = center.x, center.y
 
         min_x = max(center_x - radius, 0)
         max_x = min(center_x + radius, dimensions.width - 1)
@@ -119,7 +116,7 @@ class GenericGridNeighbourhoodIterator[T](GridIterator[T]):
         return next(self._generator)
 
 
-class GenericGrid[T](Grid[T]):
+class GenericGrid[T: Tile](Grid[T]):
     @classmethod
     def validate_dimensions(cls, dimensions: Dimensions) -> None:
         if dimensions.width < 1:
@@ -202,7 +199,7 @@ class GenericGrid[T](Grid[T]):
 
 
 class FrozenGridIterator(GridIterator[Tile]):
-    def __init__(self, iterator: GridIterator[T]) -> None:
+    def __init__(self, iterator: GridIterator[Tile]) -> None:
         self._iterator = iterator
 
     @override
@@ -215,20 +212,12 @@ class FrozenGrid(Grid[Tile]):
     def __init__(self, grid: Grid[Tile]) -> None:
         self._grid = grid
 
-    @overload
-    def __getitem__(self, key: Point) -> Tile:
-        return self._grid[key]
-
-    @overload
-    def __getitem__(self, key: Tuple[int, int]) -> Tile:
-        return self._grid[*key]
-
     @override
     def __getitem__(self, key: Tuple[int, int] | Point) -> Tile:
-        ...
+        return self._grid[key]
 
     @override
-    def __iter__(self) -> GridIterator:
+    def __iter__(self) -> GridIterator[Tile]:
         return FrozenGridIterator(iter(self._grid))
 
     @override
@@ -240,19 +229,19 @@ class FrozenGrid(Grid[Tile]):
         return self._grid.get_height()
 
     @override
-    def neighbourhood_of(self, x: int, y: int) -> GridIterator:
+    def neighbourhood_of(self, x: int, y: int) -> GridIterator[Tile]:
         return FrozenGridIterator(self._grid.neighbourhood_of(x, y))
 
     @override
-    def neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator:
+    def neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator[Tile]:
         return FrozenGridIterator(self._grid.neighbourhood_with_symbol_of(x, y, *desired_symbols))
 
     @override
-    def wide_neighbourhood_of(self, x: int, y: int) -> GridIterator:
+    def wide_neighbourhood_of(self, x: int, y: int) -> GridIterator[Tile]:
         return FrozenGridIterator(self._grid.wide_neighbourhood_of(x, y))
 
     @override
-    def wide_neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator:
+    def wide_neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator[Tile]:
         return FrozenGridIterator(self._grid.wide_neighbourhood_with_symbol_of(x, y, *desired_symbols))
 
     @override
