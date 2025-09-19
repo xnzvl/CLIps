@@ -1,17 +1,18 @@
 from math import log10
 
-from src.common import Move, Point
-from src.game.grids.impl.passive_grid import PassiveGrid
+from src.common import Move, Point, SweeperConfiguration
+from src.game.grids import GenericGrid, Grid
 from src.game.sweeper.sweeper import GameState, Result, Sweeper
-from src.solving.strategy.strategy import Strategy
+from src.game.tiles import MutableTile, Tile
+from src.solving.strategy import Strategy
 
 
 class Bot:
-    def __init__(self, sweeper: Sweeper, strategy: Strategy) -> None:
+    def __init__[C: SweeperConfiguration](self, sweeper: Sweeper[C], strategy: Strategy) -> None:
         self._strategy = strategy
         self._sweeper = sweeper
 
-    def solve(self, max_attempts = 1, attempt_each = False) -> None:
+    def solve(self, max_attempts: int = 1, attempt_each: bool = False) -> None:
         if max_attempts < 1:
             raise ValueError("max_attempts must be a positive integer")
 
@@ -39,7 +40,7 @@ class Bot:
             print_winrate(victories, max_attempts)
 
     def _attempt_to_solve(self) -> Result:
-        grid = PassiveGrid(self._sweeper.get_dimensions())
+        grid: Grid[Tile] = GenericGrid(self._sweeper.get_dimensions(), lambda: MutableTile())
 
         game_state: GameState = 'IN_PROGRESS'
         while game_state == 'IN_PROGRESS':
