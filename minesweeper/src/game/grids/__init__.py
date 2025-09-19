@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import List, Self, Tuple, Set, Generator, override, TypeVar, Callable, overload
+from typing import Callable, Generator, List, Self, Set, Tuple, TypeVar, overload, override
 
-from src.common import Point, Dimensions
-from src.game.tiles import Symbol, Tile, tile_to_char, FrozenTile
+from src.common import Dimensions, Point
+from src.game.tiles import FrozenTile, Symbol, Tile, tile_to_char
 
 
 T = TypeVar('T', bound=Tile)
@@ -136,19 +136,13 @@ class GenericGrid[T](Grid[T]):
             for _ in range(dimensions.height)
         ])
 
-    @overload
-    def __getitem__(self, key: Tuple[int, int]) -> T:
-        x, y = key
-        self._validate_position(x, y)
-        return self._tiles[y][x]
-
-    @overload
-    def __getitem__(self, key: Point) -> T:
-        return self[key.x, key.y]
-
     @override
     def __getitem__(self, key: Tuple[int, int] | Point) -> T:
-        ...
+        if isinstance(key, Point):
+            return self._tiles[key.y][key.x]
+        else:
+            x, y = key
+            return self._tiles[y][x]
 
     @override
     def __iter__(self) -> GridIterator[T]:
