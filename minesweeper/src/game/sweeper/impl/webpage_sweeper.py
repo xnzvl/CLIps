@@ -6,7 +6,7 @@ import PIL.Image
 from src.common import Action, Move, WebPageSweeperConfiguration
 from src.exceptions import InvalidGameStateError
 from src.game.grids.grid import Grid
-from src.game.grids.impl.passive_grid import PassiveGrid
+from src.game.grids.impl.mutable_grid import PassiveGrid
 from src.game.sweeper.sweeper import GameState, Sweeper
 from src.game.tiles.tile import Tile
 

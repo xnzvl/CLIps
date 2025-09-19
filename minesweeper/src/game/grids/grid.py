@@ -2,28 +2,28 @@ from abc import ABC, abstractmethod
 from typing import List, Self, Tuple
 
 from src.common import Point
-from src.game.tiles.tile import Symbol, Tile
+from src.game.tiles import Symbol, Tile
 
 
-class GridIterator(ABC):
+class GridIterator[T: Tile](ABC):
     def __iter__(self) -> Self:
         return self
 
     @abstractmethod
-    def __next__(self) -> Tuple[Point, Tile]:
+    def __next__(self) -> Tuple[Point, T]:
         ...
 
-    def to_list(self) -> List[Tuple[Point, Tile]]:
+    def to_list(self) -> List[Tuple[Point, T]]:
         return [t for t in self]
 
 
-class Grid(ABC):
+class Grid[T: Tile](ABC):
     @abstractmethod
-    def __getitem__(self, key: Tuple[int, int]) -> Tile:
+    def __getitem__(self, key: Tuple[int, int] | Point) -> T:
         ...
 
     @abstractmethod
-    def __iter__(self) -> GridIterator:
+    def __iter__(self) -> GridIterator[T]:
         ...
 
     @abstractmethod
@@ -35,20 +35,20 @@ class Grid(ABC):
         ...
 
     @abstractmethod
-    def neighbourhood_of(self, x: int, y: int) -> GridIterator:
+    def neighbourhood_of(self, x: int, y: int) -> GridIterator[T]:
         ...
 
     # TODO: update class usage
     @abstractmethod
-    def neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator:
+    def neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator[T]:
         ...
 
     @abstractmethod
-    def wide_neighbourhood_of(self, x: int, y: int) -> GridIterator:
+    def wide_neighbourhood_of(self, x: int, y: int) -> GridIterator[T]:
         ...
 
     @abstractmethod
-    def wide_neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator:
+    def wide_neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator[T]:
         ...
 
     @abstractmethod

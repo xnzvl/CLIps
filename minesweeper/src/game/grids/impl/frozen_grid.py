@@ -1,13 +1,12 @@
 from typing import Tuple, override
 
 from src.common import Point
-from src.game.grids.grid import Grid, GridIterator
-from src.game.tiles.impl.frozen_tile import FrozenTile
-from src.game.tiles.tile import Tile, Symbol
+from src.game.grids import GridIterator, Grid
+from src.game.tiles import Tile, FrozenTile, Symbol
 
 
-class FrozenGridIterator(GridIterator):
-    def __init__(self, iterator: GridIterator) -> None:
+class FrozenGridIterator(GridIterator[Tile]):
+    def __init__(self, iterator: GridIterator[Tile]) -> None:
         self._iterator = iterator
 
     @override
@@ -16,16 +15,16 @@ class FrozenGridIterator(GridIterator):
         return p, FrozenTile(t)
 
 
-class FrozenGrid(Grid):
-    def __init__(self, grid: Grid) -> None:
+class FrozenGrid(Grid[Tile]):
+    def __init__(self, grid: Grid[Tile]) -> None:
         self._grid = grid
 
     @override
-    def __getitem__(self, key: Tuple[int, int]) -> Tile:
-        return self._grid[*key]
+    def __getitem__(self, key: Tuple[int, int] | Point) -> Tile:
+        return self._grid[key]
 
     @override
-    def __iter__(self) -> GridIterator:
+    def __iter__(self) -> GridIterator[Tile]:
         return FrozenGridIterator(iter(self._grid))
 
     @override
@@ -37,19 +36,19 @@ class FrozenGrid(Grid):
         return self._grid.get_height()
 
     @override
-    def neighbourhood_of(self, x: int, y: int) -> GridIterator:
+    def neighbourhood_of(self, x: int, y: int) -> GridIterator[Tile]:
         return FrozenGridIterator(self._grid.neighbourhood_of(x, y))
 
     @override
-    def neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator:
+    def neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator[Tile]:
         return FrozenGridIterator(self._grid.neighbourhood_with_symbol_of(x, y, *desired_symbols))
 
     @override
-    def wide_neighbourhood_of(self, x: int, y: int) -> GridIterator:
+    def wide_neighbourhood_of(self, x: int, y: int) -> GridIterator[Tile]:
         return FrozenGridIterator(self._grid.wide_neighbourhood_of(x, y))
 
     @override
-    def wide_neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator:
+    def wide_neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator[Tile]:
         return FrozenGridIterator(self._grid.wide_neighbourhood_with_symbol_of(x, y, *desired_symbols))
 
     @override
