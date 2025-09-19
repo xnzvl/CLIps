@@ -8,7 +8,7 @@ from src.game.sweeper.sweeper import GameState, Sweeper
 from src.game.tiles import Tile, TranspaTile
 
 
-class Minefield(Sweeper):
+class Minefield(Sweeper[SweeperConfiguration]):
     def __init__(self, configuration: SweeperConfiguration) -> None:
         super().__init__(configuration)
 
@@ -46,14 +46,14 @@ class Minefield(Sweeper):
 
     @override
     def obtain_time(self) -> int:
-        return int(time()) - self._start_time
+        return (int(time()) - self._start_time) if self._start_time is not None else 0
 
     @override
     def obtain_grid(self, old_grid: Grid[Tile] | None = None) -> Grid[Tile]:
-        self._check_grid_size(old_grid)
-
         if old_grid is None:
             return FrozenGrid(self._field)
+
+        self._check_grid_size(old_grid)
 
         for point, tile in self._field:
             symbol = tile.get_symbol()

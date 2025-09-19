@@ -6,7 +6,7 @@ from src.game.tiles import Tile, FrozenTile, Symbol
 
 
 class FrozenGridIterator(GridIterator[Tile]):
-    def __init__(self, iterator: GridIterator[Tile]) -> None:
+    def __init__[T: Tile](self, iterator: GridIterator[T]) -> None:
         self._iterator = iterator
 
     @override
@@ -16,7 +16,7 @@ class FrozenGridIterator(GridIterator[Tile]):
 
 
 class FrozenGrid(Grid[Tile]):
-    def __init__(self, grid: Grid[Tile]) -> None:
+    def __init__[T: Tile](self, grid: Grid[T]) -> None:
         self._grid = grid
 
     @override
