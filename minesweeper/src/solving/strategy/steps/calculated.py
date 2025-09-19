@@ -3,9 +3,8 @@ from typing import List, NamedTuple, Tuple, Set
 
 from src.common import Move, Point, Dimensions
 from src.exceptions import InvalidGameStateError
-from src.game.grids.grid import Grid
-from src.game.grids.impl.passive_grid import PassiveGrid
-from src.game.tiles.tile import Sign
+from src.game.grids import Grid, GenericGrid
+from src.game.tiles import Sign, Tile, MutableTile
 
 
 class SimulationState:
@@ -41,8 +40,8 @@ class FlagScenario(NamedTuple):
     safe: List[Point]
 
 
-def all_possible_flag_scenarios(  # TODO: code polish
-        grid: Grid,
+def all_possible_flag_scenarios[T: Tile](  # TODO: code polish
+        grid: Grid[T],
         point: Point
 ) -> List[FlagScenario]:
     scenarios: List[FlagScenario] = list()
@@ -77,7 +76,7 @@ def all_possible_flag_scenarios(  # TODO: code polish
     return scenarios
 
 
-def is_violating(grid: Grid, point: Point) -> bool:
+def is_violating[T: Tile](grid: Grid[T], point: Point) -> bool:
     for number_p, number_t in grid.neighbourhood_with_symbol_of(point.x, point.y, 'NUMBER'):
         flags_in_neighbourhood = grid.count_symbol_in_neighbourhood(number_p.x, number_p.y, 'FLAG')
         mine_count = number_t.get_count()
@@ -89,13 +88,13 @@ def is_violating(grid: Grid, point: Point) -> bool:
     return False
 
 
-def undo_flagging(grid: Grid, before_flagging: List[Tuple[Point, Sign]]) -> None:
+def undo_flagging[T: Tile](grid: Grid[T], before_flagging: List[Tuple[Point, Sign]]) -> None:
     for point, sign in before_flagging:
         grid[point.x, point.y].set_sign(sign)
 
 
-def try_flags_scenario(
-        grid: Grid,
+def try_flags_scenario[T: Tile](
+        grid: Grid[T],
         flag_scenario: FlagScenario
 ) -> Tuple[bool, List[Tuple[Point, Sign]] | None]:
     before_flagging: List[Tuple[Point, Sign]] = list()
@@ -115,8 +114,8 @@ def try_flags_scenario(
     return True, before_flagging
 
 
-def simulate(  # TODO: fix & code polish
-        grid: Grid,
+def simulate[T: Tile](  # TODO: fix & code polish
+        grid: Grid[T],
         number_point: Point,
         simulation_state: SimulationState,
 ) -> None:
@@ -155,11 +154,11 @@ def simulate(  # TODO: fix & code polish
 
         to_visit: Set[Point] = set()
         for p in flag_scenario.flags:
-            to_visit.update(grid.neighbourhood_with_symbol_of(p.x, p.y, 'NUMBER'))
+            to_visit.update([p for p, _ in grid.neighbourhood_with_symbol_of(p.x, p.y, 'NUMBER')])
         for p in flag_scenario.safe:
-            to_visit.update(grid.neighbourhood_with_symbol_of(p.x, p.y, 'NUMBER'))
+            to_visit.update([p for p, _ in grid.neighbourhood_with_symbol_of(p.x, p.y, 'NUMBER')])
 
-        for p, _ in to_visit:
+        for p in to_visit:
             for n, _ in grid.neighbourhood_with_symbol_of(p.x, p.y, 'NUMBER'):
                 if n in simulation_state.currently_visiting:
                     continue
@@ -177,7 +176,7 @@ def simulate(  # TODO: fix & code polish
     simulation_state.currently_visiting.remove(number_point)
 
 
-def calculate_safe_moves(grid: Grid) -> List[Move]:
+def calculate_safe_moves[T: Tile](grid: Grid[T]) -> List[Move]:
     moves: List[Move] = list()
 
     for point, tile in grid:
@@ -205,7 +204,7 @@ def calculate_safe_moves(grid: Grid) -> List[Move]:
 
 
 def main() -> None:
-    grid = PassiveGrid(Dimensions(6, 7))
+    grid = GenericGrid[MutableTile](Dimensions(6, 7), lambda: MutableTile())
 
     for x, y in [(3, 0), (4, 0), (5, 0), (5, 6)]:
         grid[x, y].set_sign('EMPTY')

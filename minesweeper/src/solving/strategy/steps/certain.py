@@ -1,11 +1,11 @@
 from typing import List, Set, Tuple
 
 from src.common import Move, Point
-from src.game.grids.grid import Grid
-from src.game.tiles.tile import Tile
+from src.game.grids import Grid
+from src.game.tiles import Tile
 
 
-def _flag_neighbours(covered_neighbours: List[Tuple[Point, Tile]], flag_moves: List[Move], already_flagged: Set[Point]) -> None:
+def _flag_neighbours[T: Tile](covered_neighbours: List[Tuple[Point, T]], flag_moves: List[Move], already_flagged: Set[Point]) -> None:
     for p, t in covered_neighbours:
         covered_symbol = t.get_symbol()
 
@@ -18,7 +18,7 @@ def _flag_neighbours(covered_neighbours: List[Tuple[Point, Tile]], flag_moves: L
         t.set_sign('FLAG')
 
 
-def certain_flags(grid: Grid) -> List[Move]:
+def certain_flags[T: Tile](grid: Grid[T]) -> List[Move]:
     flag_moves: List[Move] = list()
     already_flagged: Set[Point] = set()
 
@@ -42,7 +42,7 @@ def certain_flags(grid: Grid) -> List[Move]:
     return flag_moves
 
 
-def certain_safe_moves(grid: Grid) -> List[Move]:
+def certain_safe_moves[T: Tile](grid: Grid[T]) -> List[Move]:
     safe_moves: List[Move] = list()
 
     for point, tile in grid:
