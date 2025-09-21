@@ -9,3 +9,4 @@
 - X pyproject.toml
 - use __all__ in __init__s
   - adapt imports
+- use @property for properties instead of get/set manual methods (kinda the same thing tho)
