@@ -1,7 +1,7 @@
 from typing import override
 
 from src.exceptions import FrozenInstanceError
-from src.game.tiles import Sign, Symbol, Tile
+from src.game.tiles import Tile, Symbol
 
 
 class FrozenTile(Tile):
@@ -13,17 +13,9 @@ class FrozenTile(Tile):
         return self._tile.get_count()
 
     @override
-    def set_count(self, count: int) -> None:
-        raise FrozenInstanceError('cannot set mine count of frozen tiles')
-
-    @override
     def get_symbol(self) -> Symbol:
         return self._tile.get_symbol()
 
     @override
-    def set_sign(self, sign: Sign) -> None:
-        raise FrozenInstanceError('cannot set tiles sign of frozen tiles')
-
-    @override
-    def is_covered(self) -> bool:
-        return self._tile.is_covered()
+    def set_symbol(self, symbol: Symbol, mines: int | None = None) -> None:
+        raise FrozenInstanceError('This instance is frozen')

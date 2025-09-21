@@ -1,18 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Literal, assert_never
+from typing import Literal, assert_never, overload
 
-
-Sign = Literal[
-    'COVERED',
-    'FLAG',
-    'QUESTION_MARK',
-    'EXPLODED_MINE',
-    'MINE',
-    'BAD_MINE',
-    'EMPTY'
-]
-
-Symbol = Literal[Sign, Literal['NUMBER']]
+from src.game.tiles import NonNumberSymbol, NumberSymbol, Symbol
 
 
 class Tile(ABC):
@@ -24,22 +13,28 @@ class Tile(ABC):
         ...
 
     @abstractmethod
-    def set_count(self, count: int) -> None:
-        ...
-
-    @abstractmethod
     def get_symbol(self) -> Symbol:
         ...
 
-    @abstractmethod
-    def set_sign(self, sign: Sign) -> None:
+    @overload
+    def set_symbol(self, symbol: NumberSymbol, mines: int) -> None:
         ...
 
-    def is_covered(self) -> bool:
-        match self.get_symbol():
-            case 'COVERED' | 'FLAG' | 'QUESTION_MARK':
-                return True
-        return False
+    @overload
+    def set_symbol(self, symbol: NonNumberSymbol, mines: Literal[None]) -> None:
+        ...
+
+    @abstractmethod
+    def set_symbol(self, symbol: Symbol, mines: int | None = None) -> None:
+        ...
+
+    def is_covered(self, include_question_marks: bool = True) -> bool:
+        symbol = self.get_symbol()
+
+        if symbol == 'COVERED' or symbol == 'FLAG':
+            return True
+
+        return symbol == 'QUESTION_MARK' and include_question_marks
 
 
 def tile_to_char(tile: Tile) -> str:
@@ -52,7 +47,7 @@ def tile_to_char(tile: Tile) -> str:
             return '*'
         case 'MINE':
             return '+'
-        case 'BAD_MINE':
+        case 'WRONG_FLAG':
             return 'X'
         case 'FLAG':
             return 'F'
