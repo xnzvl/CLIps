@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 
-Action = Literal['UNCOVER', 'FLAG', 'QUESTION_MARK', 'CLEAR']
+Action = Literal['UNCOVER', 'FLAG', 'QUESTION_MARK', 'CLEAR']  # TODO: enumerate
 
 
 @dataclass(frozen=True)
@@ -32,4 +32,4 @@ class WebPageSweeperConfiguration(SweeperConfiguration):  # TODO: adapt (mines)
 @dataclass(frozen=True)
 class Move:
     action: Action
-    tile: Point
+    point: Point  # TODO: rename to 'point'

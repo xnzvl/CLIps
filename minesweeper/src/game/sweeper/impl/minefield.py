@@ -5,7 +5,7 @@ from random import randint
 from src.common import Move, Point, SweeperConfiguration
 from src.game.grids import FrozenGrid, GenericGrid, Grid
 from src.game.sweeper import GameState, Sweeper
-from src.game.tiles import Tile, RevealTile, Symbol, tile
+from src.game.tiles import Tile, RevealTile, Symbol
 
 
 CoverModifierSymbol = Literal[
@@ -132,7 +132,7 @@ class Minefield(Sweeper[SweeperConfiguration]):
 
     @override
     def play(self, move: Move) -> None:
-        point = move.tile
+        point = move.point
 
         if not self._field[point].is_covered():
             return
@@ -148,7 +148,7 @@ class Minefield(Sweeper[SweeperConfiguration]):
                 self._modify_tile_cover(point, Symbol.COVER)
 
         if self._start_time is None:
-            self._plant_mines(move.tile)
+            self._plant_mines(move.point)
             self._start_time = int(time())
 
     @override
