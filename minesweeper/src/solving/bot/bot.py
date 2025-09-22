@@ -1,8 +1,8 @@
 from math import log10
 
-from src.common import Move, Point, SweeperConfiguration
+from src.common import Action, Move, Point, SweeperConfiguration
 from src.game.grids import GenericGrid, Grid
-from src.game.sweeper.sweeper import GameState, Result, Sweeper
+from src.game.sweeper import GameState, Result, Sweeper
 from src.game.tiles import MutableTile, Tile
 from src.solving.strategy import Strategy
 
@@ -18,19 +18,19 @@ class Bot:
 
         victories = 0
         attempt_number = 0
-        result: Result = 'VICTORY'
+        result: Result = GameState.VICTORY
 
         dimensions = self._sweeper.get_dimensions()
-        opening_move = Move('UNCOVER', Point(dimensions.width // 2, dimensions.height // 2))
+        opening_move = Move(Action.UNCOVER, Point(dimensions.width // 2, dimensions.height // 2))
 
-        while attempt_number < max_attempts and (attempt_each or result == 'VICTORY'):
+        while attempt_number < max_attempts and (attempt_each or result == GameState.VICTORY):
             self._sweeper.reset()
             self._sweeper.play(opening_move)
 
             attempt_number += 1
             result = self._attempt_to_solve()
 
-            if result == 'VICTORY':
+            if result == GameState.VICTORY:
                 victories += 1
                 self._sweeper.sign_victory('xnzvl')  # TODO: username shouldn't be hardcoded
 
@@ -42,20 +42,20 @@ class Bot:
     def _attempt_to_solve(self) -> Result:
         grid: Grid[Tile] = GenericGrid(self._sweeper.get_dimensions(), lambda: MutableTile())
 
-        game_state: GameState = 'IN_PROGRESS'
-        while game_state == 'IN_PROGRESS':
+        game_state: GameState = GameState.IN_PROGRESS
+        while game_state == GameState.IN_PROGRESS:
             grid = self._sweeper.obtain_grid(grid)
             moves = self._strategy.get_moves(grid)
             i = 0
 
-            while game_state == 'IN_PROGRESS' and i < len(moves):
+            while game_state == GameState.IN_PROGRESS and i < len(moves):
                 self._sweeper.play(moves[i])
 
                 i += 1
                 game_state = self._sweeper.obtain_state()
 
         result = self._sweeper.obtain_state()
-        assert result != 'IN_PROGRESS'
+        assert result != GameState.IN_PROGRESS
         return result
 
 
