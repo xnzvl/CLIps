@@ -18,7 +18,7 @@ OuterSymbol = Literal[
 class RevealTile(Tile):
     def __init__(self) -> None:
         self._is_revealed = False
-        self._revealed_by_click = True
+        self._revealed_by_touch = True
 
         self._outer_symbol: OuterSymbol = Symbol.COVER
 
@@ -38,7 +38,7 @@ class RevealTile(Tile):
             case Symbol.EMPTY | Symbol.NUMBER:
                 return self._data_symbol
             case Symbol.MINE:
-                return Symbol.EXPLODED_MINE if self._revealed_by_click else Symbol.MINE
+                return Symbol.EXPLODED_MINE if self._revealed_by_touch else Symbol.MINE
 
         assert_never(self._data_symbol)
 
@@ -50,9 +50,9 @@ class RevealTile(Tile):
             case _:
                 raise RuntimeError(f"Invalid symbol: {symbol}")
 
-    def reveal(self, by_touch: bool = True) -> None:
+    def reveal(self, by_touch: bool = False) -> None:
         self._is_revealed = True
-        self._revealed_by_click = by_touch
+        self._revealed_by_touch = by_touch
 
     def get_data_symbol(self) -> DataSymbol:
         return self._data_symbol
