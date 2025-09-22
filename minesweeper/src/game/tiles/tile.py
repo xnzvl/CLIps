@@ -1,10 +1,31 @@
 from abc import ABC, abstractmethod
 from typing import Literal, assert_never, overload
 
-from src.game.tiles import NonNumberSymbol, NumberSymbol, Symbol
+from src.game.tiles import Symbol
+
+
+NumberSymbol = Literal[
+    Symbol.NUMBER
+]
+NonNumberSymbol = Literal[
+    Symbol.MINE,
+    Symbol.EMPTY,
+    Symbol.COVER,
+    Symbol.FLAG,
+    Symbol.QUESTION_MARK,
+    Symbol.EXPLODED_MINE,
+    Symbol.WRONG_FLAG
+]
 
 
 class Tile(ABC):
+    @staticmethod
+    def _check_mine_count(count: int) -> None:
+        if count < 0:
+            raise ValueError(f"number of mines in the proximity cannot be lower than 0 (received {count})")
+        if count > 8:
+            raise ValueError(f"number of mines in the proximity cannot be greater than 8 (received {count})")
+
     def __str__(self) -> str:
         return f'{type(self).__name__}({tile_to_char(self)})'
 
@@ -21,7 +42,7 @@ class Tile(ABC):
         ...
 
     @overload
-    def set_symbol(self, symbol: NonNumberSymbol, mines: Literal[None]) -> None:
+    def set_symbol(self, symbol: NonNumberSymbol, mines: Literal[None] = None) -> None:
         ...
 
     @abstractmethod
@@ -31,31 +52,31 @@ class Tile(ABC):
     def is_covered(self, include_question_marks: bool = True) -> bool:
         symbol = self.get_symbol()
 
-        if symbol == 'COVERED' or symbol == 'FLAG':
+        if symbol == Symbol.COVER or symbol == Symbol.FLAG:
             return True
 
-        return symbol == 'QUESTION_MARK' and include_question_marks
+        return symbol == Symbol.QUESTION_MARK and include_question_marks
 
 
 def tile_to_char(tile: Tile) -> str:
     symbol = tile.get_symbol()
 
     match symbol:
-        case 'COVERED':
+        case Symbol.COVER:
             return 'O'
-        case 'EXPLODED_MINE':
+        case Symbol.EXPLODED_MINE:
             return '*'
-        case 'MINE':
+        case Symbol.MINE:
             return '+'
-        case 'WRONG_FLAG':
+        case Symbol.WRONG_FLAG:
             return 'X'
-        case 'FLAG':
+        case Symbol.FLAG:
             return 'F'
-        case 'QUESTION_MARK':
+        case Symbol.QUESTION_MARK:
             return '?'
-        case 'NUMBER':
+        case Symbol.NUMBER:
             return str(tile.get_count())
-        case 'EMPTY':
+        case Symbol.EMPTY:
             return ' '
         case _:
             assert_never(symbol)
