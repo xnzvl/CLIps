@@ -1,8 +1,26 @@
 from dataclasses import dataclass
+from enum import Enum
 from typing import Literal
 
 
-Action = Literal['UNCOVER', 'FLAG', 'QUESTION_MARK', 'CLEAR']  # TODO: enumerate
+# TODO: include in __init__.py
+
+
+class Action(Enum):
+    UNCOVER       = 'UNCOVER'
+    FLAG          = 'FLAG'
+    QUESTION_MARK = 'QUESTION_MARK'
+    CLEAR         = 'CLEAR'
+    RESET         = 'RESET'
+    QUIT          = 'QUIT'
+
+
+MoveAction = Literal[
+    Action.UNCOVER,
+    Action.FLAG,
+    Action.QUESTION_MARK,
+    Action.CLEAR
+]
 
 
 @dataclass(frozen=True)
@@ -31,5 +49,5 @@ class WebPageSweeperConfiguration(SweeperConfiguration):  # TODO: adapt (mines)
 
 @dataclass(frozen=True)
 class Move:
-    action: Action
-    point: Point  # TODO: rename to 'point'
+    action: MoveAction
+    point: Point
