@@ -1,6 +1,6 @@
-from ui import UI
-from input import Input, InputType
-from repeater import Repeater
+from .ui import UI
+from .input import Input, InputType
+from .repeater import Repeater
 
 
 __all__ = [
