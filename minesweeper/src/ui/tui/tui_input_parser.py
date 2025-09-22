@@ -1,10 +1,10 @@
 from argparse import ArgumentParser
-from contextlib import redirect_stdout, redirect_stderr
+from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from typing import cast
 
-from src.common import Point
-from src.ui.input import Input, InputType
+from src.common import Action, Point
+from src.ui.input import Input
 from src.utils import Attempt
 
 
@@ -24,22 +24,22 @@ def create_input_parser(is_game_in_progress: bool) -> ArgumentParser:
         point_parser.add_argument('y', type=int)
 
         uncover_parser  = subparsers.add_parser('uncover',  aliases=['u'],  parents=[point_parser])
-        uncover_parser .set_defaults(type='UNCOVER')
+        uncover_parser .set_defaults(action=Action.UNCOVER)
 
         flag_parser     = subparsers.add_parser('flag',     aliases=['f'],  parents=[point_parser])
-        flag_parser    .set_defaults(type='FLAG')
+        flag_parser    .set_defaults(action=Action.FLAG)
 
         question_parser = subparsers.add_parser('question', aliases=['qm'], parents=[point_parser])
-        question_parser.set_defaults(type='QUESTION_MARK')
+        question_parser.set_defaults(action=Action.QUESTION_MARK)
 
         clear_parser    = subparsers.add_parser('clear',    aliases=['c'],  parents=[point_parser])
-        clear_parser   .set_defaults(type='CLEAR')
+        clear_parser   .set_defaults(action=Action.CLEAR)
 
     reset_parser = subparsers.add_parser('reset', aliases=['r'])
-    reset_parser.set_defaults(type='RESET')
+    reset_parser.set_defaults(action=Action.RESET)
 
     quit_parser  = subparsers.add_parser('quit',  aliases=['q'])
-    quit_parser .set_defaults(type='QUIT')
+    quit_parser .set_defaults(action=Action.QUIT)
 
     return parser
 
@@ -48,7 +48,7 @@ def obtain_input(is_game_in_progress: bool) -> Attempt[Input, str]:
     try:
         input_string = input()
     except KeyboardInterrupt:
-        return Attempt.success(Input('QUIT', None))
+        return Attempt.success(Input(Action.QUIT, None))
 
     with redirect_stdout(StringIO()), redirect_stderr(StringIO()):
         try:
@@ -57,9 +57,9 @@ def obtain_input(is_game_in_progress: bool) -> Attempt[Input, str]:
         except SystemExit:
             return Attempt.failure(input_string)
 
-    input_type = cast(InputType, ns.type)
-    if input_type == 'RESET' or input_type == 'QUIT':
-        return Attempt.success(Input(input_type, None))
+    action = cast(Action, ns.action)
+    if action == Action.RESET or action == Action.QUIT:
+        return Attempt.success(Input(action, None))
 
     x, y = cast(int, ns.x), cast(int, ns.y)
-    return Attempt.success(Input(input_type, Point(x, y)))
+    return Attempt.success(Input(action, Point(x, y)))

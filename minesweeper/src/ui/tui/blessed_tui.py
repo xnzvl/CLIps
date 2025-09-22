@@ -6,9 +6,9 @@ from typing import Dict, Literal, assert_never, override
 from blessed.terminal import Terminal
 
 from src.common import Dimensions
-from src.game.grids.grid import Grid
-from src.game.sweeper.sweeper import GameState, Result
-from src.game.tiles.tile import Tile
+from src.game.grids import Grid
+from src.game.sweeper import GameState, Result
+from src.game.tiles import MineCount, Tile, Symbol
 from src.ui.input import Input
 from src.ui.ui import UI
 
@@ -49,9 +49,9 @@ GRID_SHAPES: Dict[Shape, str] = {
 }
 
 SMILEY_FACE: Dict[GameState, str] = {  # values have to be exactly 3 chars long
-    'IN_PROGRESS': ':-)',
-    'VICTORY':     ':-D',
-    'FAILURE':     ':-('
+    GameState.IN_PROGRESS: ':-)',
+    GameState.VICTORY:     ':-D',
+    GameState.FAILURE:     ':-('
 }
 
 
@@ -161,7 +161,7 @@ class BlessedTUI(UI):
             self._term.white('$') + ' '
         )
 
-    def _dye_number(self, number: int) -> str:
+    def _dye_number(self, number: MineCount) -> str:
         num_str = str(number)
 
         match number:
@@ -185,28 +185,30 @@ class BlessedTUI(UI):
         assert_never(number)
 
     def _tile_representation(self, tile: Tile) -> str:
-        match tile.get_symbol():
-            case 'COVERED':
+        symbol = tile.get_symbol()
+
+        match symbol:  # TODO: use colours & formatting
+            case Symbol.COVER:
                 return '▐█▌'
-            case 'FLAG':
+            case Symbol.FLAG:
                 return ' F '
-            case 'QUESTION_MARK':
+            case Symbol.QUESTION_MARK:
                 return ' ? '
-            case 'EXPLODED_MINE':
+            case Symbol.EXPLODED_MINE:
                 return ' * '
-            case 'MINE':
+            case Symbol.MINE:
                 return '[*]'
-            case 'BAD_MINE':
+            case Symbol.WRONG_FLAG:
                 return ' X '
-            case 'EMPTY':
+            case Symbol.EMPTY:
                 return '   '
-            case 'NUMBER':
+            case Symbol.NUMBER:
                 mines = tile.get_count()
                 assert mines is not None
 
                 return f' {self._dye_number(mines)} '
 
-        assert_never(tile.get_symbol())
+        assert_never(symbol)
 
     @override
     def render_remaining_mines(self, remaining_mines: int) -> None:
@@ -243,7 +245,7 @@ class BlessedTUI(UI):
         )
 
     @override
-    def render_grid(self, grid: Grid) -> None:
+    def render_grid[T: Tile](self, grid: Grid[T]) -> None:
         for point, tile in grid:
             print(
                 self._term.move_xy(2 + point.x * 4, 4 + point.y * 2) +
@@ -263,3 +265,4 @@ class BlessedTUI(UI):
             end=''
         )
         input()
+        # TODO: finish impl

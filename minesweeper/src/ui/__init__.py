@@ -1,10 +1,10 @@
 from .ui import UI
-from .input import Input, InputType
+from .input import Input
 from .repeater import Repeater
 
 
 __all__ = [
     'UI',
-    'Input', 'InputType',
+    'Input',
     'Repeater'
 ]

@@ -1,19 +1,14 @@
-from typing import Literal
-
 from src.common import Move, Action, Point
 
 
-InputType = Literal[Action, 'RESET', 'QUIT']
-
-
 class Input:
-    def __init__(self, input_type: InputType, point: Point | None = None) -> None:
-        if input_type == 'RESET' or input_type == 'QUIT':
+    def __init__(self, action: Action, point: Point | None = None) -> None:
+        if action == Action.RESET or action == Action.QUIT:
             assert point is None  # TODO: some message to asserts would be nice
             self.move = None
 
         else:
             assert point is not None
-            self.move = Move(input_type, point)
+            self.move = Move(action, point)
 
-        self.type = input_type
+        self.action = action
