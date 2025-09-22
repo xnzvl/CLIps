@@ -1,6 +1,6 @@
-from src.common import SweeperConfiguration
+from src.common import Action, SweeperConfiguration
 from src.game.grids import GenericGrid, Grid
-from src.game.sweeper.sweeper import GameState, Sweeper
+from src.game.sweeper import GameState, Sweeper
 from src.game.tiles import MutableTile, Tile
 from src.ui.ui import UI
 
@@ -17,10 +17,10 @@ class Runner:
             game_state = self._update_ui()
             player_input = self._ui.get_player_input(game_state)
 
-            if player_input.type == 'RESET':
+            if player_input.action == Action.RESET:
                 self._sweeper.reset()
 
-            elif player_input.type == 'QUIT':
+            elif player_input.action == Action.QUIT:
                 break
 
             else:
@@ -40,7 +40,7 @@ class Runner:
         self._ui.render_grid(current_grid)
         self._grid_cache = current_grid
 
-        if game_state != 'IN_PROGRESS':
+        if game_state != GameState.IN_PROGRESS:
             self._ui.render_result(game_state)
 
         return game_state
