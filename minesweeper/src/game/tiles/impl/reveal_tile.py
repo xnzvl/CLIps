@@ -1,6 +1,6 @@
 from typing import Literal, assert_never, overload, override
 
-from src.game.tiles import Symbol, Tile
+from src.game.tiles import MineCount, Symbol, Tile
 
 
 DataSymbol = Literal[
@@ -23,10 +23,10 @@ class RevealTile(Tile):
         self._outer_symbol: OuterSymbol = Symbol.COVER
 
         self._data_symbol: DataSymbol = Symbol.EMPTY
-        self._data_count: int | None = None
+        self._data_count: MineCount | None = None
 
     @override
-    def get_count(self) -> int | None:
+    def get_count(self) -> MineCount | None:
         return self._data_count if self._is_revealed else None
 
     @override
@@ -43,7 +43,7 @@ class RevealTile(Tile):
         assert_never(self._data_symbol)
 
     @override
-    def set_symbol(self, symbol: Symbol, mines: int | None = None) -> None:
+    def set_symbol(self, symbol: Symbol, mines: MineCount | None = None) -> None:
         match symbol:
             case Symbol.FLAG | Symbol.QUESTION_MARK | Symbol.COVER:
                 self._outer_symbol = symbol
@@ -58,17 +58,16 @@ class RevealTile(Tile):
         return self._data_symbol
 
     @overload
-    def set_data_symbol(self, data_symbol: Literal[Symbol.NUMBER], mines: int) -> None:
+    def set_data_symbol(self, data_symbol: Literal[Symbol.NUMBER], mines: MineCount) -> None:
         ...
 
     @overload
-    def set_data_symbol(self, data_symbol: Literal[Symbol.EMPTY, Symbol.MINE], mines: Literal[None]) -> None:
+    def set_data_symbol(self, data_symbol: Literal[Symbol.EMPTY, Symbol.MINE], mines: Literal[None] = None) -> None:
         ...
 
-    def set_data_symbol(self, data_symbol: DataSymbol, mines: int | None = None) -> None:
+    def set_data_symbol(self, data_symbol: DataSymbol, mines: MineCount | None = None) -> None:
         if data_symbol == Symbol.NUMBER:
             assert mines is not None
-            Tile._check_mine_count(mines)
 
         self._data_symbol = data_symbol
         self._data_count = mines

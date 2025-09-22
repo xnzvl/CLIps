@@ -1,7 +1,7 @@
 from typing import override
 
 from src.exceptions import FrozenInstanceError
-from src.game.tiles import Tile, Symbol
+from src.game.tiles import MineCount, Tile, Symbol
 
 
 class FrozenTile(Tile):
@@ -9,7 +9,7 @@ class FrozenTile(Tile):
         self._tile = tile
 
     @override
-    def get_count(self) -> int | None:
+    def get_count(self) -> MineCount | None:
         return self._tile.get_count()
 
     @override
@@ -17,5 +17,5 @@ class FrozenTile(Tile):
         return self._tile.get_symbol()
 
     @override
-    def set_symbol(self, symbol: Symbol, mines: int | None = None) -> None:
+    def set_symbol(self, symbol: Symbol, mines: MineCount | None = None) -> None:
         raise FrozenInstanceError('This instance is frozen')

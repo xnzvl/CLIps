@@ -17,20 +17,15 @@ NonNumberSymbol = Literal[
     Symbol.WRONG_FLAG
 ]
 
+MineCount = Literal[1, 2, 3, 4, 5, 6, 7, 8]
+
 
 class Tile(ABC):
-    @staticmethod
-    def _check_mine_count(count: int) -> None:
-        if count < 0:
-            raise ValueError(f"number of mines in the proximity cannot be lower than 0 (received {count})")
-        if count > 8:
-            raise ValueError(f"number of mines in the proximity cannot be greater than 8 (received {count})")
-
     def __str__(self) -> str:
         return f'{type(self).__name__}({tile_to_char(self)})'
 
     @abstractmethod
-    def get_count(self) -> int | None:
+    def get_count(self) -> MineCount | None:
         ...
 
     @abstractmethod
@@ -38,7 +33,7 @@ class Tile(ABC):
         ...
 
     @overload
-    def set_symbol(self, symbol: NumberSymbol, mines: int) -> None:
+    def set_symbol(self, symbol: NumberSymbol, mines: MineCount) -> None:
         ...
 
     @overload
@@ -46,7 +41,7 @@ class Tile(ABC):
         ...
 
     @abstractmethod
-    def set_symbol(self, symbol: Symbol, mines: int | None = None) -> None:
+    def set_symbol(self, symbol: Symbol, mines: MineCount | None = None) -> None:
         ...
 
     def is_covered(self, include_question_marks: bool = True) -> bool:
