@@ -1,18 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Literal
 
 from src.common import Dimensions, Move, SweeperConfiguration
 from src.game.grids import Grid
+from src.game.sweeper import GameState
 from src.game.tiles import Tile
-
-Result = Literal['VICTORY', 'FAILURE']
-
-GameState = Literal[Result, 'IN_PROGRESS']
-"""
-  - `IN_PROGRESS` - game is in progress even when it's not started
-  - `VICTORY` - game is over - all mines have been correctly flagged
-  - `FAILURE` - uncovered tiles with a mine
-"""
 
 
 class Sweeper[C: SweeperConfiguration](ABC):
