@@ -1,0 +1,2 @@
+class StrategyFactory:
+    pass
