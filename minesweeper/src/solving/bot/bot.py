@@ -45,7 +45,7 @@ class Bot:
         game_state: GameState = GameState.IN_PROGRESS
         while game_state == GameState.IN_PROGRESS:
             grid = self._sweeper.obtain_grid(grid)
-            moves = self._strategy.get_moves(grid)
+            moves = self._strategy.apply(grid)
             i = 0
 
             while game_state == GameState.IN_PROGRESS and i < len(moves):
