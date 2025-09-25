@@ -7,6 +7,12 @@ from src.game.grids import Grid, GenericGrid
 from src.game.tiles import Sign, Tile, MutableTile
 
 
+class CertainStep(Step):
+    @override
+    def get_moves[T: Tile](self, grid: Grid[T]) -> List[Move]:
+        pass
+
+
 class SimulationState:
     def __init__(self) -> None:
         self._possibly_safe: Set[Point] = set()
