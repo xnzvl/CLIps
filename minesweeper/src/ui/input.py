@@ -3,7 +3,7 @@ from typing import Literal, overload
 from src.common import Action, Move, Point
 
 
-ActionWithPoint    = Literal[
+ActionWithPoint = Literal[
     Action.UNCOVER,
     Action.FLAG,
     Action.QUESTION_MARK,
