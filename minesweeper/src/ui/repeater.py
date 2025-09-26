@@ -16,7 +16,7 @@ class Repeater:
         self._kwargs = kwargs
 
         self._timer: Timer | None = None
-        self.is_running = False
+        self._is_running = False
 
     def _repeat(self) -> None:
         self._function(*self._args, **self._kwargs)
@@ -25,15 +25,19 @@ class Repeater:
         self._timer.start()
 
     def start(self) -> None:
-        if not self.is_running:
-            self.is_running = True
+        if not self._is_running:
+            self._is_running = True
             self._repeat()
 
     def stop(self) -> None:
-        if self.is_running:
+        if self._is_running:
             assert self._timer is not None
 
             self._timer.cancel()
             self._timer = None
 
-            self.is_running = False
+            self._is_running = False
+
+    @property
+    def is_running(self) -> bool:
+        return self._is_running
