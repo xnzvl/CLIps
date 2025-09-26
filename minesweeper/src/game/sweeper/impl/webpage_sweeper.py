@@ -1,81 +1,86 @@
-from typing import Dict, Final, List, Literal, Never, Tuple, cast, override
+from enum import Enum
+from typing import Dict, Final, List, Literal, Never, Tuple, override
 
 import pyautogui as pag
 import PIL.Image
 
-from src.common import Action, Move, WebPageSweeperConfiguration
-from src.exceptions import InvalidGameStateError
-from src.game.grids.grid import Grid
-from src.game.grids.impl.mutable_grid import PassiveGrid
-from src.game.sweeper.sweeper import GameState, Sweeper
-from src.game.tiles.tile import Tile
+from src.common import Action, Move, MoveAction, WebPageSweeperConfiguration
+from src.game.grids import GenericGrid, Grid
+from src.game.sweeper import GameState, Sweeper, SweeperError
+from src.game.tiles import MineCount, MutableTile, Symbol, Tile
 
 
-RGB = Tuple[int, int, int]
 MouseButton = Literal['right', 'middle', 'left']
 
 
-TILE_SIZE = 16
+TILE_SIZE: Final = 16
 
-SMILEY_WIDTH = 26
-SMILEY_Y_OFFSET = 39
+SMILEY_WIDTH:    Final = 26
+SMILEY_Y_OFFSET: Final = 39
 
-# TODO: add final to all constants
-WHITE: Final = 255, 255, 255
-GRAY       = 189, 189, 189
-BLUE       =   0,   0, 255
-DARK_GREEN =   0, 123,   0
-RED        = 255,   0,   0
-DARK_BLUE  =   0,   0, 123
-DARK_RED   = 123,   0,   0
-DARK_CYAN  =   0, 123, 123
-BLACK      =   0,   0,   0
-DARK_GRAY  = 123, 123, 123
-YELLOW     = 255, 255,   0
+NUMBER_PIXEL_X_OFFSET: Final = 9
+NUMBER_PIXEL_Y_OFFSET: Final = 11
 
-NUMBER_PIXEL_X_OFFSET = 9
-NUMBER_PIXEL_Y_OFFSET = 11
+COVERED_KEY_PIXEL_X_OFFSET: Final = 7
+COVERED_KEY_PIXEL_Y_OFFSET: Final = 3
 
-COVERED_KEY_PIXEL_X_OFFSET = 7
-COVERED_KEY_PIXEL_Y_OFFSET = 3
+SYMBOL_PIXEL_X_OFFSET: Final = 6
+SYMBOL_PIXEL_Y_OFFSET: Final = 6
 
-SYMBOL_PIXEL_X_OFFSET = 6
-SYMBOL_PIXEL_Y_OFFSET = 6
 
-PIXEL_COLOUR_TO_MINE_COUNT: Dict[RGB, int] = {
-    GRAY:       0,
-    BLUE:       1,
-    DARK_GREEN: 2,
-    RED:        3,
-    DARK_BLUE:  4,
-    DARK_RED:   5,
-    DARK_CYAN:  6,
-    BLACK:      7,
-    DARK_GRAY:  8
+class Colour(Enum):
+    WHITE      = 255, 255, 255
+    GRAY       = 189, 189, 189
+    BLUE       =   0,   0, 255
+    DARK_GREEN =   0, 123,   0
+    RED        = 255,   0,   0
+    DARK_BLUE  =   0,   0, 123
+    DARK_RED   = 123,   0,   0
+    DARK_CYAN  =   0, 123, 123
+    BLACK      =   0,   0,   0
+    DARK_GRAY  = 123, 123, 123
+    YELLOW     = 255, 255,   0
+
+
+PIXEL_COLOUR_TO_MINE_COUNT: Final[Dict[Colour, MineCount]] = {
+    Colour.BLUE:       1,
+    Colour.DARK_GREEN: 2,
+    Colour.RED:        3,
+    Colour.DARK_BLUE:  4,
+    Colour.DARK_RED:   5,
+    Colour.DARK_CYAN:  6,
+    Colour.BLACK:      7,
+    Colour.DARK_GRAY:  8
 }
 
-EMOJI_EYE_PIXEL_X_OFFSET = 11
-EMOJI_EYE_PIXEL_Y_OFFSET = 10
-EMOJI_GLASSES_PIXEL_X_OFFSET = 12
-EMOJI_GLASSES_PIXEL_Y_OFFSET = 10
+EMOJI_EYE_PIXEL_X_OFFSET: Final = 11
+EMOJI_EYE_PIXEL_Y_OFFSET: Final = 10
+EMOJI_GLASSES_PIXEL_X_OFFSET: Final = 12
+EMOJI_GLASSES_PIXEL_Y_OFFSET: Final = 10
 
-PIXEL_AND_ACTION_TO_BUTTONS: Dict[Tuple[RGB, Action], Tuple[List[MouseButton] | None, List[MouseButton]]] = {
-    (BLACK, 'FLAG'):                (None,              ['right', 'right']),
-    (BLACK, 'UNCOVER'):             (None,              ['left']          ),
-    (BLACK, 'PLACE_QUESTION_MARK'): (None,              list()            ),
-    (BLACK, 'CLEAR'):               (None,              ['right']         ),
-    (RED,   'FLAG'):                (list(),            list()            ),
-    (RED,   'UNCOVER'):             (['right', 'left'], ['right', 'left'] ),
-    (RED,   'PLACE_QUESTION_MARK'): (None,              ['right']         ),
-    (RED,   'CLEAR'):               (['right'],         ['right', 'right']),
-    (GRAY,  'FLAG'):                (['right'],         ['right']         ),
-    (GRAY,  'UNCOVER'):             (['left'],          ['left']          ),
-    (GRAY,  'PLACE_QUESTION_MARK'): (None,              ['right', 'right']),
-    (GRAY,  'CLEAR'):               (list(),            list()            ),
+COLOUR_AND_ACTION_TO_BUTTONS: Final[
+    Dict[Tuple[Colour, MoveAction], Tuple[List[MouseButton] | None, List[MouseButton]]]
+] = {
+    (Colour.BLACK, Action.FLAG):          (None,              ['right', 'right']),
+    (Colour.BLACK, Action.UNCOVER):       (None,              ['left']          ),
+    (Colour.BLACK, Action.QUESTION_MARK): (None,              list()            ),
+    (Colour.BLACK, Action.CLEAR):         (None,              ['right']         ),
+    (Colour.RED,   Action.FLAG):          (list(),            list()            ),
+    (Colour.RED,   Action.UNCOVER):       (['right', 'left'], ['right', 'left'] ),
+    (Colour.RED,   Action.QUESTION_MARK): (None,              ['right']         ),
+    (Colour.RED,   Action.CLEAR):         (['right'],         ['right', 'right']),
+    (Colour.GRAY,  Action.FLAG):          (['right'],         ['right']         ),
+    (Colour.GRAY,  Action.UNCOVER):       (['left'],          ['left']          ),
+    (Colour.GRAY,  Action.QUESTION_MARK): (None,              ['right', 'right']),
+    (Colour.GRAY,  Action.CLEAR):         (list(),            list()            ),
 }
 
 
-class WebPageSweeper(Sweeper):
+class WebPageSweeper(Sweeper[WebPageSweeperConfiguration]):
+    @staticmethod
+    def get_tile_size() -> int:
+        return TILE_SIZE
+
     def __init__(self, configuration: WebPageSweeperConfiguration) -> None:
         super().__init__(configuration)
 
@@ -91,33 +96,34 @@ class WebPageSweeper(Sweeper):
         y0 = self._configuration.offsets.y - SMILEY_Y_OFFSET
 
         # TODO: rest of the function is quite chaotic
-        eye_pixel = get_rgb_from_pixel(screen, x0 + EMOJI_EYE_PIXEL_X_OFFSET, y0 + EMOJI_EYE_PIXEL_Y_OFFSET)
-        if eye_pixel == BLACK:
-            glasses_pixel = get_rgb_from_pixel(screen, x0 + EMOJI_GLASSES_PIXEL_X_OFFSET, y0 + EMOJI_GLASSES_PIXEL_Y_OFFSET)
-            if glasses_pixel == YELLOW:
-                return 'IN_PROGRESS'
-            elif glasses_pixel == BLACK:
-                return 'VICTORY'
+        eye_colour = get_colour_from_pixel(screen, x0 + EMOJI_EYE_PIXEL_X_OFFSET, y0 + EMOJI_EYE_PIXEL_Y_OFFSET)
+        if eye_colour == Colour.BLACK:
+            glasses_pixel = get_colour_from_pixel(screen, x0 + EMOJI_GLASSES_PIXEL_X_OFFSET, y0 + EMOJI_GLASSES_PIXEL_Y_OFFSET)
+
+            if glasses_pixel == Colour.YELLOW:
+                return GameState.IN_PROGRESS
+            elif glasses_pixel == Colour.BLACK:
+                return GameState.VICTORY
             else:
-                raise_unexpected_pixel(glasses_pixel)
-        elif eye_pixel == (13, 12, 15):
-            return 'VICTORY'
-        elif eye_pixel == YELLOW:
-            return 'FAILURE'
+                raise_unexpected_colour(eye_colour)
+        elif eye_colour.value == (13, 12, 15):
+            return GameState.VICTORY
+        elif eye_colour == Colour.YELLOW:
+            return GameState.FAILURE
         else:
-            raise_unexpected_pixel(eye_pixel)
+            raise_unexpected_colour(eye_colour)
 
     @override
-    def obtain_time(self) -> int:
+    def obtain_time(self) -> int:  # TODO: implement
         pass
 
     @override
-    def obtain_grid(self, old_grid: Grid | None = None) -> Grid:
+    def obtain_grid(self, old_grid: Grid[Tile] | None = None) -> Grid[Tile]:
         if old_grid is not None:
             self._check_grid_size(old_grid)
 
         dimensions = self._configuration.dimensions
-        grid = PassiveGrid(dimensions) \
+        grid: Grid[Tile] = GenericGrid(dimensions, lambda: MutableTile()) \
             if old_grid is None \
             else old_grid
 
@@ -137,19 +143,21 @@ class WebPageSweeper(Sweeper):
 
     @override
     def play(self, move: Move) -> None:
-        x0 = self._configuration.offsets.x + move.tile.x * TILE_SIZE
-        y0 = self._configuration.offsets.y + move.tile.y * TILE_SIZE
+        x0 = self._configuration.offsets.x + move.point.x * TILE_SIZE
+        y0 = self._configuration.offsets.y + move.point.y * TILE_SIZE
 
-        screenshot = pag.screenshot(region=(x0 + COVERED_KEY_PIXEL_X_OFFSET, y0 + COVERED_KEY_PIXEL_Y_OFFSET, 1, 1))
-        pixel = get_rgb_from_pixel(screenshot, 0, 0)
+        screenshot = pag.screenshot(
+            region=(x0 + COVERED_KEY_PIXEL_X_OFFSET, y0 + COVERED_KEY_PIXEL_Y_OFFSET, 1, 1)
+        )
+        colour = get_colour_from_pixel(screenshot, 0, 0)
 
-        result = PIXEL_AND_ACTION_TO_BUTTONS.get((pixel, move.action))
+        result = COLOUR_AND_ACTION_TO_BUTTONS.get((colour, move.action))
         if result is None:
-            raise_unexpected_pixel(pixel)
+            raise_unexpected_colour(colour)
 
         buttons, buttons_with_question_marks = result
         if buttons is None:
-            raise InvalidGameStateError('question marks aren\'t enabled')
+            raise SweeperError('question marks aren\'t enabled')
 
         for b in (buttons_with_question_marks if self._configuration.question_marks else buttons):
             pag.click(
@@ -166,74 +174,82 @@ class WebPageSweeper(Sweeper):
         pag.leftClick(x, y)
 
     @override
-    def sign_victory(self, name: str) -> None:
+    def sign_victory(self, name: str) -> None:  # TODO: not a fan of this implementation
         x0 = self._configuration.offsets.x + (self._configuration.dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
         y0 = self._configuration.offsets.y - SMILEY_Y_OFFSET
         glasses_pixel = pag.pixel(x0 + EMOJI_GLASSES_PIXEL_X_OFFSET, y0 + EMOJI_GLASSES_PIXEL_Y_OFFSET)
 
-        if glasses_pixel != YELLOW:
+        if glasses_pixel != Colour.YELLOW.value:
             pag.write(name, 0.1)
             pag.press('enter')
 
 
 def raise_unexpected_pixel(pixel: float | tuple[int, ...] | None) -> Never:
-    raise RuntimeError(f'unexpected pixel - {pixel}')
+    raise SweeperError(f'unexpected pixel - {pixel}')
 
 
-def get_rgb_from_pixel(screen: PIL.Image.Image, x: int, y: int) -> RGB:
+def raise_unexpected_colour(colour: Colour) -> Never:
+    raise SweeperError(f'unexpected colour - {colour.name}')
+
+
+def get_colour_from_pixel(screen: PIL.Image.Image, x: int, y: int) -> Colour:
     pixel = screen.getpixel((x, y))
 
     if pixel is None:
         raise_unexpected_pixel(pixel)
 
-    if type(pixel) == tuple:
-        tuple_pixel = cast(tuple[int, ...], pixel)
-
-        if len(tuple_pixel) >= 3:
-            return cast(RGB, tuple_pixel[:3])
+    if type(pixel) == tuple and len(pixel) == 3:
+        for colour in Colour:
+            if colour.value == pixel:
+                return colour
 
     raise_unexpected_pixel(pixel)
 
 
 def observe_covered_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) -> None:
-    key_covered_pixel = get_rgb_from_pixel(screen, x0 + COVERED_KEY_PIXEL_X_OFFSET, y0 + COVERED_KEY_PIXEL_Y_OFFSET)
+    key_covered_colour = get_colour_from_pixel(screen, x0 + COVERED_KEY_PIXEL_X_OFFSET, y0 + COVERED_KEY_PIXEL_Y_OFFSET)
 
-    if key_covered_pixel == RED:
-        tile.set_sign('FLAG')
-    elif key_covered_pixel == BLACK:
-        tile.set_sign('QUESTION_MARK')
+    if key_covered_colour == Colour.RED:
+        tile.set_symbol(Symbol.FLAG)
+    elif key_covered_colour == Colour.BLACK:
+        tile.set_symbol(Symbol.QUESTION_MARK)
     else:
-        tile.set_sign('COVERED')
+        tile.set_symbol(Symbol.COVER)
 
 
+# TODO: chaotic function
 def observe_uncovered_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) -> None:
-    number_pixel = get_rgb_from_pixel(screen, x0 + NUMBER_PIXEL_X_OFFSET, y0 + NUMBER_PIXEL_Y_OFFSET)
+    number_colour = get_colour_from_pixel(screen, x0 + NUMBER_PIXEL_X_OFFSET, y0 + NUMBER_PIXEL_Y_OFFSET)
 
-    if number_pixel == BLACK:
-        symbol_pixel = get_rgb_from_pixel(screen, x0 + SYMBOL_PIXEL_X_OFFSET, y0 + SYMBOL_PIXEL_Y_OFFSET)
+    if number_colour == Colour.BLACK:
+        symbol_colour = get_colour_from_pixel(screen, x0 + SYMBOL_PIXEL_X_OFFSET, y0 + SYMBOL_PIXEL_Y_OFFSET)
 
-        if symbol_pixel == RED:
-            tile.set_sign('BAD_MINE')
-        elif symbol_pixel == WHITE:
-            tile.set_sign('MINE')
+        if symbol_colour == Colour.RED:
+            tile.set_symbol(Symbol.WRONG_FLAG)
+        elif symbol_colour == Colour.WHITE:
+            tile.set_symbol(Symbol.MINE)
         else:
-            tile.set_count(PIXEL_COLOUR_TO_MINE_COUNT[number_pixel])
+            tile.set_symbol(Symbol.NUMBER, PIXEL_COLOUR_TO_MINE_COUNT[number_colour])
     else:
-        mine_count = PIXEL_COLOUR_TO_MINE_COUNT.get(number_pixel)
-        if mine_count is None:
-            raise_unexpected_pixel(number_pixel)
+        if number_colour == Colour.GRAY:
+            tile.set_symbol(Symbol.EMPTY)
 
-        tile.set_count(mine_count)
+        mine_count = PIXEL_COLOUR_TO_MINE_COUNT.get(number_colour)
+
+        if mine_count is None:
+            raise_unexpected_colour(number_colour)
+
+        tile.set_symbol(Symbol.NUMBER, mine_count)
 
 
 def observe_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) -> None:
-    corner_pixel = get_rgb_from_pixel(screen, x0 + 1, y0 + 1)
+    corner_colour = get_colour_from_pixel(screen, x0 + 1, y0 + 1)
 
-    if corner_pixel == RED:
-        tile.set_sign('EXPLODED_MINE')
-    elif corner_pixel == WHITE:
+    if corner_colour == Colour.RED:
+        tile.set_symbol(Symbol.EXPLODED_MINE)
+    elif corner_colour == Colour.WHITE:
         observe_covered_tile(screen, tile, x0, y0)
-    elif corner_pixel == GRAY:
+    elif corner_colour == Colour.GRAY:
         observe_uncovered_tile(screen, tile, x0, y0)
     else:
-        raise_unexpected_pixel(corner_pixel)
+        raise_unexpected_colour(corner_colour)
