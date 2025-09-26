@@ -14,7 +14,10 @@ class UI(ABC):
 
     def start_rendering_time(self, time_getter: Callable[[], int]) -> None:
         if self._repeater is None:
-            self._repeater = Repeater(1, lambda: self.render_time(time_getter()))
+            self._repeater = Repeater(
+                1.0,
+                lambda: self.render_time(time_getter())
+            )
             self._repeater.start()
 
     def stop_rendering_time(self) -> None:
