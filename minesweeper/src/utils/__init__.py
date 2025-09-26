@@ -1,7 +1,7 @@
 from .attempt import Attempt
-from .configuration_parser import SweeperConfiguration, WebPageSweeperConfiguration
+from .configuration_parser import parse_sweeper_configuration, parse_web_page_sweeper_configuration
 
 __all__ = [
     'Attempt',
-    'SweeperConfiguration', 'WebPageSweeperConfiguration',
+    'parse_sweeper_configuration', 'parse_web_page_sweeper_configuration'
 ]
