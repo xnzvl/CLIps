@@ -1,27 +1,15 @@
 from typing import Literal, overload
 
-from src.common import Action, Move, Point
-
-
-ActionWithPoint = Literal[
-    Action.UNCOVER,
-    Action.FLAG,
-    Action.QUESTION_MARK,
-    Action.CLEAR
-]
-ActionWithoutPoint = Literal[
-    Action.RESET,
-    Action.QUIT
-]
+from src.common import Action, Move, MoveAction, MovelessAction, Point
 
 
 class Input:
     @overload
-    def __init__(self, action: ActionWithPoint, point: Point):
+    def __init__(self, action: MoveAction, point: Point):
         ...
 
     @overload
-    def __init__(self, action: ActionWithoutPoint, point: Literal[None] = None):
+    def __init__(self, action: MovelessAction, point: Literal[None] = None):
         ...
 
     def __init__(self, action: Action, point: Point | None = None) -> None:

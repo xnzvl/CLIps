@@ -22,6 +22,11 @@ MoveAction = Literal[
     Action.CLEAR
 ]
 
+MovelessAction = Literal[
+    Action.RESET,
+    Action.QUIT
+]
+
 
 @dataclass(frozen=True)
 class Point:
