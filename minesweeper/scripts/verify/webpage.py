@@ -3,26 +3,31 @@ import sys
 import pyautogui as pag
 
 from src.common import WebPageSweeperConfiguration
-from src.game.sweeper.impl.webpage_sweeper import TILE_SIZE
-from src.utils.configuration_parser import parse_web_page_sweeper_configuration
+from src.game.sweeper import WebPageSweeper
+from src.utils import parse_web_page_sweeper_configuration
 
 
 def flag_corners(config: WebPageSweeperConfiguration) -> None:
+    tile_size = WebPageSweeper.get_tile_size()
+
+    width  = config.dimensions.width  * tile_size - 1
+    height = config.dimensions.height * tile_size - 1
+
     pag.rightClick(
         config.offsets.x,
         config.offsets.y
     )
     pag.rightClick(
-        config.offsets.x + config.dimensions.width * TILE_SIZE - 1,
+        config.offsets.x + width,
         config.offsets.y
     )
     pag.rightClick(
-        config.offsets.x + config.dimensions.width * TILE_SIZE - 1,
-        config.offsets.y + config.dimensions.height * TILE_SIZE - 1
+        config.offsets.x + width,
+        config.offsets.y + height
     )
     pag.rightClick(
         config.offsets.x,
-        config.offsets.y + config.dimensions.height * TILE_SIZE - 1
+        config.offsets.y + height
     )
 
 
