@@ -44,7 +44,7 @@ def create_input_parser(is_game_in_progress: bool) -> ArgumentParser:
     return parser
 
 
-def obtain_input(is_game_in_progress: bool) -> Attempt[Input, str]:
+def obtain_tui_input(is_game_in_progress: bool) -> Attempt[Input, str]:
     try:
         input_string = input()
     except KeyboardInterrupt:
