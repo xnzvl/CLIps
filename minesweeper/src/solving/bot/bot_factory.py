@@ -4,11 +4,10 @@ from src.solving.bot.bot import Bot
 from src.solving.strategy.strategy import Strategy
 
 
-def new_web_page_bot(
-        configuration: WebPageSweeperConfiguration,
-        strategy: Strategy
-) -> Bot:
-    return Bot(
-        WebPageSweeper(configuration),
-        strategy
-    )
+class BotFactory:
+    @staticmethod
+    def get_webpage_bot(configuration: WebPageSweeperConfiguration, strategy: Strategy) -> Bot:
+        return Bot(
+            WebPageSweeper(configuration),
+            strategy
+        )
