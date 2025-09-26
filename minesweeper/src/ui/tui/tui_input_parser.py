@@ -48,7 +48,7 @@ def obtain_input(is_game_in_progress: bool) -> Attempt[Input, str]:
     try:
         input_string = input()
     except KeyboardInterrupt:
-        return Attempt.success(Input(Action.QUIT, None))
+        return Attempt.success(Input(Action.QUIT))
 
     with redirect_stdout(StringIO()), redirect_stderr(StringIO()):
         try:
@@ -59,7 +59,7 @@ def obtain_input(is_game_in_progress: bool) -> Attempt[Input, str]:
 
     action = cast(Action, ns.action)
     if action == Action.RESET or action == Action.QUIT:
-        return Attempt.success(Input(action, None))
+        return Attempt.success(Input(action))
 
     x, y = cast(int, ns.x), cast(int, ns.y)
     return Attempt.success(Input(action, Point(x, y)))
