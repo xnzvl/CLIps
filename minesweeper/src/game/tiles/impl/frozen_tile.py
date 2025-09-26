@@ -1,7 +1,11 @@
 from typing import override
 
-from src.exceptions import FrozenInstanceError
 from src.game.tiles import MineCount, Tile, Symbol
+
+
+class FrozenInstanceError(Exception):
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
 
 
 class FrozenTile(Tile):

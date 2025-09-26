@@ -1,14 +1,16 @@
 from .symbol import Symbol
-from .tile import MineCount, Tile, tile_to_char
+from .tile   import MineCount, Tile, tile_to_char
 
-from .impl.frozen_tile  import FrozenTile
+from .impl.frozen_tile  import FrozenInstanceError, FrozenTile
 from .impl.mutable_tile import MutableTile
-from .impl.reveal_tile import RevealTile
+from .impl.reveal_tile  import RevealTile
 
 
 __all__ = [
     'Symbol',
     'MineCount', 'Tile', 'tile_to_char',
 
-    'MutableTile', 'RevealTile', 'FrozenTile'
+    'FrozenInstanceError', 'FrozenTile',
+    'MutableTile',
+    'RevealTile',
 ]
