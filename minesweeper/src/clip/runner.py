@@ -10,6 +10,8 @@ class Runner:
         self._ui = ui
         self._sweeper = sweeper
 
+        # TODO: check if UI and Sweeper are compatible
+
         self._grid_cache: Grid[Tile] = GenericGrid(sweeper.get_dimensions(), lambda: MutableTile())
 
     def go(self) -> None:
