@@ -13,21 +13,6 @@ from src.game.tiles import MineCount, MutableTile, Symbol, Tile
 MouseButton = Literal['right', 'middle', 'left']
 
 
-TILE_SIZE: Final = 16
-
-SMILEY_WIDTH:    Final = 26
-SMILEY_Y_OFFSET: Final = 39
-
-NUMBER_PIXEL_X_OFFSET: Final = 9
-NUMBER_PIXEL_Y_OFFSET: Final = 11
-
-COVERED_KEY_PIXEL_X_OFFSET: Final = 7
-COVERED_KEY_PIXEL_Y_OFFSET: Final = 3
-
-SYMBOL_PIXEL_X_OFFSET: Final = 6
-SYMBOL_PIXEL_Y_OFFSET: Final = 6
-
-
 class Colour(Enum):
     WHITE      = 255, 255, 255
     GRAY       = 189, 189, 189
@@ -42,6 +27,19 @@ class Colour(Enum):
     YELLOW     = 255, 255,   0
 
 
+# TODO: create a structure from related constants? e.g. key pixels, emoji, digit
+
+TILE_SIZE: Final = 16
+
+NUMBER_PIXEL_X_OFFSET: Final = 9
+NUMBER_PIXEL_Y_OFFSET: Final = 11
+
+COVERED_KEY_PIXEL_X_OFFSET: Final = 7
+COVERED_KEY_PIXEL_Y_OFFSET: Final = 3
+
+SYMBOL_PIXEL_X_OFFSET: Final = 6
+SYMBOL_PIXEL_Y_OFFSET: Final = 6
+
 PIXEL_COLOUR_TO_MINE_COUNT: Final[Dict[Colour, MineCount]] = {
     Colour.BLUE:       1,
     Colour.DARK_GREEN: 2,
@@ -53,6 +51,8 @@ PIXEL_COLOUR_TO_MINE_COUNT: Final[Dict[Colour, MineCount]] = {
     Colour.DARK_GRAY:  8
 }
 
+EMOJI_WIDTH:    Final = 26
+EMOJI_Y_OFFSET: Final = 39
 EMOJI_EYE_PIXEL_X_OFFSET: Final = 11
 EMOJI_EYE_PIXEL_Y_OFFSET: Final = 10
 EMOJI_GLASSES_PIXEL_X_OFFSET: Final = 12
@@ -75,6 +75,29 @@ COLOUR_AND_ACTION_TO_BUTTONS: Final[
     (Colour.GRAY,  Action.CLEAR):         (list(),            list()            ),
 }
 
+DIGIT_WIDTH: Final = 13
+DIGIT_COUNT: Final = 3
+DIGIT_SEGMENTS_GAP: Final = 7
+DIGIT_SEGMENTS_HORIZONTAL_X_OFFSET: Final = 6
+DIGIT_SEGMENTS_HORIZONTAL_Y_OFFSET: Final = 3
+DIGIT_SEGMENTS_VERTICAL_X_OFFSET: Final = 2
+DIGIT_SEGMENTS_VERTICAL_Y_OFFSET: Final = 6
+
+DIGIT_SEGMENT_TUPLE_TO_INT: Final[
+    Dict[Tuple[bool, bool, bool, bool, bool, bool, bool], int]
+] = {
+    (True,  True,  True,  True,  True,  True,  False): 0,
+    (False, True,  True,  False, False, False, False): 1,
+    (True,  True,  False, True,  True,  False, True ): 2,
+    (True,  True,  True,  True,  False, False, True ): 3,
+    (True,  True,  False, False, False, True,  True ): 4,
+    (True,  False, True,  True,  False, True,  True ): 5,
+    (True,  False, True,  True,  True,  True,  True ): 6,
+    (True,  True,  True,  False, False, False, False): 7,
+    (True,  True,  True,  True,  True,  True,  True ): 8,
+    (True,  True,  True,  True,  False, True,  True ): 9
+}  # boolean values are in order abcdefg according to 7-segment display
+
 
 class WebPageSweeper(Sweeper[WebPageSweeperConfiguration]):
     @staticmethod
@@ -86,14 +109,14 @@ class WebPageSweeper(Sweeper[WebPageSweeperConfiguration]):
 
     @override
     def obtain_remaining_mines(self) -> int:  # TODO: implement
-        return 99999
+        pass
 
     @override
     def obtain_state(self) -> GameState:
         screen = pag.screenshot()
 
-        x0 = self._configuration.offsets.x + (self._configuration.dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
-        y0 = self._configuration.offsets.y - SMILEY_Y_OFFSET
+        x0 = self._configuration.offsets.x + (self._configuration.dimensions.width * TILE_SIZE - EMOJI_WIDTH) // 2
+        y0 = self._configuration.offsets.y - EMOJI_Y_OFFSET
 
         # TODO: rest of the function is quite chaotic
         eye_colour = get_colour_from_pixel(screen, x0 + EMOJI_EYE_PIXEL_X_OFFSET, y0 + EMOJI_EYE_PIXEL_Y_OFFSET)
@@ -168,15 +191,15 @@ class WebPageSweeper(Sweeper[WebPageSweeperConfiguration]):
 
     @override
     def reset(self) -> None:
-        x = self._configuration.offsets.x + (self._configuration.dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2 + SMILEY_WIDTH // 2
-        y = self._configuration.offsets.y - SMILEY_Y_OFFSET + SMILEY_WIDTH // 2
+        x = self._configuration.offsets.x + (self._configuration.dimensions.width * TILE_SIZE - EMOJI_WIDTH) // 2 + EMOJI_WIDTH // 2
+        y = self._configuration.offsets.y - EMOJI_Y_OFFSET + EMOJI_WIDTH // 2
 
         pag.leftClick(x, y)
 
     @override
     def sign_victory(self, name: str) -> None:  # TODO: not a fan of this implementation
-        x0 = self._configuration.offsets.x + (self._configuration.dimensions.width * TILE_SIZE - SMILEY_WIDTH) // 2
-        y0 = self._configuration.offsets.y - SMILEY_Y_OFFSET
+        x0 = self._configuration.offsets.x + (self._configuration.dimensions.width * TILE_SIZE - EMOJI_WIDTH) // 2
+        y0 = self._configuration.offsets.y - EMOJI_Y_OFFSET
         glasses_pixel = pag.pixel(x0 + EMOJI_GLASSES_PIXEL_X_OFFSET, y0 + EMOJI_GLASSES_PIXEL_Y_OFFSET)
 
         if glasses_pixel != Colour.YELLOW.value:
@@ -253,3 +276,38 @@ def observe_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) -> None:
         observe_uncovered_tile(screen, tile, x0, y0)
     else:
         raise_unexpected_colour(corner_colour)
+
+
+def obtain_number(digits_area: PIL.Image.Image) -> int:
+    number = 0
+
+    for i in range(DIGIT_COUNT):
+        digit = obtain_digit(digits_area, i)
+        number += digit * 10 ** (DIGIT_COUNT - i - 1)
+
+    return number
+
+
+def obtain_digit(digits_area: PIL.Image.Image, digit_place_from_left: int) -> int:
+    x0 = digit_place_from_left * DIGIT_WIDTH
+
+    # TODO: this is horrendous
+    segments = (
+        is_digit_segment_on(digits_area, x0 + DIGIT_SEGMENTS_HORIZONTAL_X_OFFSET, DIGIT_SEGMENTS_HORIZONTAL_Y_OFFSET),
+        is_digit_segment_on(digits_area, x0 + DIGIT_SEGMENTS_VERTICAL_X_OFFSET + DIGIT_SEGMENTS_GAP, DIGIT_SEGMENTS_VERTICAL_Y_OFFSET),
+        is_digit_segment_on(digits_area, x0 + DIGIT_SEGMENTS_VERTICAL_X_OFFSET + DIGIT_SEGMENTS_GAP, DIGIT_SEGMENTS_VERTICAL_Y_OFFSET + DIGIT_SEGMENTS_GAP),
+        is_digit_segment_on(digits_area, x0 + DIGIT_SEGMENTS_HORIZONTAL_X_OFFSET, DIGIT_SEGMENTS_HORIZONTAL_Y_OFFSET + 2 * DIGIT_SEGMENTS_GAP),
+        is_digit_segment_on(digits_area, x0 + DIGIT_SEGMENTS_VERTICAL_X_OFFSET, DIGIT_SEGMENTS_VERTICAL_Y_OFFSET + DIGIT_SEGMENTS_GAP),
+        is_digit_segment_on(digits_area, x0 + DIGIT_SEGMENTS_VERTICAL_X_OFFSET, DIGIT_SEGMENTS_VERTICAL_Y_OFFSET),
+        is_digit_segment_on(digits_area, x0 + DIGIT_SEGMENTS_HORIZONTAL_X_OFFSET, DIGIT_SEGMENTS_HORIZONTAL_Y_OFFSET + DIGIT_SEGMENTS_GAP)
+    )
+
+    digit = DIGIT_SEGMENT_TUPLE_TO_INT.get(segments)
+    if digit is None:
+        raise SweeperError('digit segments don\'t make up a number')
+
+    return digit
+
+
+def is_digit_segment_on(digit_area: PIL.Image.Image, x: int, y: int) -> bool:
+    return get_colour_from_pixel(digit_area, x, y) == Colour.RED
