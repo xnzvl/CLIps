@@ -236,7 +236,7 @@ def raise_unexpected_pixel(pixel: float | tuple[int, ...] | None) -> Never:
 
 
 def raise_unexpected_colour(colour: Colour) -> Never:
-    raise SweeperError(f'unexpected colour - {colour.name}')
+    raise SweeperError(f'unexpected colour - {colour.name}({colour.value})')
 
 
 def get_colour_from_pixel(screen: PIL.Image.Image, x: int, y: int) -> Colour:
@@ -280,6 +280,7 @@ def observe_uncovered_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int
     else:
         if number_colour == Colour.GRAY:
             tile.set_symbol(Symbol.EMPTY)
+            return
 
         mine_count = PIXEL_COLOUR_TO_MINE_COUNT.get(number_colour)
 
