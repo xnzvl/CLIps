@@ -9,9 +9,8 @@ from src.common import Dimensions
 from src.game.grids import Grid
 from src.game.sweeper import GameState, Result
 from src.game.tiles import MineCount, Tile, Symbol
-from src.ui.input import Input
-from src.ui.ui import UI
-
+from src.ui import Input, UI
+from src.ui.utils import obtain_tui_input
 
 Shape = Literal['─', '│', '┐', '┘', '└', '┌', '┼', '┬', '┤', '┴', '├']
 
@@ -260,9 +259,17 @@ class BlessedTUI(UI):
     @override
     def get_player_input(self, game_state: GameState) -> Input:
         # don't forget to exit fullscreen on exit
-        print(
-            self._term.move_xy(26, self._dimensions.height * 2 + 5),  # TODO: adapt to variable username
-            end=''
-        )
-        input()
-        # TODO: finish impl
+
+        while True:
+            print(
+                self._term.move_xy(26, self._dimensions.height * 2 + 5) + self._term.clear_eol,  # TODO: adapt to variable username
+                end=''
+            )
+
+            input_attempt = obtain_tui_input(game_state == GameState.IN_PROGRESS)
+
+            if input_attempt.is_successful:
+                # TODO: + clear error msg
+                return input_attempt.value
+
+            print(input_attempt.error)  # TODO: better error msg

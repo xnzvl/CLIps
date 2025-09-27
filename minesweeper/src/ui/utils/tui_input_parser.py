@@ -4,7 +4,7 @@ from io import StringIO
 from typing import cast
 
 from src.common import Action, Point
-from src.ui.input import Input
+from src.ui import Input
 from src.utils import Attempt
 
 
