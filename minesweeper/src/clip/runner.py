@@ -6,9 +6,9 @@ from src.ui.ui import UI
 
 
 class Runner:
-    def __init__(self, ui: UI, sweeper: Sweeper[SweeperConfiguration]) -> None:
-        self._ui = ui
+    def __init__(self, sweeper: Sweeper[SweeperConfiguration], ui: UI) -> None:
         self._sweeper = sweeper
+        self._ui = ui
 
         # TODO: check if UI and Sweeper are compatible
 
@@ -33,10 +33,9 @@ class Runner:
     def _update_ui(self) -> GameState:
         game_state = self._sweeper.obtain_state()
 
-        # TODO: remove comments
-        self._ui.render_remaining_mines(17) # self._sweeper.obtain_remaining_mines())
+        self._ui.render_remaining_mines(self._sweeper.obtain_remaining_mines())
         self._ui.render_game_state(game_state)
-        self._ui.render_time(137) # self._sweeper.obtain_time())
+        self._ui.render_time(self._sweeper.obtain_time())
 
         current_grid = self._sweeper.obtain_grid()
         self._ui.render_grid(current_grid)
