@@ -52,7 +52,7 @@ PIXEL_COLOUR_TO_MINE_COUNT: Final[Dict[Colour, MineCount]] = {
 }
 
 EMOJI_WIDTH:    Final = 26
-EMOJI_Y_OFFSET: Final = 39
+EMOJI_Y_OFFSET: Final = -39
 EMOJI_EYE_PIXEL_X_OFFSET: Final = 11
 EMOJI_EYE_PIXEL_Y_OFFSET: Final = 10
 EMOJI_GLASSES_PIXEL_X_OFFSET: Final = 12
@@ -75,27 +75,34 @@ COLOUR_AND_ACTION_TO_BUTTONS: Final[
     (Colour.GRAY,  Action.CLEAR):         (list(),            list()            ),
 }
 
-DIGIT_WIDTH: Final = 13
-DIGIT_COUNT: Final = 3
-DIGIT_SEGMENTS_GAP: Final = 7
+DIGIT_WIDTH:  Final = 13
+DIGIT_HEIGHT: Final = 23
+DIGIT_COUNT:  Final = 3
+
+DIGIT_X_OFFSET: Final = 6
+DIGIT_Y_OFFSET: Final = -38
+
+DIGIT_SEGMENTS_HORIZONTAL_GAP: Final = 8
+DIGIT_SEGMENTS_VERTICAL_GAP: Final = 10
 DIGIT_SEGMENTS_HORIZONTAL_X_OFFSET: Final = 6
-DIGIT_SEGMENTS_HORIZONTAL_Y_OFFSET: Final = 3
+DIGIT_SEGMENTS_HORIZONTAL_Y_OFFSET: Final = 1
 DIGIT_SEGMENTS_VERTICAL_X_OFFSET: Final = 2
 DIGIT_SEGMENTS_VERTICAL_Y_OFFSET: Final = 6
 
-DIGIT_SEGMENT_TUPLE_TO_INT: Final[
-    Dict[Tuple[bool, bool, bool, bool, bool, bool, bool], int]
+DIGIT_SEGMENT_TUPLE_TO_CHAR: Final[
+    Dict[Tuple[bool, bool, bool, bool, bool, bool, bool], str]
 ] = {
-    (True,  True,  True,  True,  True,  True,  False): 0,
-    (False, True,  True,  False, False, False, False): 1,
-    (True,  True,  False, True,  True,  False, True ): 2,
-    (True,  True,  True,  True,  False, False, True ): 3,
-    (True,  True,  False, False, False, True,  True ): 4,
-    (True,  False, True,  True,  False, True,  True ): 5,
-    (True,  False, True,  True,  True,  True,  True ): 6,
-    (True,  True,  True,  False, False, False, False): 7,
-    (True,  True,  True,  True,  True,  True,  True ): 8,
-    (True,  True,  True,  True,  False, True,  True ): 9
+    (True,  True,  True,  True,  True,  True,  False): '0',
+    (False, True,  True,  False, False, False, False): '1',
+    (True,  True,  False, True,  True,  False, True ): '2',
+    (True,  True,  True,  True,  False, False, True ): '3',
+    (False, True,  True,  False, False, True,  True ): '4',
+    (True,  False, True,  True,  False, True,  True ): '5',
+    (True,  False, True,  True,  True,  True,  True ): '6',
+    (True,  True,  True,  False, False, False, False): '7',
+    (True,  True,  True,  True,  True,  True,  True ): '8',
+    (True,  True,  True,  True,  False, True,  True ): '9',
+    (False, False, False, False, False, False, True ): '-'
 }  # boolean values are in order abcdefg according to 7-segment display
 
 
@@ -109,14 +116,23 @@ class WebPageSweeper(Sweeper[WebPageSweeperConfiguration]):
 
     @override
     def obtain_remaining_mines(self) -> int:  # TODO: implement
-        pass
+        digit_area = pag.screenshot(
+            region=(
+                self._configuration.offsets.x + DIGIT_X_OFFSET,
+                self._configuration.offsets.y + DIGIT_Y_OFFSET,
+                DIGIT_WIDTH * DIGIT_COUNT,
+                DIGIT_HEIGHT
+            )
+        )
+        return obtain_number(digit_area)
+
 
     @override
     def obtain_state(self) -> GameState:
         screen = pag.screenshot()
 
         x0 = self._configuration.offsets.x + (self._configuration.dimensions.width * TILE_SIZE - EMOJI_WIDTH) // 2
-        y0 = self._configuration.offsets.y - EMOJI_Y_OFFSET
+        y0 = self._configuration.offsets.y + EMOJI_Y_OFFSET
 
         # TODO: rest of the function is quite chaotic
         eye_colour = get_colour_from_pixel(screen, x0 + EMOJI_EYE_PIXEL_X_OFFSET, y0 + EMOJI_EYE_PIXEL_Y_OFFSET)
@@ -138,7 +154,15 @@ class WebPageSweeper(Sweeper[WebPageSweeperConfiguration]):
 
     @override
     def obtain_time(self) -> int:  # TODO: implement
-        pass
+        digit_area = pag.screenshot(
+            region=(
+                self._configuration.offsets.x + self._configuration.dimensions.width * TILE_SIZE - DIGIT_WIDTH * DIGIT_COUNT - DIGIT_X_OFFSET,
+                self._configuration.offsets.y + DIGIT_Y_OFFSET,
+                DIGIT_WIDTH * DIGIT_COUNT,
+                DIGIT_HEIGHT
+            )
+        )
+        return obtain_number(digit_area)
 
     @override
     def obtain_grid(self, old_grid: Grid[Tile] | None = None) -> Grid[Tile]:
@@ -240,7 +264,7 @@ def observe_covered_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) 
         tile.set_symbol(Symbol.COVER)
 
 
-# TODO: chaotic function
+# TODO: this feels too chaotic
 def observe_uncovered_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) -> None:
     number_colour = get_colour_from_pixel(screen, x0 + NUMBER_PIXEL_X_OFFSET, y0 + NUMBER_PIXEL_Y_OFFSET)
 
@@ -279,32 +303,30 @@ def observe_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) -> None:
 
 
 def obtain_number(digits_area: PIL.Image.Image) -> int:
-    number = 0
-
-    for i in range(DIGIT_COUNT):
-        digit = obtain_digit(digits_area, i)
-        number += digit * 10 ** (DIGIT_COUNT - i - 1)
-
-    return number
+    return int(
+        ''.join(
+            [obtain_digit(digits_area, i) for i in range(DIGIT_COUNT)]
+        )
+    )
 
 
-def obtain_digit(digits_area: PIL.Image.Image, digit_place_from_left: int) -> int:
-    x0 = digit_place_from_left * DIGIT_WIDTH
+def obtain_digit(digits_area: PIL.Image.Image, digit_place_from_left: int) -> str:
+    digit_offset = digit_place_from_left * DIGIT_WIDTH
 
     # TODO: this is horrendous
     segments = (
-        is_digit_segment_on(digits_area, x0 + DIGIT_SEGMENTS_HORIZONTAL_X_OFFSET, DIGIT_SEGMENTS_HORIZONTAL_Y_OFFSET),
-        is_digit_segment_on(digits_area, x0 + DIGIT_SEGMENTS_VERTICAL_X_OFFSET + DIGIT_SEGMENTS_GAP, DIGIT_SEGMENTS_VERTICAL_Y_OFFSET),
-        is_digit_segment_on(digits_area, x0 + DIGIT_SEGMENTS_VERTICAL_X_OFFSET + DIGIT_SEGMENTS_GAP, DIGIT_SEGMENTS_VERTICAL_Y_OFFSET + DIGIT_SEGMENTS_GAP),
-        is_digit_segment_on(digits_area, x0 + DIGIT_SEGMENTS_HORIZONTAL_X_OFFSET, DIGIT_SEGMENTS_HORIZONTAL_Y_OFFSET + 2 * DIGIT_SEGMENTS_GAP),
-        is_digit_segment_on(digits_area, x0 + DIGIT_SEGMENTS_VERTICAL_X_OFFSET, DIGIT_SEGMENTS_VERTICAL_Y_OFFSET + DIGIT_SEGMENTS_GAP),
-        is_digit_segment_on(digits_area, x0 + DIGIT_SEGMENTS_VERTICAL_X_OFFSET, DIGIT_SEGMENTS_VERTICAL_Y_OFFSET),
-        is_digit_segment_on(digits_area, x0 + DIGIT_SEGMENTS_HORIZONTAL_X_OFFSET, DIGIT_SEGMENTS_HORIZONTAL_Y_OFFSET + DIGIT_SEGMENTS_GAP)
+        is_digit_segment_on(digits_area, digit_offset + DIGIT_SEGMENTS_HORIZONTAL_X_OFFSET,                               DIGIT_SEGMENTS_HORIZONTAL_Y_OFFSET                                  ),
+        is_digit_segment_on(digits_area, digit_offset + DIGIT_SEGMENTS_VERTICAL_X_OFFSET + DIGIT_SEGMENTS_HORIZONTAL_GAP, DIGIT_SEGMENTS_VERTICAL_Y_OFFSET                                    ),
+        is_digit_segment_on(digits_area, digit_offset + DIGIT_SEGMENTS_VERTICAL_X_OFFSET + DIGIT_SEGMENTS_HORIZONTAL_GAP, DIGIT_SEGMENTS_VERTICAL_Y_OFFSET + DIGIT_SEGMENTS_HORIZONTAL_GAP    ),
+        is_digit_segment_on(digits_area, digit_offset + DIGIT_SEGMENTS_HORIZONTAL_X_OFFSET,                               DIGIT_SEGMENTS_HORIZONTAL_Y_OFFSET + 2 * DIGIT_SEGMENTS_VERTICAL_GAP),
+        is_digit_segment_on(digits_area, digit_offset + DIGIT_SEGMENTS_VERTICAL_X_OFFSET,                                 DIGIT_SEGMENTS_VERTICAL_Y_OFFSET + DIGIT_SEGMENTS_HORIZONTAL_GAP    ),
+        is_digit_segment_on(digits_area, digit_offset + DIGIT_SEGMENTS_VERTICAL_X_OFFSET,                                 DIGIT_SEGMENTS_VERTICAL_Y_OFFSET                                    ),
+        is_digit_segment_on(digits_area, digit_offset + DIGIT_SEGMENTS_HORIZONTAL_X_OFFSET,                               DIGIT_SEGMENTS_HORIZONTAL_Y_OFFSET + DIGIT_SEGMENTS_VERTICAL_GAP    )
     )
 
-    digit = DIGIT_SEGMENT_TUPLE_TO_INT.get(segments)
+    digit = DIGIT_SEGMENT_TUPLE_TO_CHAR.get(segments)
     if digit is None:
-        raise SweeperError('digit segments don\'t make up a number')
+        raise SweeperError(f'segments don\'t make up a digit nor minus sign - {segments}')
 
     return digit
 
