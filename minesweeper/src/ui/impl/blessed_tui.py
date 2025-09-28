@@ -1,7 +1,7 @@
 # TODO: guarantee minimal window size on Unix
 # from signal import signal, SIGWINCH  # https://blessed.readthedocs.io/en/latest/measuring.html#resizing
 
-from typing import Dict, Literal, assert_never, override
+from typing import Dict, Final, Literal, assert_never, override
 
 from blessed.terminal import Terminal
 
@@ -12,14 +12,15 @@ from src.game.tiles import MineCount, Tile, Symbol
 from src.ui import Input, UI
 from src.ui.utils import obtain_tui_input
 
+
 Shape = Literal['─', '│', '┐', '┘', '└', '┌', '┼', '┬', '┤', '┴', '├']
 
 
-CELL_WIDTH = 3
-SMILEY_WIDTH = 5
-INFO_WIDTH = 5
+CELL_WIDTH:  Final = 3
+EMOJI_WIDTH: Final = 5
+INFO_WIDTH:  Final = 5
 
-HEADER_SHAPES: Dict[Shape, str] = {
+HEADER_SHAPES: Final[Dict[Shape, str]] = {
     '─': '═',
     '│': '║',
     '┐': '╗',
@@ -33,7 +34,7 @@ HEADER_SHAPES: Dict[Shape, str] = {
     '├': '╠'
 }
 
-GRID_SHAPES: Dict[Shape, str] = {
+GRID_SHAPES: Final[Dict[Shape, str]] = {
     '─': '─',
     '│': '│',
     '┐': '┐',
@@ -47,7 +48,7 @@ GRID_SHAPES: Dict[Shape, str] = {
     '├': '├'
 }
 
-SMILEY_FACE: Dict[GameState, str] = {  # values have to be exactly 3 chars long
+EMOJI_STR: Final[Dict[GameState, str]] = {  # values have to be exactly 3 chars long
     GameState.IN_PROGRESS: ':-)',
     GameState.VICTORY:     ':-D',
     GameState.FAILURE:     ':-('
@@ -84,22 +85,22 @@ class BlessedTUI(UI):
         print(
             self._as_border(
                 HEADER_SHAPES['┌'] + line_segment +
-                HEADER_SHAPES['┬'] + HEADER_SHAPES['─'] * SMILEY_WIDTH + HEADER_SHAPES['┬']
-                                   + line_segment + HEADER_SHAPES['┐']
+                HEADER_SHAPES['┬'] + HEADER_SHAPES['─'] * EMOJI_WIDTH + HEADER_SHAPES['┬']
+                + line_segment + HEADER_SHAPES['┐']
             )
         )
         print(
             self._as_border(HEADER_SHAPES['│']) +
             space_segment +
-            self._as_border(HEADER_SHAPES['│']) + ' ' * SMILEY_WIDTH + self._as_border(HEADER_SHAPES['│']) +
+            self._as_border(HEADER_SHAPES['│']) + ' ' * EMOJI_WIDTH + self._as_border(HEADER_SHAPES['│']) +
             space_segment +
             self._as_border(HEADER_SHAPES['│'])
         )
         print(
             self._as_border(
                 HEADER_SHAPES['└'] + line_segment +
-                HEADER_SHAPES['┴'] + HEADER_SHAPES['─'] * SMILEY_WIDTH + HEADER_SHAPES['┴']
-                                   + line_segment + HEADER_SHAPES['┘']
+                HEADER_SHAPES['┴'] + HEADER_SHAPES['─'] * EMOJI_WIDTH + HEADER_SHAPES['┴']
+                + line_segment + HEADER_SHAPES['┘']
             )
         )
 
@@ -240,7 +241,7 @@ class BlessedTUI(UI):
     def render_game_state(self, game_state: GameState) -> None:
         print(
             self._term.move_xy((self._dimensions.width * 4) // 2, 1) +
-            SMILEY_FACE[game_state],
+            EMOJI_STR[game_state],
             end=''
         )
 
