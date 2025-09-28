@@ -16,7 +16,7 @@ class UI(ABC):
         if self._repeater is None:
             self._repeater = Repeater(
                 1.0,
-                lambda: self.render_time(time_getter())
+                lambda: self.render_time(time_getter()),  # TODO: handle exception from repeater? or modify repeater?
             )
             self._repeater.start()
 

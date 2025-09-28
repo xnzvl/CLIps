@@ -64,7 +64,7 @@ class BlessedTUI(UI):
         self._term = Terminal()
 
         self._fullscreen = self._term.fullscreen()
-        # self._fullscreen.__enter__()
+        # self._fullscreen.__enter__()  # TODO: isn't there a better method for that?
 
         print(self._term.clear, end='')
 
@@ -229,11 +229,12 @@ class BlessedTUI(UI):
             mins = min(mins, 99)
             secs = min(seconds - 99 * 60, 99)
 
-        print(
-            self._term.move_xy(self._dimensions.width * 4 - 4, 1) +
-            f'{mins:>02}:{secs:>02}',
-            end=''
-        )
+        with self._term.hidden_cursor(), self._term.location(self._dimensions.width * 4 - 4, 1):
+            print(
+                f'{mins:>02}:{secs:>02}',
+                end='',
+                flush=True
+            )
 
     @override
     def render_game_state(self, game_state: GameState) -> None:
