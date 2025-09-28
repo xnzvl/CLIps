@@ -40,7 +40,7 @@ class Bot:
             print_winrate(victories, max_attempts)
 
     def _attempt_to_solve(self) -> Result:
-        grid: Grid[Tile] = GenericGrid(self._sweeper.get_dimensions(), lambda: MutableTile())
+        grid: Grid[Tile] = GenericGrid(self._sweeper.get_dimensions(), MutableTile)
 
         game_state: GameState = GameState.IN_PROGRESS
         while game_state == GameState.IN_PROGRESS:

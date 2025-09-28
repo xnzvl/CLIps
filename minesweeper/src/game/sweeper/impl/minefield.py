@@ -19,7 +19,7 @@ class Minefield(Sweeper[SweeperConfiguration]):
     def __init__(self, configuration: SweeperConfiguration) -> None:
         super().__init__(configuration)
 
-        self._field: Grid[RevealTile] = GenericGrid(self._configuration.dimensions, lambda: RevealTile())
+        self._field: Grid[RevealTile] = GenericGrid(self._configuration.dimensions, RevealTile)
 
         self._planted_mines: Set[Point] = set()
         self._start_time: int | None = None
@@ -156,7 +156,7 @@ class Minefield(Sweeper[SweeperConfiguration]):
         # TODO: check after whole impl
         configuration = self._configuration
 
-        self._field = GenericGrid(configuration.dimensions, lambda: RevealTile())
+        self._field = GenericGrid(configuration.dimensions, RevealTile)
         self._planted_mines.clear()
         self._start_time = None
 

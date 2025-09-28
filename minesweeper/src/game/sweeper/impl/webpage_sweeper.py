@@ -170,7 +170,7 @@ class WebPageSweeper(Sweeper[WebPageSweeperConfiguration]):
             self._check_grid_size(old_grid)
 
         dimensions = self._configuration.dimensions
-        grid: Grid[Tile] = GenericGrid(dimensions, lambda: MutableTile()) \
+        grid: Grid[Tile] = GenericGrid(dimensions, MutableTile) \
             if old_grid is None \
             else old_grid
 
