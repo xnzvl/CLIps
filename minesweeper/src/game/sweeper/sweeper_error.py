@@ -1,3 +1,5 @@
-class SweeperError(Exception):
-    def __init__(self, message: str) -> None:
-        super().__init__(message)
+from src.utils import MinesweeperError
+
+
+class SweeperError(MinesweeperError):
+    ...
