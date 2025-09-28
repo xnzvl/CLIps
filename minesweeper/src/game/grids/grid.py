@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Self, Tuple
 
-from src.common import Point
+from src.common import Point, Dimensions
 from src.game.tiles import Symbol, Tile
 
 
@@ -27,11 +27,7 @@ class Grid[T: Tile](ABC):
         ...
 
     @abstractmethod
-    def get_width(self) -> int:
-        ...
-
-    @abstractmethod
-    def get_height(self) -> int:
+    def get_dimensions(self) -> Dimensions:
         ...
 
     @abstractmethod
@@ -58,6 +54,12 @@ class Grid[T: Tile](ABC):
     @abstractmethod
     def print(self) -> None:
         ...
+
+    def get_width(self) -> int:
+        return self.get_dimensions().width
+
+    def get_height(self) -> int:
+        return self.get_dimensions().height
 
     # TODO: update class usage
     def count_symbol_in_neighbourhood(self, x: int, y: int, symbol: Symbol) -> int:

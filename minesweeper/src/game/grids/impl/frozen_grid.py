@@ -1,6 +1,6 @@
 from typing import Tuple, override
 
-from src.common import Point
+from src.common import Point, Dimensions
 from src.game.grids import GridIterator, Grid
 from src.game.tiles import Tile, FrozenTile, Symbol
 
@@ -28,12 +28,8 @@ class FrozenGrid(Grid[Tile]):
         return FrozenGridIterator(iter(self._grid))
 
     @override
-    def get_width(self) -> int:
-        return self._grid.get_width()
-
-    @override
-    def get_height(self) -> int:
-        return self._grid.get_height()
+    def get_dimensions(self) -> Dimensions:
+        return self._grid.get_dimensions()
 
     @override
     def neighbourhood_of(self, x: int, y: int) -> GridIterator[Tile]:

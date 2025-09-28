@@ -92,12 +92,8 @@ class GenericGrid[T: Tile](Grid[T]):
             raise IndexError(f'y cannot be greater than height of the grid ({self._dimensions.height})')
 
     @override
-    def get_width(self) -> int:
-        return self._dimensions.width
-
-    @override
-    def get_height(self) -> int:
-        return self._dimensions.height
+    def get_dimensions(self) -> Dimensions:
+        return self._dimensions
 
     @override
     def neighbourhood_of(self, x: int, y: int) -> GridIterator[T]:
