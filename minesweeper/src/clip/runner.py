@@ -14,7 +14,7 @@ class Runner:
 
         self._grid_cache: Grid[Tile] = GenericGrid(sweeper.get_dimensions(), MutableTile)
 
-    def go(self) -> None:
+    def run(self) -> None:
         self._ui.start_rendering_time(self._sweeper.obtain_time)
 
         should_run = True

@@ -13,7 +13,7 @@ def main() -> None:
     ui = BlessedTUI(config.dimensions, config.mines)
 
     runner = Runner(sweeper, ui)
-    runner.go()
+    runner.run()
 
 
 if __name__ == '__main__':
