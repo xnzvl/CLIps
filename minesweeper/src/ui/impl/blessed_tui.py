@@ -186,19 +186,19 @@ class BlessedTUI(UI):
     def _tile_representation(self, tile: Tile) -> str:
         symbol = tile.get_symbol()
 
-        match symbol:  # TODO: use colours & formatting
+        match symbol:
             case Symbol.COVER:
                 return '▐█▌'
             case Symbol.FLAG:
-                return ' F '
+                return f'▐{self._term.reverse_on_darkred('P')}▌'
             case Symbol.QUESTION_MARK:
-                return ' ? '
+                return f'▐{self._term.reverse('?')}▌'
             case Symbol.EXPLODED_MINE:
-                return ' * '
+                return f'{self._term.red('▐')}{self._term.black_on_red('*')}{self._term.red('▌')}'
             case Symbol.MINE:
-                return '[*]'
+                return f'▐{self._term.reverse('*')}▌'
             case Symbol.WRONG_FLAG:
-                return ' X '
+                return f'{self._term.darkred('▐')}{self._term.black_on_darkred('P')}{self._term.darkred('▌')}'
             case Symbol.EMPTY:
                 return '   '
             case Symbol.NUMBER:
@@ -245,6 +245,7 @@ class BlessedTUI(UI):
 
     @override
     def render_grid[T: Tile](self, grid: Grid[T]) -> None:
+        # TODO: check if dimensions are correct?
         for point, tile in grid:
             print(
                 self._term.move_xy(2 + point.x * 4, 4 + point.y * 2) +
