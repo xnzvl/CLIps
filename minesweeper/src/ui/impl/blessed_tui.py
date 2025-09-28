@@ -239,9 +239,20 @@ class BlessedTUI(UI):
 
     @override
     def render_game_state(self, game_state: GameState) -> None:
+        formatter = None
+        match game_state:
+            case GameState.IN_PROGRESS:
+                formatter = self._term.bright_yellow
+            case GameState.VICTORY:
+                formatter = self._term.bright_green
+            case GameState.FAILURE:
+                formatter = self._term.bright_red
+            case _:
+                assert_never(game_state)
+
         print(
             self._term.move_xy((self._dimensions.width * 4) // 2, 1) +
-            EMOJI_STR[game_state],
+            formatter(EMOJI_STR[game_state]),
             end=''
         )
 
