@@ -44,11 +44,11 @@ class Attempt[V, E]:
         return Attempt[V, E](False, None, error)
 
     @overload
-    def __init__(self, is_success: Literal[True], value: V, error: Literal[None]) -> None:
+    def __init__(self, is_successful: Literal[True], value: V, error: Literal[None]) -> None:
         ...
 
     @overload
-    def __init__(self, is_success: Literal[False], value: Literal[None], error: E) -> None:
+    def __init__(self, is_successful: Literal[False], value: Literal[None], error: E) -> None:
         ...
 
     def __init__(self, is_successful: bool, value: V | None, error: E | None) -> None:
