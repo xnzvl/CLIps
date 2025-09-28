@@ -12,30 +12,36 @@ class Runner:
 
         # TODO: check if UI and Sweeper are compatible
 
-        self._grid_cache: Grid[Tile] = GenericGrid(sweeper.get_dimensions(), lambda: MutableTile())
+        self._grid_cache: Grid[Tile] = GenericGrid(sweeper.get_dimensions(), MutableTile)
 
     def go(self) -> None:
-        while True:
+        self._ui.start_rendering_time(self._sweeper.obtain_time)
+
+        should_run = True
+
+        while should_run:
             game_state = self._update_ui()
+            if game_state != GameState.IN_PROGRESS:
+                self._ui.stop_rendering_time()
+
             player_input = self._ui.get_player_input(game_state)
-
-            if player_input.action == Action.RESET:
-                self._sweeper.reset()
-
-            elif player_input.action == Action.QUIT:
-                break
-
-            else:
-                move = player_input.move
-                assert move is not None
-                self._sweeper.play(move)
+            match player_input.action:
+                case Action.RESET:
+                    self._ui.start_rendering_time(self._sweeper.obtain_time)
+                    self._sweeper.reset()
+                case Action.QUIT:
+                    self._ui.stop_rendering_time()
+                    should_run = False
+                case _:
+                    move = player_input.move
+                    assert move is not None
+                    self._sweeper.play(move)
 
     def _update_ui(self) -> GameState:
         game_state = self._sweeper.obtain_state()
 
         self._ui.render_remaining_mines(self._sweeper.obtain_remaining_mines())
         self._ui.render_game_state(game_state)
-        self._ui.render_time(self._sweeper.obtain_time())
 
         current_grid = self._sweeper.obtain_grid()
         self._ui.render_grid(current_grid)
