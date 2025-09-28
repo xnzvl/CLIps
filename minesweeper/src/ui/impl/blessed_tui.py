@@ -10,6 +10,7 @@ from src.game.grids import Grid
 from src.game.sweeper import GameState, Result
 from src.game.tiles import MineCount, Tile, Symbol
 from src.ui import Input, UI
+from src.ui.ui_error import UIError
 from src.ui.utils import obtain_tui_input
 
 
@@ -258,7 +259,9 @@ class BlessedTUI(UI):
 
     @override
     def render_grid[T: Tile](self, grid: Grid[T]) -> None:
-        # TODO: check if dimensions are correct?
+        if grid.get_dimensions() != self._dimensions:
+            raise UIError('dimensions do not match')
+
         for point, tile in grid:
             print(
                 self._term.move_xy(2 + point.x * 4, 4 + point.y * 2) +
