@@ -287,6 +287,6 @@ class BlessedTUI(UI):
 
             if input_attempt.is_successful:
                 # TODO: + clear error msg
-                return input_attempt.value
+                return input_attempt.result
 
             print(input_attempt.error)  # TODO: better error msg

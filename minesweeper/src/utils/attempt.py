@@ -1,33 +1,34 @@
 from typing import Literal, overload
 
+from src.utils import MinesweeperError
 
-class AttemptError(Exception):
-    def __init__(self, message: str) -> None:
-        super().__init__(message)
+
+class AttemptError(MinesweeperError):
+    ...
 
 
 # TODO: use on more places instead of tuple with Nones
-class Attempt[V, E]:
+class Attempt[R, E]:
     """
     Class that represents an attempt of something.
     It can either result in success or failure.
 
-    V: value type
+    V: result type
     E: error type
     """
 
     @staticmethod
-    def success(value: V) -> 'Attempt[V, E]':
+    def success(result: R) -> 'Attempt[R, E]':
         """
         Create a successful Attempt instance.
 
-        :param value: Attempt value
-        :returns:     successful Attempt
+        :param result: Attempt result
+        :returns:      successful Attempt
         """
-        return Attempt[V, E](True, value, None)
+        return Attempt[R, E](True, result, None)
 
     @staticmethod
-    def failure(error: E) -> 'Attempt[V, E]':
+    def failure(error: E) -> 'Attempt[R, E]':
         """
         Create a failed Attempt instance.
 
@@ -41,17 +42,17 @@ class Attempt[V, E]:
         Attempt[X, Y]
             failed Attempt
         """
-        return Attempt[V, E](False, None, error)
+        return Attempt[R, E](False, None, error)
 
     @overload
-    def __init__(self, is_successful: Literal[True], value: V, error: Literal[None]) -> None:
+    def __init__(self, is_successful: Literal[True], result: R, error: Literal[None]) -> None:
         ...
 
     @overload
-    def __init__(self, is_successful: Literal[False], value: Literal[None], error: E) -> None:
+    def __init__(self, is_successful: Literal[False], result: Literal[None], error: E) -> None:
         ...
 
-    def __init__(self, is_successful: bool, value: V | None, error: E | None) -> None:
+    def __init__(self, is_successful: bool, result: R | None, error: E | None) -> None:
         """
         Create an instance.
 
@@ -59,8 +60,8 @@ class Attempt[V, E]:
         ---
         is_successful : bool
             whether the attempt was successful
-        value : X
-            value of the successful attempt
+        result : X
+            result of the successful attempt
         error : Y
             error of the failed attempt
 
@@ -71,12 +72,12 @@ class Attempt[V, E]:
         """
 
         if is_successful:
-            assert value is not None and error is None
+            assert result is not None and error is None
         else:
-            assert value is None     and error is not None
+            assert result is None     and error is not None
 
         self._is_success = is_successful
-        self._value = value
+        self._result = result
         self._error = error
 
     @property
@@ -87,9 +88,9 @@ class Attempt[V, E]:
         return self._is_success
 
     @property
-    def value(self) -> V:
+    def result(self) -> R:
         """
-        Value of the successful attempt.
+        Result of the successful attempt.
 
         Raises
         ---
@@ -99,12 +100,12 @@ class Attempt[V, E]:
         Returns
         ---
         X
-            Attempt value
+            Attempt result
         """
-        if self._value is None:
-            raise AttemptError('attempt failed -> no value')
+        if self._result is None:
+            raise AttemptError('attempt failed -> no result')
 
-        return self._value
+        return self._result
 
     @property
     def error(self) -> E:
