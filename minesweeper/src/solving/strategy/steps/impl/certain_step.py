@@ -36,11 +36,9 @@ class CertainStep(Step):  # TODO: implement fix_certain_wrong_flags() or smth li
             if tile.get_symbol() != Symbol.NUMBER:
                 continue
 
-            covered_neighbours = [
-                (p, t)
-                for p, t in grid.neighbourhood_of(point.x, point.y)
-                if t.is_covered()
-            ]
+            covered_neighbours = grid \
+                .neighbourhood_with_symbol_of(point.x, point.y, Symbol.COVER, Symbol.FLAG) \
+                .to_list()
             count = tile.get_count()
             assert count is not None
 

@@ -34,7 +34,6 @@ class Grid[T: Tile](ABC):
     def neighbourhood_of(self, x: int, y: int) -> GridIterator[T]:
         ...
 
-    # TODO: update class usage
     @abstractmethod
     def neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator[T]:
         ...

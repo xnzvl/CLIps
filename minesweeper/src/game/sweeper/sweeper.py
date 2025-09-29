@@ -17,7 +17,7 @@ class Sweeper[C: SweeperConfiguration](Dimensioned, ABC):
     def _check_grid_size[T: Tile](self, grid: Grid[T]) -> None:
         if grid.get_width() != self._configuration.dimensions.width:
             raise ValueError('Grid dimensions (width) do not match')
-        elif grid.get_height() != self._configuration.dimensions.height:
+        if grid.get_height() != self._configuration.dimensions.height:
             raise ValueError('Grid dimensions (height) do not match')
 
     @abstractmethod
