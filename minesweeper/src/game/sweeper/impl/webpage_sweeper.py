@@ -115,7 +115,7 @@ class WebPageSweeper(Sweeper[WebPageSweeperConfiguration]):
         super().__init__(configuration)
 
     @override
-    def obtain_remaining_mines(self) -> int:  # TODO: implement
+    def obtain_remaining_mines(self) -> int:
         digit_area = pag.screenshot(
             region=(
                 self._configuration.offsets.x + DIGIT_X_OFFSET,
@@ -153,7 +153,7 @@ class WebPageSweeper(Sweeper[WebPageSweeperConfiguration]):
             raise_unexpected_colour(eye_colour)
 
     @override
-    def obtain_time(self) -> int:  # TODO: implement
+    def obtain_time(self) -> int:
         digit_area = pag.screenshot(
             region=(
                 self._configuration.offsets.x + self._configuration.dimensions.width * TILE_SIZE - DIGIT_WIDTH * DIGIT_COUNT - DIGIT_X_OFFSET,
@@ -224,6 +224,7 @@ class WebPageSweeper(Sweeper[WebPageSweeperConfiguration]):
     def sign_victory(self, name: str) -> None:  # TODO: not a fan of this implementation
         x0 = self._configuration.offsets.x + (self._configuration.dimensions.width * TILE_SIZE - EMOJI_WIDTH) // 2
         y0 = self._configuration.offsets.y - EMOJI_Y_OFFSET
+
         glasses_pixel = pag.pixel(x0 + EMOJI_GLASSES_PIXEL_X_OFFSET, y0 + EMOJI_GLASSES_PIXEL_Y_OFFSET)
 
         if glasses_pixel != Colour.YELLOW.value:
@@ -264,28 +265,28 @@ def observe_covered_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) 
         tile.set_symbol(Symbol.COVER)
 
 
-# TODO: this feels too chaotic
 def observe_uncovered_tile(screen: PIL.Image.Image, tile: Tile, x0: int, y0: int) -> None:
-    number_colour = get_colour_from_pixel(screen, x0 + NUMBER_PIXEL_X_OFFSET, y0 + NUMBER_PIXEL_Y_OFFSET)
+    number_pixel_colour = get_colour_from_pixel(screen, x0 + NUMBER_PIXEL_X_OFFSET, y0 + NUMBER_PIXEL_Y_OFFSET)
 
-    if number_colour == Colour.BLACK:
-        symbol_colour = get_colour_from_pixel(screen, x0 + SYMBOL_PIXEL_X_OFFSET, y0 + SYMBOL_PIXEL_Y_OFFSET)
+    if number_pixel_colour == Colour.BLACK:
+        symbol_pixel_colour = get_colour_from_pixel(screen, x0 + SYMBOL_PIXEL_X_OFFSET, y0 + SYMBOL_PIXEL_Y_OFFSET)
 
-        if symbol_colour == Colour.RED:
+        if symbol_pixel_colour == Colour.RED:
             tile.set_symbol(Symbol.WRONG_FLAG)
-        elif symbol_colour == Colour.WHITE:
+        elif symbol_pixel_colour == Colour.WHITE:
             tile.set_symbol(Symbol.MINE)
         else:
-            tile.set_symbol(Symbol.NUMBER, PIXEL_COLOUR_TO_MINE_COUNT[number_colour])
+            tile.set_symbol(Symbol.NUMBER, PIXEL_COLOUR_TO_MINE_COUNT[number_pixel_colour])
+
     else:
-        if number_colour == Colour.GRAY:
+        if number_pixel_colour == Colour.GRAY:
             tile.set_symbol(Symbol.EMPTY)
             return
 
-        mine_count = PIXEL_COLOUR_TO_MINE_COUNT.get(number_colour)
+        mine_count = PIXEL_COLOUR_TO_MINE_COUNT.get(number_pixel_colour)
 
         if mine_count is None:
-            raise_unexpected_colour(number_colour)
+            raise_unexpected_colour(number_pixel_colour)
 
         tile.set_symbol(Symbol.NUMBER, mine_count)
 
