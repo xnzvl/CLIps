@@ -33,12 +33,12 @@ class Bot:
 
             if result == GameState.VICTORY:
                 victories += 1
-                self._sweeper.sign_victory('xnzvl')  # TODO: username shouldn't be hardcoded
+                self._sweeper.sign_victory(self._username)
 
             print_attempt(int(log10(max_attempts)) + 1, attempt_number, result)
 
         if attempt_each:
-            print_winrate(victories, max_attempts)
+            print_winrate(victories, max_attempts)  # TODO: return stats for testing and programmatical handling
 
     def _attempt_to_solve(self) -> Result:
         grid: Grid[Tile] = GenericGrid(self._sweeper.get_dimensions(), MutableTile)

@@ -153,7 +153,7 @@ class BlessedTUI(UI):
     def _render_prompt(self) -> None:
         print()
         print(
-            self._term.bright_green('xnzvl@CLIps') +  # TODO: remove hardcoded username
+            self._term.bright_green(f'{self._username}@CLIps') +  # TODO: remove hardcoded username
             self._term.white(':') +
             self._term.bright_blue('/minesweeper') +
             self._term.white('$') + ' '
@@ -276,8 +276,10 @@ class BlessedTUI(UI):
 
         while True:
             print(
-                self._term.move_xy(26, self._dimensions.height * 2 + 5) + self._term.clear_eol,  # TODO: adapt to variable username
-                end=''
+                self._term.move_xy(21 + len(self._username),
+                self._dimensions.height * 2 + 5) + self._term.clear_eol,  # TODO: adapt to variable username
+                end='',
+                sep=''
             )
 
             input_attempt = obtain_tui_input(game_state == GameState.IN_PROGRESS)
