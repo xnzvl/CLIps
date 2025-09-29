@@ -1,6 +1,6 @@
 from typing import Literal, overload
 
-from src.utils import MinesweeperError
+from .minesweeper_error import MinesweeperError
 
 
 class AttemptError(MinesweeperError):
