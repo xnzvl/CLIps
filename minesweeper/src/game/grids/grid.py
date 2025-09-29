@@ -60,7 +60,6 @@ class Grid[T: Tile](ABC):
     def get_height(self) -> int:
         return self.get_dimensions().height
 
-    # TODO: update class usage
     def count_symbol_in_neighbourhood(self, x: int, y: int, symbol: Symbol) -> int:
         return len(
             [
