@@ -10,9 +10,10 @@ from src.ui.repeater import Repeater
 
 
 class UI(Dimensioned, ABC):
-    def __init__(self, dimensions: Dimensions) -> None:
+    def __init__(self, dimensions: Dimensions, username: str) -> None:
         super().__init__(dimensions)
 
+        self._username = username
         self._repeater: Repeater | None = None
 
     def start_rendering_time(self, time_getter: Callable[[], int]) -> None:

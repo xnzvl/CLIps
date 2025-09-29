@@ -6,8 +6,9 @@ from src.solving.strategy.strategy import Strategy
 
 class BotFactory:
     @staticmethod
-    def get_webpage_bot(configuration: WebPageSweeperConfiguration, strategy: Strategy) -> Bot:
+    def get_webpage_bot(configuration: WebPageSweeperConfiguration, strategy: Strategy, username: str) -> Bot:
         return Bot(
             WebPageSweeper(configuration),
-            strategy
+            strategy,
+            username
         )

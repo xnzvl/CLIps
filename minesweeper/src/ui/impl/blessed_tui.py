@@ -57,8 +57,8 @@ EMOJI_STR: Final[Dict[GameState, str]] = {  # values have to be exactly 3 chars 
 
 
 class BlessedTUI(UI):
-    def __init__(self, dimensions: Dimensions) -> None:
-        super().__init__(dimensions)
+    def __init__(self, dimensions: Dimensions, username: str) -> None:
+        super().__init__(dimensions, username)
 
         self._term = Terminal()
 

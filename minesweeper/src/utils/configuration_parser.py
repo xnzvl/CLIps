@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from typing import List
 
-from src.common import Dimensions, Point, SweeperConfiguration, WebPageSweeperConfiguration, DEFAULT_USERNAME
+from src.common import Configuration, Dimensions, Point, SweeperConfiguration, WebPageSweeperConfiguration, DEFAULT_USERNAME
 
 
 def _init_core_parser() -> ArgumentParser:
@@ -50,7 +50,7 @@ def _init_core_parser() -> ArgumentParser:
 SWEEPER_CONFIGURATION_CORE_PARSER = _init_core_parser()
 
 
-def parse_sweeper_configuration(argv: List[str]) -> SweeperConfiguration:
+def parse_configuration(argv: List[str]) -> Configuration[SweeperConfiguration]:
     parser = ArgumentParser(
         prog=argv[0],  # TODO: adjust
         parents=[SWEEPER_CONFIGURATION_CORE_PARSER]
@@ -58,15 +58,17 @@ def parse_sweeper_configuration(argv: List[str]) -> SweeperConfiguration:
 
     ns = parser.parse_args(argv[1:])
 
-    return SweeperConfiguration(
-        dimensions=Dimensions(ns.width, ns.height),
-        mines=ns.mines,
-        question_marks=ns.question_marks,
+    return Configuration(
+        sweeper_configuration=SweeperConfiguration(
+            dimensions=Dimensions(ns.width, ns.height),
+            mines=ns.mines,
+            question_marks=ns.question_marks
+        ),
         username=ns.username
     )
 
 
-def parse_web_page_sweeper_configuration(argv: List[str]) -> WebPageSweeperConfiguration:
+def parse_web_page_configuration(argv: List[str]) -> Configuration[WebPageSweeperConfiguration]:
     parser = ArgumentParser(
         prog=argv[0],  # TODO: adjust
         parents=[SWEEPER_CONFIGURATION_CORE_PARSER]
@@ -89,10 +91,12 @@ def parse_web_page_sweeper_configuration(argv: List[str]) -> WebPageSweeperConfi
 
     ns = parser.parse_args(argv[1:])
 
-    return WebPageSweeperConfiguration(
-        dimensions=Dimensions(ns.width, ns.height),
-        mines=ns.mines,
-        question_marks=ns.question_marks,
-        username=ns.username,
-        offsets=Point(ns.x_offset, ns.y_offset)
+    return Configuration(
+        sweeper_configuration=WebPageSweeperConfiguration(
+            dimensions=Dimensions(ns.width, ns.height),
+            mines=ns.mines,
+            question_marks=ns.question_marks,
+            offsets=Point(ns.x_offset, ns.y_offset)
+        ),
+        username=ns.username
     )

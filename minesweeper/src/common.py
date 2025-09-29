@@ -48,12 +48,17 @@ class SweeperConfiguration:
     dimensions: Dimensions
     mines: int
     question_marks: bool
-    username: str
 
 
 @dataclass(frozen=True)
 class WebPageSweeperConfiguration(SweeperConfiguration):  # TODO: adapt (mines)
     offsets: Point
+
+
+@dataclass(frozen=True)
+class Configuration[T: SweeperConfiguration]:
+    sweeper_configuration: T
+    username: str
 
 
 @dataclass(frozen=True)

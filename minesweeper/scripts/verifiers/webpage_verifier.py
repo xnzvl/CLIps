@@ -4,7 +4,7 @@ import pyautogui as pag
 
 from src.common import WebPageSweeperConfiguration
 from src.game.sweeper import WebPageSweeper
-from src.utils import parse_web_page_sweeper_configuration
+from src.utils import parse_web_page_configuration
 
 
 def flag_corners(config: WebPageSweeperConfiguration) -> None:
@@ -32,17 +32,19 @@ def flag_corners(config: WebPageSweeperConfiguration) -> None:
 
 
 def main() -> None:
-    config = parse_web_page_sweeper_configuration(sys.argv)
-    flag_corners(config)
+    sweeper_config = parse_web_page_configuration(sys.argv) \
+        .sweeper_configuration
+
+    flag_corners(sweeper_config)
 
     print()
     print('==== PROVIDED CONFIGURATION ====')
     print('  offsets:')
-    print(f'    x = {config.offsets.x}')
-    print(f'    y = {config.offsets.y}')
+    print(f'    x = {sweeper_config.offsets.x}')
+    print(f'    y = {sweeper_config.offsets.y}')
     print('  dimensions:')
-    print(f'    width = {config.dimensions.width}')
-    print(f'    height = {config.dimensions.height}')
+    print(f'    width = {sweeper_config.dimensions.width}')
+    print(f'    height = {sweeper_config.dimensions.height}')
     print()
     print('If you don\'t see flags in all four corners then the provided configuration is wrong.')
     print()

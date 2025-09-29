@@ -8,9 +8,10 @@ from src.solving.strategy import Strategy
 
 
 class Bot:
-    def __init__[C: SweeperConfiguration](self, sweeper: Sweeper[C], strategy: Strategy) -> None:
+    def __init__[C: SweeperConfiguration](self, sweeper: Sweeper[C], strategy: Strategy, username: str) -> None:
         self._strategy = strategy
         self._sweeper = sweeper
+        self._username = username
 
     def solve(self, max_attempts: int = 1, attempt_each: bool = False) -> None:
         if max_attempts < 1:
