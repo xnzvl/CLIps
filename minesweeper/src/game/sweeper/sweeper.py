@@ -1,19 +1,18 @@
 from abc import ABC, abstractmethod
 
-from src.common import Dimensions, Move, SweeperConfiguration
+from src.common import Move, SweeperConfiguration, Dimensioned
 from src.game.grids import Grid
 from src.game.sweeper import GameState
 from src.game.tiles import Tile
 
 
-class Sweeper[C: SweeperConfiguration](ABC):
+class Sweeper[C: SweeperConfiguration](Dimensioned, ABC):
     def __init__(self, configuration: C) -> None:
+        super().__init__(configuration.dimensions)
+
         self._configuration = configuration
 
         # TODO: check mine count - if it makes sense or not
-
-    def get_dimensions(self) -> Dimensions:
-        return self._configuration.dimensions
 
     def _check_grid_size[T: Tile](self, grid: Grid[T]) -> None:
         if grid.get_width() != self._configuration.dimensions.width:

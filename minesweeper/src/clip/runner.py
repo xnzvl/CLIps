@@ -10,9 +10,25 @@ class Runner:
         self._sweeper = sweeper
         self._ui = ui
 
-        # TODO: check if UI and Sweeper are compatible
+        if sweeper.get_dimensions() != ui.get_dimensions():
+            raise ValueError('dimensions do not match')
 
         self._grid_cache: Grid[Tile] = GenericGrid(sweeper.get_dimensions(), MutableTile)
+
+    def _update_ui(self) -> GameState:
+        game_state = self._sweeper.obtain_state()
+
+        self._ui.render_remaining_mines(self._sweeper.obtain_remaining_mines())
+        self._ui.render_game_state(game_state)
+
+        current_grid = self._sweeper.obtain_grid()
+        self._ui.render_grid(current_grid)
+        self._grid_cache = current_grid
+
+        if game_state != GameState.IN_PROGRESS:
+            self._ui.render_result(game_state)
+
+        return game_state
 
     def run(self) -> None:
         self._ui.start_rendering_time(self._sweeper.obtain_time)
@@ -36,18 +52,3 @@ class Runner:
                     move = player_input.move
                     assert move is not None
                     self._sweeper.play(move)
-
-    def _update_ui(self) -> GameState:
-        game_state = self._sweeper.obtain_state()
-
-        self._ui.render_remaining_mines(self._sweeper.obtain_remaining_mines())
-        self._ui.render_game_state(game_state)
-
-        current_grid = self._sweeper.obtain_grid()
-        self._ui.render_grid(current_grid)
-        self._grid_cache = current_grid
-
-        if game_state != GameState.IN_PROGRESS:
-            self._ui.render_result(game_state)
-
-        return game_state

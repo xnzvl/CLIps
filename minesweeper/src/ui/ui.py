@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Callable
 
+from src.common import Dimensions, Dimensioned
 from src.game.grids.grid import Grid
 from src.game.sweeper import GameState, Result
 from src.game.tiles import Tile
@@ -8,8 +9,10 @@ from src.ui.input import Input
 from src.ui.repeater import Repeater
 
 
-class UI(ABC):
-    def __init__(self) -> None:
+class UI(Dimensioned, ABC):
+    def __init__(self, dimensions: Dimensions) -> None:
+        super().__init__(dimensions)
+
         self._repeater: Repeater | None = None
 
     def start_rendering_time(self, time_getter: Callable[[], int]) -> None:

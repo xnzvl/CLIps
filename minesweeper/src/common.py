@@ -56,3 +56,11 @@ class WebPageSweeperConfiguration(SweeperConfiguration):  # TODO: adapt (mines)
 class Move:
     action: MoveAction
     point: Point
+
+
+class Dimensioned:
+    def __init__(self, dimensions: Dimensions) -> None:
+        self._dimensions = dimensions
+
+    def get_dimensions(self) -> Dimensions:
+        return self._dimensions  # TODO: turn into property
