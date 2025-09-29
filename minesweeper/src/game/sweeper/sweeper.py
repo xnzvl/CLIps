@@ -2,8 +2,10 @@ from abc import ABC, abstractmethod
 
 from src.common import Move, SweeperConfiguration, Dimensioned
 from src.game.grids import Grid
-from src.game.sweeper import GameState, SweeperError
 from src.game.tiles import Tile
+
+from .game_state    import GameState
+from .sweeper_error import SweeperError
 
 
 class Sweeper[C: SweeperConfiguration](Dimensioned, ABC):
