@@ -1,9 +1,12 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Literal
+from typing import Literal, Final
 
 
 # TODO: include in __init__.py
+
+
+DEFAULT_USERNAME: Final = 'xnzvl'
 
 
 class Action(Enum):
@@ -45,6 +48,7 @@ class SweeperConfiguration:
     dimensions: Dimensions
     mines: int
     question_marks: bool
+    username: str
 
 
 @dataclass(frozen=True)
