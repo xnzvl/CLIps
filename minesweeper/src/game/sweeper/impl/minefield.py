@@ -1,14 +1,14 @@
 from time import time
-from typing import List, Literal, Set, override, assert_never
+from typing import List, Literal, Set, assert_never, cast, override
 from random import randint
 
 from src.common import Move, Point, SweeperConfiguration, Action
 from src.game.grids import FrozenGrid, GenericGrid, Grid
 from src.game.sweeper import GameState, Sweeper
-from src.game.tiles import Tile, RevealTile, Symbol
+from src.game.tiles import Tile, RevealTile, Symbol, MineCount
 
 
-CoverModifierSymbol = Literal[
+type CoverModifierSymbol = Literal[
     Symbol.COVER,
     Symbol.QUESTION_MARK,
     Symbol.FLAG
@@ -32,17 +32,28 @@ class Minefield(Sweeper[SweeperConfiguration]):
     def _plant_mines(self, safe_spot: Point) -> None:
         width, height = self._configuration.dimensions.width, self._configuration.dimensions.height
 
-        for m in range(self._configuration.mines):
+        while len(self._planted_mines) < self._configuration.mines:
             new_mine = Point(
                 randint(0, width - 1),
                 randint(0, height - 1)
             )
 
-            if safe_spot != new_mine and new_mine not in self._planted_mines:
+            if safe_spot == new_mine or new_mine not in self._planted_mines:
                 continue
 
             self._planted_mines.add(new_mine)
             self._field[new_mine].set_symbol(Symbol.MINE)
+
+            for _, neighbour_tile in self._field.neighbourhood_of(new_mine.x, new_mine.y):
+                data_symbol = neighbour_tile.get_data_symbol()
+                if data_symbol == Symbol.MINE:
+                    continue
+
+                data_count = neighbour_tile.get_data_count()
+                count = 1 if data_count is None else (data_count + 1)
+                assert 0 < count < 9
+
+                neighbour_tile.set_data_symbol(Symbol.NUMBER, cast(MineCount, count))
 
     def _uncover_flood(self, start: Point) -> None:
         to_visit: List[Point] = [start]
@@ -150,7 +161,7 @@ class Minefield(Sweeper[SweeperConfiguration]):
                 assert_never(move.action)
 
         if self._start_time is None:
-            self._plant_mines(move.point)
+            self._plant_mines(point)
             self._start_time = int(time())
 
     @override
