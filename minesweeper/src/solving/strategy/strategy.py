@@ -3,8 +3,9 @@ from typing import List
 from src.common import Move
 from src.game.grids import Grid
 from src.game.tiles import Tile
-from src.solving.strategy import StrategyError
 from src.solving.strategy.steps import Step
+
+from .strategy_error import StrategyError
 
 
 class Strategy:

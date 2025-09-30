@@ -1,7 +1,8 @@
 from src.common import SweeperConfiguration, WebPageSweeperConfiguration
 from src.game.sweeper import Minefield, WebPageSweeper
-from src.solving.bot import Bot
 from src.solving.strategy import Strategy
+
+from .bot import Bot
 
 
 class BotFactory:
