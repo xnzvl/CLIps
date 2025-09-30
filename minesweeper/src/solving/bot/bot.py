@@ -1,4 +1,4 @@
-from math import log10
+from typing import Callable
 
 from src.common import Action, Move, Point, SweeperConfiguration
 from src.game.grids import GenericGrid, Grid
@@ -13,37 +13,17 @@ class Bot:
         self._sweeper = sweeper
         self._username = username
 
-    def solve(self, max_attempts: int = 1, attempt_each: bool = False) -> None:
-        if max_attempts < 1:
-            raise ValueError("max_attempts must be a positive integer")
-
-        victories = 0
-        attempt_number = 0
-        result: Result = GameState.VICTORY
-
+    def solve(self) -> Result:
         dimensions = self._sweeper.get_dimensions()
-        opening_move = Move(Action.UNCOVER, Point(dimensions.width // 2, dimensions.height // 2))
 
-        while attempt_number < max_attempts and (attempt_each or result == GameState.VICTORY):
-            self._sweeper.reset()
-            self._sweeper.play(opening_move)
+        self._sweeper.reset()
+        self._sweeper.play(
+            Move(Action.UNCOVER, Point(dimensions.width // 2, dimensions.height // 2))
+        )
 
-            attempt_number += 1
-            result = self._attempt_to_solve()
-
-            if result == GameState.VICTORY:
-                victories += 1
-                self._sweeper.sign_victory(self._username)
-
-            print_attempt(int(log10(max_attempts)) + 1, attempt_number, result)
-
-        if attempt_each:
-            print_winrate(victories, max_attempts)  # TODO: return stats for testing and programmatical handling
-
-    def _attempt_to_solve(self) -> Result:
         grid: Grid[Tile] = GenericGrid(self._sweeper.get_dimensions(), MutableTile)
-
         game_state: GameState = GameState.IN_PROGRESS
+
         while game_state == GameState.IN_PROGRESS:
             grid = self._sweeper.obtain_grid(grid)
             moves = self._strategy.apply(grid)
@@ -55,16 +35,21 @@ class Bot:
                 i += 1
                 game_state = self._sweeper.obtain_state()
 
-        result = self._sweeper.obtain_state()
-        assert result != GameState.IN_PROGRESS
-        return result
+        return game_state
 
+    def batch_solve(self, count: int, result_consumer: Callable[[int, Result], None] | None = None) -> int:
+        if count < 1:
+            raise ValueError('\'count\' must be a positive integer')
 
-def print_attempt(max_digits: int, attempt_number: int, result: Result) -> None:
-    print(f'Attempt #{attempt_number:0{max_digits}}: {result}')
+        victories = 0
 
+        for i in range(count):
+            result = self.solve()
 
-def print_winrate(victories: int, attempts: int) -> None:
-    print()
-    print(f'Achieved {victories} victories from {attempts} attempts')
-    print(f'  => winrate: {victories / attempts * 100:.3f}%')
+            if result_consumer is not None:
+                result_consumer(i, result)
+
+            if result == GameState.VICTORY:
+                victories += 1
+
+        return victories
