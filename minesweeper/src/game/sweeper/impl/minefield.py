@@ -153,15 +153,16 @@ class Minefield(Sweeper[SweeperConfiguration]):
 
     @override
     def reset(self) -> None:
-        # TODO: check after whole impl
         configuration = self._configuration
 
         self._field = GenericGrid(configuration.dimensions, RevealTile)
+
         self._planted_mines.clear()
         self._start_time = None
 
         self._to_uncover = configuration.dimensions.width * configuration.dimensions.height - configuration.mines
         self._flags_placed = 0
+
         self._state = GameState.IN_PROGRESS
 
     @override
