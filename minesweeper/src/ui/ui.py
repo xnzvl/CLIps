@@ -10,7 +10,7 @@ from src.ui.repeater import Repeater
 
 
 class UI(Dimensioned, ABC):
-    def __init__(self, dimensions: Dimensions, username: str) -> None:
+    def __init__(self, dimensions: Dimensions, username: str) -> None:  # TODO: UI should know about ? flag
         super().__init__(dimensions)
 
         self._username = username
