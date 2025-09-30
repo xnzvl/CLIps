@@ -134,7 +134,6 @@ class WebPageSweeper(Sweeper[WebPageSweeperConfiguration]):
         x0 = self._configuration.offsets.x + (self._configuration.dimensions.width * TILE_SIZE - EMOJI_WIDTH) // 2
         y0 = self._configuration.offsets.y + EMOJI_Y_OFFSET
 
-        # TODO: rest of the function is quite chaotic
         eye_colour = get_colour_from_pixel(screen, x0 + EMOJI_EYE_PIXEL_X_OFFSET, y0 + EMOJI_EYE_PIXEL_Y_OFFSET)
         if eye_colour == Colour.BLACK:
             glasses_pixel = get_colour_from_pixel(screen, x0 + EMOJI_GLASSES_PIXEL_X_OFFSET, y0 + EMOJI_GLASSES_PIXEL_Y_OFFSET)
