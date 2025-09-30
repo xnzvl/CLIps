@@ -1,8 +1,8 @@
 from time import time
-from typing import List, Literal, Set, override
+from typing import List, Literal, Set, override, assert_never
 from random import randint
 
-from src.common import Move, Point, SweeperConfiguration
+from src.common import Move, Point, SweeperConfiguration, Action
 from src.game.grids import FrozenGrid, GenericGrid, Grid
 from src.game.sweeper import GameState, Sweeper
 from src.game.tiles import Tile, RevealTile, Symbol
@@ -138,14 +138,16 @@ class Minefield(Sweeper[SweeperConfiguration]):
             return
 
         match move.action:
-            case 'UNCOVER':
+            case Action.UNCOVER:
                 self._uncover_point(point)
-            case 'FLAG':
+            case Action.FLAG:
                 self._modify_tile_cover(point, Symbol.FLAG)
-            case 'QUESTION_MARK':
+            case Action.QUESTION_MARK:
                 self._modify_tile_cover(point, Symbol.QUESTION_MARK)
-            case 'CLEAR':
+            case Action.CLEAR:
                 self._modify_tile_cover(point, Symbol.COVER)
+            case _:
+                assert_never(move.action)
 
         if self._start_time is None:
             self._plant_mines(move.point)
