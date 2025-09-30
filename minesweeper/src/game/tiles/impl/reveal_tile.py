@@ -57,6 +57,9 @@ class RevealTile(Tile):
     def get_data_symbol(self) -> DataSymbol:
         return self._data_symbol
 
+    def get_data_count(self) -> MineCount | None:
+        return self._data_count
+
     @overload
     def set_data_symbol(self, data_symbol: Literal[Symbol.NUMBER], mines: MineCount) -> None:
         ...
@@ -68,6 +71,8 @@ class RevealTile(Tile):
     def set_data_symbol(self, data_symbol: DataSymbol, mines: MineCount | None = None) -> None:
         if data_symbol == Symbol.NUMBER:
             assert mines is not None
+        else:
+            assert mines is None
 
         self._data_symbol = data_symbol
         self._data_count = mines
