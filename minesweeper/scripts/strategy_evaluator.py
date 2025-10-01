@@ -15,7 +15,7 @@ STRATEGIES: Final[List[Tuple[str, Strategy]]] = [
 
 
 SQUARE_SIZE: Final = 24
-BATCH_SIZE:  Final = 10000
+BATCH_SIZE:  Final = 1000
 
 DIMENSIONS: Final = Dimensions(
     width=SQUARE_SIZE,
@@ -33,6 +33,8 @@ def evaluate_strategy(strategy_name: str, strategy: Strategy) -> Dict[Difficulty
     winrates: Dict[Difficulty, float] = dict()
 
     for difficulty in Difficulty:
+        print(f'... evaluating {strategy_name}::{difficulty}')
+
         configuration = SweeperConfiguration(
             dimensions=DIMENSIONS,
             mines=int((SQUARE_SIZE ** 2) / difficulty.value),
@@ -43,8 +45,6 @@ def evaluate_strategy(strategy_name: str, strategy: Strategy) -> Dict[Difficulty
 
         victories = bot.batch_solve(BATCH_SIZE)
         winrates[difficulty] = victories / BATCH_SIZE
-
-        print(f'... processed {strategy_name}:{difficulty} difficulty')
 
     return winrates
 
