@@ -38,11 +38,11 @@ class Minefield(Sweeper[SweeperConfiguration]):
                 randint(0, height - 1)
             )
 
-            if safe_spot == new_mine or new_mine not in self._planted_mines:
+            if safe_spot == new_mine or new_mine in self._planted_mines:
                 continue
 
             self._planted_mines.add(new_mine)
-            self._field[new_mine].set_symbol(Symbol.MINE)
+            self._field[new_mine].set_data_symbol(Symbol.MINE)
 
             for _, neighbour_tile in self._field.neighbourhood_of(new_mine.x, new_mine.y):
                 data_symbol = neighbour_tile.get_data_symbol()
@@ -73,9 +73,10 @@ class Minefield(Sweeper[SweeperConfiguration]):
                     to_visit.append(n)
                     marked_to_visit.add(n)
 
-    def _reveal_other_mines(self) -> None:
+    def _reveal_other_mines(self, exploded_mine: Point) -> None:
         for point in self._planted_mines:
-            self._field[point].reveal()
+            if point != exploded_mine:
+                self._field[point].reveal(False)
 
     def _uncover_point(self, point: Point) -> None:
         # assumes that tile at point is covered
@@ -92,8 +93,8 @@ class Minefield(Sweeper[SweeperConfiguration]):
             case Symbol.EMPTY:
                 self._uncover_flood(point)
             case Symbol.MINE:
-                tile.reveal(True)
-                self._reveal_other_mines()
+                tile.reveal()
+                self._reveal_other_mines(point)
                 self._state = GameState.FAILURE
 
     def _modify_tile_cover(self, point: Point, new_symbol: CoverModifierSymbol) -> None:
@@ -148,6 +149,10 @@ class Minefield(Sweeper[SweeperConfiguration]):
         if not self._field[point].is_covered():
             return
 
+        if self._start_time is None:
+            self._plant_mines(point)
+            self._start_time = int(time())
+
         match move.action:
             case Action.UNCOVER:
                 self._uncover_point(point)
@@ -159,10 +164,6 @@ class Minefield(Sweeper[SweeperConfiguration]):
                 self._modify_tile_cover(point, Symbol.COVER)
             case _:
                 assert_never(move.action)
-
-        if self._start_time is None:
-            self._plant_mines(point)
-            self._start_time = int(time())
 
     @override
     def reset(self) -> None:

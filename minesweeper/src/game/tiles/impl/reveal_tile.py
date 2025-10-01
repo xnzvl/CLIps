@@ -3,12 +3,12 @@ from typing import Literal, assert_never, overload, override
 from src.game.tiles import MineCount, Symbol, Tile
 
 
-DataSymbol = Literal[
+type DataSymbol = Literal[
     Symbol.NUMBER,
     Symbol.EMPTY,
     Symbol.MINE
 ]
-OuterSymbol = Literal[
+type OuterSymbol = Literal[
     Symbol.COVER,
     Symbol.QUESTION_MARK,
     Symbol.FLAG
@@ -50,7 +50,7 @@ class RevealTile(Tile):
             case _:
                 raise RuntimeError(f"Invalid symbol: {symbol}")
 
-    def reveal(self, by_touch: bool = False) -> None:
+    def reveal(self, by_touch: bool = True) -> None:
         self._is_revealed = True
         self._revealed_by_touch = by_touch
 
