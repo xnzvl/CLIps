@@ -18,14 +18,14 @@ class Action(Enum):
     QUIT          = 'QUIT'
 
 
-MoveAction = Literal[
+type MoveAction = Literal[
     Action.UNCOVER,
     Action.FLAG,
     Action.QUESTION_MARK,
     Action.CLEAR
 ]
 
-MovelessAction = Literal[
+type MovelessAction = Literal[
     Action.RESET,
     Action.QUIT
 ]

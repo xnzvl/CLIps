@@ -14,7 +14,7 @@ from src.ui.ui_error import UIError
 from src.ui.utils import obtain_tui_input
 
 
-Shape = Literal['─', '│', '┐', '┘', '└', '┌', '┼', '┬', '┤', '┴', '├']
+type Shape = Literal['─', '│', '┐', '┘', '└', '┌', '┼', '┬', '┤', '┴', '├']
 
 
 CELL_WIDTH:  Final = 3

@@ -4,10 +4,10 @@ from typing import Literal, assert_never, overload
 from src.game.tiles import Symbol
 
 
-NumberSymbol = Literal[
+type NumberSymbol = Literal[
     Symbol.NUMBER
 ]
-NonNumberSymbol = Literal[
+type NonNumberSymbol = Literal[
     Symbol.MINE,
     Symbol.EMPTY,
     Symbol.COVER,
@@ -17,12 +17,12 @@ NonNumberSymbol = Literal[
     Symbol.WRONG_FLAG
 ]
 
-MineCount = Literal[1, 2, 3, 4, 5, 6, 7, 8]
+type MineCount = Literal[1, 2, 3, 4, 5, 6, 7, 8]
 
 
 class Tile(ABC):
     def __str__(self) -> str:
-        return f'{type(self).__name__}({tile_to_char(self)})'
+        return f'{type(self).__name__}(symbol={self.get_symbol()})'
 
     @abstractmethod
     def get_count(self) -> MineCount | None:

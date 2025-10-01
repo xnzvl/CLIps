@@ -10,7 +10,7 @@ from src.game.sweeper import GameState, Sweeper, SweeperError
 from src.game.tiles import MineCount, MutableTile, Symbol, Tile
 
 
-MouseButton = Literal['right', 'middle', 'left']
+type MouseButton = Literal['right', 'middle', 'left']
 
 
 class Colour(Enum):

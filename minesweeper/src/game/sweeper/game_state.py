@@ -13,4 +13,4 @@ class GameState(Enum):
     IN_PROGRESS = 'IN_PROGRESS'
 
 
-Result = Literal[GameState.VICTORY, GameState.FAILURE]
+type Result = Literal[GameState.VICTORY, GameState.FAILURE]
