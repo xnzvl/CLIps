@@ -140,11 +140,11 @@ class Evaluator:
             else:
                 assert_never(keyword)
 
-            Evaluator._move_back_from_record(strat_i)
             Evaluator._write(
                 TERMINAL.move_left(RECORD_WIDTH - INDENT) +
                 TERMINAL.move_up(4 + diff_i)
             )
+            Evaluator._move_back_from_record(strat_i)
             Evaluator._flush()
 
             update = queue.get()
@@ -237,7 +237,6 @@ class Evaluator:
 
         Evaluator._write_md(f'Strategy: {name}')
         Evaluator._write_md(f'{'=' * RECORD_WIDTH}')
-
         Evaluator._write_md(f'{INDENT * ' '}Difficulty{'Winrate'.rjust(RECORD_WIDTH - 2 * INDENT - 10, ' ')}')
         Evaluator._write_md(f'{INDENT * ' '}{'-' * (RECORD_WIDTH - INDENT * 2)}')
 
@@ -248,7 +247,6 @@ class Evaluator:
             )
 
         Evaluator._write(TERMINAL.move_up(RECORD_HEIGHT))
-
         Evaluator._move_back_from_record(index)
 
     def _prepare_blank_page(self) -> None:
