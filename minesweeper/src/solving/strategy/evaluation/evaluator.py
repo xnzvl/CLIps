@@ -12,6 +12,7 @@ from src.solving.strategy import Strategy
 
 
 # TODO: remove magic constants in this module
+# TODO: colourise output
 
 
 ENTRIES_PER_ROW: Final = 2
