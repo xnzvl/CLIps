@@ -72,11 +72,11 @@ class Evaluator:
     def _attempts_str(attempt: int, from_attempts: int) -> str:
         just_width = RECORD_WIDTH - 4 * INDENT - 14
 
-        s = f' {attempt}/{from_attempts}' \
+        txt = f' {attempt}/{from_attempts}' \
             if len(f' {from_attempts}/{from_attempts}') <= just_width \
             else ''
 
-        return s.rjust(just_width, '.')
+        return txt.rjust(just_width, '.')
 
     @staticmethod
     def _move_to_record(record_index: int) -> None:
@@ -84,9 +84,7 @@ class Evaluator:
 
         Evaluator._write(
             ('' if column == 0 else TERMINAL.move_right(column * RECORD_WIDTH_SPACED)) +
-            # ^^ because move_right(0) behaves like move_right(1) ^^
             ('' if row == 0 else TERMINAL.move_down(row * RECORD_HEIGHT_SPACED))
-            # ^^ because move_down(0) behaves like move_down(1) ^^
         )
 
     @staticmethod
@@ -95,9 +93,7 @@ class Evaluator:
 
         Evaluator._write(
             ('' if column == 0 else TERMINAL.move_left(column * RECORD_WIDTH_SPACED)) +
-            # ^^ because move_left(0) behaves like move_left(1) ^^
             ('' if row == 0 else TERMINAL.move_up(row * RECORD_HEIGHT_SPACED))
-            # ^^ because move_up(0) behaves like move_up(1) ^^
         )
 
     def __init__(
