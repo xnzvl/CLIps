@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from enum import Enum, auto, unique
 from multiprocessing import Process, Queue
+from queue import Queue as TypedQueue
 from random import randint
 from time import sleep
-from typing import Final, List, Tuple, assert_never
+from typing import Final, List, Tuple, assert_never, TYPE_CHECKING
 
 from blessed.terminal import Terminal
 
@@ -50,6 +51,12 @@ class FormUpdate:
     strategy_index: int
     difficulty_index: int
     value: float
+
+
+if TYPE_CHECKING:
+    FormUpdateQueue = TypedQueue[FormUpdate | None]
+else:
+    FormUpdateQueue = Queue
 
 
 class Evaluator:
@@ -119,7 +126,7 @@ class Evaluator:
         self.dimensions = dimensions
         self.testing_batch_size = testing_batch_size
 
-    def _form_progress_updater(self, queue: Queue) -> None:
+    def _form_progress_updater(self, queue: FormUpdateQueue) -> None:
         update = queue.get()
 
         while update is not None:
@@ -157,7 +164,7 @@ class Evaluator:
             self,
             strategy_index: int,
             difficulty: Difficulty,
-            queue: Queue
+            queue: FormUpdateQueue
     ) -> None:
         width, height = self.dimensions.width, self.dimensions.height
         _, strategy = self._strategies[strategy_index]
@@ -185,7 +192,7 @@ class Evaluator:
         #     )
         # )
 
-        t = 0
+        t = 0.0
         for i in range(self.testing_batch_size):
             nap = randint(0, 500) / 100
             t += nap
