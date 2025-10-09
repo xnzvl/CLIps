@@ -71,6 +71,12 @@ class Evaluator:
         print(end='', flush=True)
 
     @staticmethod
+    def _truncate_strategy_name(strategy_name: str) -> str:
+        return TERMINAL.truncate(strategy_name, RECORD_WIDTH - 13) + '...' \
+            if len(strategy_name) > RECORD_WIDTH - 10 \
+            else strategy_name
+
+    @staticmethod
     def _attempts_str(attempt: int, from_attempts: int) -> str:
         just_width = RECORD_WIDTH - 4 * INDENT - 14
 
@@ -233,7 +239,8 @@ class Evaluator:
 
         Evaluator._move_to_record(index)
 
-        Evaluator._write_md(f'{TERMINAL.bright_white('Strategy:')} {TERMINAL.bright_blue(name)}', 10 + len(name))
+        truncated_name = Evaluator._truncate_strategy_name(name)
+        Evaluator._write_md(f'{TERMINAL.bright_white('Strategy:')} {TERMINAL.bright_blue(truncated_name)}', 10 + len(truncated_name))
         Evaluator._write_md(f'{TERMINAL.bright_white('=' * RECORD_WIDTH)}', RECORD_WIDTH)
         Evaluator._write_md(f'{INDENT * ' '}Difficulty{'Winrate'.rjust(RECORD_WIDTH - 2 * INDENT - 10, ' ')}')
         Evaluator._write_md(f'{INDENT * ' '}{'-' * (RECORD_WIDTH - INDENT * 2)}')
