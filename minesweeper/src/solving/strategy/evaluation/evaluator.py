@@ -12,7 +12,6 @@ from src.solving.strategy import Strategy
 
 
 # TODO: remove magic constants in this module
-# TODO: colourise output
 
 
 ENTRIES_PER_ROW: Final = 2
@@ -25,6 +24,8 @@ RECORD_HEIGHT_SPACED: Final = RECORD_HEIGHT + 1
 assert RECORD_HEIGHT_SPACED - RECORD_HEIGHT > 0
 
 INDENT: Final = 2
+
+LEADING_CHAR: Final = '.'
 
 TERMINAL: Final = Terminal()
 
@@ -57,10 +58,10 @@ class Evaluator:
         print(string, end='')
 
     @staticmethod
-    def _write_md(string: str) -> None:
+    def _write_md(string: str, string_length: int | None = None) -> None:
         print(
             string,
-            TERMINAL.move_left(len(string)),
+            TERMINAL.move_left(len(string) if string_length is None else string_length),
             TERMINAL.move_down(1),
             sep='', end=''
         )
@@ -77,7 +78,7 @@ class Evaluator:
             if len(f' {from_attempts}/{from_attempts}') <= just_width \
             else ''
 
-        return txt.rjust(just_width, '.')
+        return LEADING_CHAR * (just_width - len(txt)) + TERMINAL.bright_black(txt)
 
     @staticmethod
     def _move_to_record(record_index: int) -> None:
@@ -133,7 +134,7 @@ class Evaluator:
                 )
                 Evaluator._flush()
             elif keyword == FormUpdateKeyword.DONE:
-                Evaluator._write(f' {round(update.value, 2):.2f}%'.rjust(just_width, '.'), )
+                Evaluator._write(f' {round(update.value, 2):.2f}%'.rjust(just_width, LEADING_CHAR), )
             else:
                 assert_never(keyword)
 
@@ -232,15 +233,16 @@ class Evaluator:
 
         Evaluator._move_to_record(index)
 
-        Evaluator._write_md(f'Strategy: {name}')
-        Evaluator._write_md(f'{'=' * RECORD_WIDTH}')
+        Evaluator._write_md(f'{TERMINAL.bright_white('Strategy:')} {TERMINAL.bright_blue(name)}', 10 + len(name))
+        Evaluator._write_md(f'{TERMINAL.bright_white('=' * RECORD_WIDTH)}', RECORD_WIDTH)
         Evaluator._write_md(f'{INDENT * ' '}Difficulty{'Winrate'.rjust(RECORD_WIDTH - 2 * INDENT - 10, ' ')}')
         Evaluator._write_md(f'{INDENT * ' '}{'-' * (RECORD_WIDTH - INDENT * 2)}')
 
         for difficulty in Difficulty:
             Evaluator._write_md(
-                f'{INDENT * ' '}{difficulty.name.capitalize()} {'.' * (15 - len(difficulty.name))}' +
-                f'{Evaluator._attempts_str(0, self.testing_batch_size)}'
+                f'{INDENT * ' '}{difficulty.name.capitalize()} {LEADING_CHAR * (15 - len(difficulty.name))}' +
+                f'{Evaluator._attempts_str(0, self.testing_batch_size)}',
+                RECORD_WIDTH - 2 * INDENT
             )
 
         Evaluator._write(TERMINAL.move_up(RECORD_HEIGHT))
