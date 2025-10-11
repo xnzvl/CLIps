@@ -16,7 +16,8 @@ from src.common import Dimensions, SweeperConfiguration
 from src.game.sweeper import Result, GameState
 from src.solving.bot import BotFactory
 from src.solving.strategy import Strategy
-
+from src.solving.strategy.evaluation.throbber import Throbber
+from src.utils import Repeater
 
 # TODO: remove magic constants in this module
 # TODO: separate print funcs to separate class?
@@ -47,15 +48,21 @@ class Difficulty(Enum):
 
 
 @dataclass(frozen=True)
-class FormUpdate:
+class FormLocation:   # TODO: better name (+ queue)
     strategy_index: int
     difficulty_index: int
+
+
+@dataclass(frozen=True)
+class FormUpdate(FormLocation):   # TODO: better name (+ queue)
     result: Result
 
 
 if TYPE_CHECKING:
+    type FormLocationQueue = MpQueue[FormLocation | None]
     type FormUpdatesQueue = MpQueue[FormUpdate | None]
 else:
+    type FormLocationQueue = Queue
     type FormUpdatesQueue = Queue
 
 
@@ -112,20 +119,20 @@ class Evaluator:
         )
 
     @staticmethod
-    def _move_to_record_difficulty(form_update: FormUpdate) -> None:
-        Evaluator._move_to_record(form_update.strategy_index)
+    def _move_to_record_difficulty(form_location: FormLocation) -> None:
+        Evaluator._move_to_record(form_location.strategy_index)
         Evaluator._write(
             TERMINAL.move_right(18) +
-            TERMINAL.move_down(4 + form_update.difficulty_index)
+            TERMINAL.move_down(4 + form_location.difficulty_index)
         )
 
     @staticmethod
-    def _move_from_record_difficulty(form_update: FormUpdate) -> None:
+    def _move_from_record_difficulty(form_location: FormLocation) -> None:
         Evaluator._write(
             TERMINAL.move_left(RECORD_WIDTH - INDENT) +
-            TERMINAL.move_up(4 + form_update.difficulty_index)
+            TERMINAL.move_up(4 + form_location.difficulty_index)
         )
-        Evaluator._move_from_record(form_update.strategy_index)
+        Evaluator._move_from_record(form_location.strategy_index)
 
     @staticmethod
     def _submit_form_update(
@@ -142,6 +149,18 @@ class Evaluator:
             )
         )
 
+    @staticmethod
+    def _create_active_throbber(index: int) -> Repeater:
+        throbber = Throbber()
+
+        repeater = Repeater(
+            1,
+            lambda: None
+        )
+
+        repeater.start()
+        return repeater
+
     def __init__(
             self,
             strategies: List[Tuple[str, Strategy]],
@@ -157,12 +176,26 @@ class Evaluator:
         self.dimensions = dimensions
         self.testing_batch_size = testing_batch_size
 
-    def _form_progress_updater(self, queue: FormUpdatesQueue, shared_list: ShareableList[int]) -> None:
+    def _throbber_updater(self, throbber_updates: FormLocationQueue) -> None:
         diff_len = len(Difficulty)
 
-        update = queue.get()
+        throbbers = [
+            Evaluator._create_active_throbber(i)
+            for i in range(len(self._strategies) * diff_len)
+        ]
+
+        update = throbber_updates.get()
+        while update is not None:
+            throbbers[update.strategy_index * diff_len + update.difficulty_index].stop()
+
+            update = throbber_updates.get()
+
+    def _form_progress_updater(self, form_updates: FormUpdatesQueue, throbber_updates: FormLocationQueue, shared_list: ShareableList[int]) -> None:
+        diff_len = len(Difficulty)
+
         tests_completed = [ 0 for _ in range(len(self._strategies) * diff_len) ]
 
+        update = form_updates.get()
         while update is not None:
             Evaluator._move_to_record_difficulty(update)
 
@@ -180,13 +213,14 @@ class Evaluator:
                     TERMINAL.move_right(2)
                 )
             else:
+                throbber_updates.put(update)
                 just_width = RECORD_WIDTH - 2 * INDENT - 16
                 Evaluator._write(f' {round(shared_list[i] / self.testing_batch_size * 100, 2):.2f}%'.rjust(just_width, LEADING_CHAR), )
 
             Evaluator._move_from_record_difficulty(update)
             Evaluator._flush()
 
-            update = queue.get()
+            update = form_updates.get()
 
     def _summarize(self, shared_list: ShareableList[int]) -> List[Tuple[str, Dict[Difficulty, float]]]:
         summary: List[Tuple[str, Dict[Difficulty, float]]] = list()
@@ -242,12 +276,19 @@ class Evaluator:
             [0 for _ in range(len(self._strategies) * len(Difficulty))]
         )
         form_updates: FormUpdatesQueue = Queue()
+        throbber_updates: FormUpdatesQueue = Queue()
 
         form_updates_process = Process(
             target=self._form_progress_updater,
-            args=(form_updates, shared_list)
+            args=(form_updates, throbber_updates, shared_list)
         )
         form_updates_process.start()
+
+        throbber_updates_process = Process(
+            target=self._throbber_updater,
+            args=(throbber_updates,)
+        )
+        throbber_updates_process.start()
 
         pool = Pool(
             processes=max_workers
@@ -256,6 +297,9 @@ class Evaluator:
             self._evaluate_strategy(pool, form_updates, strategy_index)
         pool.close()
         pool.join()
+
+        throbber_updates.put(None)
+        throbber_updates_process.join()
 
         form_updates.put(None)
         form_updates_process.join()
