@@ -1,18 +1,25 @@
 from dataclasses import dataclass
-from enum import Enum, auto, unique
+from enum import Enum, unique
+from functools import partial
 from multiprocessing import Process, Queue
-from queue import Queue as TypedQueue
+from multiprocessing.managers import SharedMemoryManager
+from multiprocessing.queues import Queue as MpQueue
+from multiprocessing.pool import Pool
+from multiprocessing.shared_memory import ShareableList
 from random import randint
 from time import sleep
-from typing import Final, List, Tuple, assert_never, TYPE_CHECKING
+from typing import Final, List, Tuple, TYPE_CHECKING, Dict
 
 from blessed.terminal import Terminal
 
-from src.common import Dimensions
+from src.common import Dimensions, SweeperConfiguration
+from src.game.sweeper import Result, GameState
+from src.solving.bot import BotFactory
 from src.solving.strategy import Strategy
 
 
 # TODO: remove magic constants in this module
+# TODO: separate print funcs to separate class?
 
 
 ENTRIES_PER_ROW: Final = 2
@@ -32,12 +39,6 @@ TERMINAL: Final = Terminal()
 
 
 @unique
-class FormUpdateKeyword(Enum):
-    UPDATE = auto()
-    DONE   = auto()
-
-
-@unique
 class Difficulty(Enum):
     # difficulty | mine coefficient
     EASY         = (0, 8.1)
@@ -45,18 +46,17 @@ class Difficulty(Enum):
     HARD         = (2, 4.8)
 
 
-@dataclass
+@dataclass(frozen=True)
 class FormUpdate:
-    keyword: FormUpdateKeyword
     strategy_index: int
     difficulty_index: int
-    value: float
+    result: Result
 
 
 if TYPE_CHECKING:
-    FormUpdateQueue = TypedQueue[FormUpdate | None]
+    type FormUpdatesQueue = MpQueue[FormUpdate | None]
 else:
-    FormUpdateQueue = Queue
+    type FormUpdatesQueue = Queue
 
 
 class Evaluator:
@@ -103,12 +103,43 @@ class Evaluator:
         )
 
     @staticmethod
-    def _move_back_from_record(record_index: int) -> None:
+    def _move_from_record(record_index: int) -> None:
         row, column = record_index // ENTRIES_PER_ROW, record_index % ENTRIES_PER_ROW
 
         Evaluator._write(
             ('' if column == 0 else TERMINAL.move_left(column * RECORD_WIDTH_SPACED)) +
             ('' if row == 0 else TERMINAL.move_up(row * RECORD_HEIGHT_SPACED))
+        )
+
+    @staticmethod
+    def _move_to_record_difficulty(form_update: FormUpdate) -> None:
+        Evaluator._move_to_record(form_update.strategy_index)
+        Evaluator._write(
+            TERMINAL.move_right(18) +
+            TERMINAL.move_down(4 + form_update.difficulty_index)
+        )
+
+    @staticmethod
+    def _move_from_record_difficulty(form_update: FormUpdate) -> None:
+        Evaluator._write(
+            TERMINAL.move_left(RECORD_WIDTH - INDENT) +
+            TERMINAL.move_up(4 + form_update.difficulty_index)
+        )
+        Evaluator._move_from_record(form_update.strategy_index)
+
+    @staticmethod
+    def _submit_form_update(
+            form_updates: FormUpdatesQueue,
+            strategy_index: int,
+            difficulty_index: int,
+            result: Result
+    ) -> None:
+        form_updates.put(
+            FormUpdate(
+                strategy_index=strategy_index,
+                difficulty_index=difficulty_index,
+                result=result
+            )
         )
 
     def __init__(
@@ -126,120 +157,115 @@ class Evaluator:
         self.dimensions = dimensions
         self.testing_batch_size = testing_batch_size
 
-    def _form_progress_updater(self, queue: FormUpdateQueue) -> None:
+    def _form_progress_updater(self, queue: FormUpdatesQueue, shared_list: ShareableList[int]) -> None:
+        diff_len = len(Difficulty)
+
         update = queue.get()
+        tests_completed = [ 0 for _ in range(len(self._strategies) * diff_len) ]
 
         while update is not None:
-            keyword = update.keyword
-            strat_i, diff_i = update.strategy_index, update.difficulty_index
+            Evaluator._move_to_record_difficulty(update)
 
-            Evaluator._move_to_record(strat_i)
-            Evaluator._write(
-                TERMINAL.move_right(18) +
-                TERMINAL.move_down(4 + diff_i)
-            )
+            i = update.strategy_index * diff_len + update.difficulty_index
 
-            just_width = RECORD_WIDTH - 2 * INDENT - 16
-            if keyword == FormUpdateKeyword.UPDATE:
+            if update.result == GameState.VICTORY:
+                shared_list[i] += 1
+
+            tests_completed[i] += 1
+            tests_done = tests_completed[i]
+
+            if tests_done != self.testing_batch_size:
                 Evaluator._write(
-                    Evaluator._attempts_str(int(update.value), self.testing_batch_size) +
+                    Evaluator._attempts_str(tests_done, self.testing_batch_size) +
                     TERMINAL.move_right(2)
                 )
-                Evaluator._flush()
-            elif keyword == FormUpdateKeyword.DONE:
-                Evaluator._write(f' {round(update.value, 2):.2f}%'.rjust(just_width, LEADING_CHAR), )
             else:
-                assert_never(keyword)
+                just_width = RECORD_WIDTH - 2 * INDENT - 16
+                Evaluator._write(f' {round(shared_list[i] / self.testing_batch_size * 100, 2):.2f}%'.rjust(just_width, LEADING_CHAR), )
 
-            Evaluator._write(
-                TERMINAL.move_left(RECORD_WIDTH - INDENT) +
-                TERMINAL.move_up(4 + diff_i)
-            )
-            Evaluator._move_back_from_record(strat_i)
+            Evaluator._move_from_record_difficulty(update)
             Evaluator._flush()
 
             update = queue.get()
 
+    def _summarize(self, shared_list: ShareableList[int]) -> List[Tuple[str, Dict[Difficulty, float]]]:
+        summary: List[Tuple[str, Dict[Difficulty, float]]] = list()
+        diff_len = len(Difficulty)
+
+        for strategy_index, (strategy_name, _) in enumerate(self._strategies):
+            per_strategy: Dict[Difficulty, float] = dict()
+
+            for difficulty_index, difficulty in enumerate(Difficulty):
+                per_strategy[difficulty] = shared_list[strategy_index * diff_len + difficulty_index] / self.testing_batch_size * 100
+
+            summary.append((strategy_name, per_strategy))
+
+        return summary
+
     def _evaluate_strategy(
             self,
-            strategy_index: int,
-            difficulty: Difficulty,
-            queue: FormUpdateQueue
+            pool: Pool,
+            form_updates: FormUpdatesQueue,
+            strategy_index: int
     ) -> None:
-        width, height = self.dimensions.width, self.dimensions.height
-        _, strategy = self._strategies[strategy_index]
-        diff_index, diff_coefficient = difficulty.value
+        strategy_name, strategy = self._strategies[strategy_index]
 
-        # bot = BotFactory.get_minefield_bot(
-        #     SweeperConfiguration(
-        #         dimensions=self.dimensions,
-        #         mines=int((width * height) / diff_coefficient),
-        #         question_marks=False
-        #     ),
-        #     strategy,
-        #     'evaluator',
-        # )
-        #
-        # victories = bot.batch_solve(
-        #     self.testing_batch_size,
-        #     lambda i, _: queue.put(
-        #         FormUpdate(
-        #             keyword=FormUpdateKeyword.UPDATE,
-        #             strategy_index=strategy_index,
-        #             difficulty_index=diff_index,
-        #             value=i
-        #         )
-        #     )
-        # )
+        for difficulty in Difficulty:
+            diff_index, diff_coefficient = difficulty.value
 
-        t = 0.0
-        for i in range(self.testing_batch_size):
-            nap = randint(0, 500) / 100
-            t += nap
-            sleep(nap)
-            queue.put(
-                FormUpdate(
-                    keyword=FormUpdateKeyword.UPDATE,
-                    strategy_index=strategy_index,
-                    difficulty_index=diff_index,
-                    value=i + 1
+            bot = BotFactory.get_minefield_bot(
+                SweeperConfiguration(
+                    dimensions=self.dimensions,
+                    mines=int((self.dimensions.width * self.dimensions.height) / diff_coefficient),
+                    question_marks=False
+                ),
+                strategy,
+                f'evaluator::{strategy_name}',
+            )
+
+            for _ in range(self.testing_batch_size):
+                pool.apply_async(
+                    func=demanding_calculation,  # bot.solve,  # TODO: uncomment
+                    callback=partial(
+                        Evaluator._submit_form_update,
+                        form_updates,
+                        strategy_index,
+                        diff_index
+                    )
                 )
-            )
 
-        queue.put(
-            FormUpdate(
-                keyword=FormUpdateKeyword.DONE,
-                strategy_index=strategy_index,
-                difficulty_index=diff_index,
-                value=t
-            )
+    def _evaluate_strategies(self, max_workers: int) -> List[Tuple[str, Dict[Difficulty, float]]]:
+        smm = SharedMemoryManager()
+        smm.start()
+
+        shared_list = smm.ShareableList(
+            [0 for _ in range(len(self._strategies) * len(Difficulty))]
         )
+        form_updates: FormUpdatesQueue = Queue()
 
-        # winrate = victories / self.testing_batch_size
-
-    def _evaluate_strategies(self) -> None:
-        queue: Queue[FormUpdate | None] = Queue()
-
-        form_updater = Process(
+        form_updates_process = Process(
             target=self._form_progress_updater,
-            args=(queue,)
+            args=(form_updates, shared_list)
         )
-        form_updater.start()
+        form_updates_process.start()
 
-        evaluators: List[Process] = list()
+        pool = Pool(
+            processes=max_workers
+        )
         for strategy_index in range(len(self._strategies)):
-            for difficulty in Difficulty:
-                e = Process(
-                    target=self._evaluate_strategy,
-                    args=(strategy_index, difficulty, queue)
-                )
-                e.start()
-                evaluators.append(e)
-        for e in evaluators:
-            e.join()
+            self._evaluate_strategy(pool, form_updates, strategy_index)
+        pool.close()
+        pool.join()
 
-        queue.put(None)
-        form_updater.join()
+        form_updates.put(None)
+        form_updates_process.join()
+
+        summary = self._summarize(shared_list)
+
+        smm.shutdown()
+        smm.join()
+
+        return summary
 
     def _prepare_strategy_record(self, index: int) -> None:
         name, strategy = self._strategies[index]
@@ -260,7 +286,7 @@ class Evaluator:
             )
 
         Evaluator._write(TERMINAL.move_up(RECORD_HEIGHT))
-        Evaluator._move_back_from_record(index)
+        Evaluator._move_from_record(index)
 
     def _prepare_blank_page(self) -> None:
         print()
@@ -280,7 +306,14 @@ class Evaluator:
 
         Evaluator._flush()
 
-    def run(self) -> None:
+    def run(self, max_workers = 16) -> None:
         self._prepare_form()
-        self._evaluate_strategies()
+
+        summary = self._evaluate_strategies(max_workers)
+
         Evaluator._write(TERMINAL.move_down(RECORD_HEIGHT_SPACED * self._strategy_rows - 1))
+
+
+def demanding_calculation() -> Result:
+    sleep(randint(1, 4))
+    return GameState.VICTORY
