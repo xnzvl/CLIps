@@ -8,7 +8,7 @@ from multiprocessing.pool import Pool
 from multiprocessing.shared_memory import ShareableList
 from random import randint
 from time import sleep
-from typing import Final, List, Tuple, TYPE_CHECKING, Dict
+from typing import Dict, Final, List, Tuple, TYPE_CHECKING
 
 from blessed.terminal import Terminal
 
@@ -19,8 +19,10 @@ from src.solving.strategy import Strategy
 from src.solving.strategy.evaluation.throbber import Throbber
 from src.utils import Repeater
 
+
 # TODO: remove magic constants in this module
 # TODO: separate print funcs to separate class?
+# TODO: use pipes instead of queues?
 
 
 ENTRIES_PER_ROW: Final = 2
