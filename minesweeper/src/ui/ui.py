@@ -6,7 +6,7 @@ from src.game.grids.grid import Grid
 from src.game.sweeper import GameState, Result
 from src.game.tiles import Tile
 from src.ui.input import Input
-from src.ui.repeater import Repeater
+from src.utils.repeater import Repeater
 
 
 class UI(Dimensioned, ABC):
