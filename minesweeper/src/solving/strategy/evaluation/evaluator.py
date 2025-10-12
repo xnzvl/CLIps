@@ -23,7 +23,6 @@ from src.utils import Repeater
 
 # TODO: remove magic constants in this module
 # TODO: separate print funcs to separate class?
-# TODO: use pipes instead of queues?
 
 
 ENTRIES_PER_ROW: Final = 2
@@ -59,14 +58,6 @@ class FormLocation:   # TODO: better name (+ queue)
 @dataclass(frozen=True)
 class FormUpdate(FormLocation):   # TODO: better name (+ queue)
     result: Result
-
-
-if TYPE_CHECKING:
-    type FormLocationQueue = MpQueue[FormLocation | None]
-    type FormUpdatesQueue = MpQueue[FormUpdate | None]
-else:
-    type FormLocationQueue = Queue
-    type FormUpdatesQueue = Queue
 
 
 class Evaluator:
@@ -191,7 +182,11 @@ class Evaluator:
         self.dimensions = dimensions
         self.testing_batch_size = testing_batch_size
 
-    def _throbber_manager(self, throbber_updates: DuplexPipe[FormLocation | None]) -> None:  # TODO: separate pipes for updates and acks
+    def _throbber_updater(
+            self,
+            throbber_updates_receiver: DuplexPipe[FormLocation | None],
+            throbber_ack_sender: DuplexPipe[FormLocation | None]
+    ) -> None:
         diff_len = len(Difficulty)
 
         throbbers = [
@@ -204,19 +199,25 @@ class Evaluator:
             for i in range(len(self._strategies) * diff_len)
         ]
 
-        update = throbber_updates.recv()
+        update = throbber_updates_receiver.recv()
         while update is not None:
             throbbers[update.strategy_index * diff_len + update.difficulty_index].stop()
-            throbber_updates.send(update)
+            throbber_ack_sender.send(None)
 
-            update = throbber_updates.recv()
+            update = throbber_updates_receiver.recv()
 
-    def _form_progress_updater(self, form_updates: ReceiverPipe[FormUpdate | None], throbber_updates: DuplexPipe[FormLocation | None], shared_list: ShareableList[int]) -> None:
+    def _progress_updater(
+            self,
+            progress_updates_receiver: ReceiverPipe[FormUpdate | None],
+            throbber_updates_sender: DuplexPipe[FormLocation | None],
+            throbber_ack_receiver: DuplexPipe[FormLocation | None],
+            shared_list: ShareableList[int]
+    ) -> None:
         diff_len = len(Difficulty)
 
         tests_completed = [ 0 for _ in range(len(self._strategies) * diff_len) ]
 
-        update = form_updates.recv()
+        update = progress_updates_receiver.recv()
         while update is not None:
             Evaluator._move_to_record_difficulty(update)
 
@@ -234,8 +235,8 @@ class Evaluator:
                     TERMINAL.move_right(2)
                 )
             else:
-                throbber_updates.send(update)
-                throbber_updates.recv()
+                throbber_updates_sender.send(update)
+                throbber_ack_receiver.recv()
 
                 just_width = RECORD_WIDTH - 2 * INDENT - 16
                 Evaluator._write(f' {round(shared_list[i] / self.testing_batch_size * 100, 2):.2f}%'.rjust(just_width, LEADING_CHAR), )
@@ -243,7 +244,7 @@ class Evaluator:
             Evaluator._move_from_record_difficulty(update)
             Evaluator._flush()
 
-            update = form_updates.recv()
+            update = progress_updates_receiver.recv()
 
     def _summarize(self, shared_list: ShareableList[int]) -> List[Tuple[str, Dict[Difficulty, float]]]:
         summary: List[Tuple[str, Dict[Difficulty, float]]] = list()
@@ -298,37 +299,43 @@ class Evaluator:
         shared_list = smm.ShareableList(
             [0 for _ in range(len(self._strategies) * len(Difficulty))]
         )
-                                                                  # TODO:
-        form_updates_receiver, form_updates_sender = Pipe(False)  # GenericPipe[FormUpdate | None].create(False)
-        throbber_form_pipe, throbber_process_pipe = Pipe()        # GenericPipe[FormLocation | None].create()
 
-        form_updates_process = Process(
-            target=self._form_progress_updater,
-            args=(form_updates_receiver, throbber_form_pipe, shared_list)
-        )
-        form_updates_process.start()
+        progress_updates_receiver, progress_updates_sender = Pipe(False)
+        throbber_updates_receiver, throbber_updates_sender = Pipe(False)
+        throbber_ack_receiver,     throbber_ack_sender     = Pipe(False)
 
-        throbber_updates_process = Process(
-            target=self._throbber_manager,
-            args=(throbber_process_pipe,)
+        progress_updater_process = Process(
+            target=self._progress_updater,
+            args=(progress_updates_receiver, throbber_updates_sender, throbber_ack_receiver, shared_list)
         )
-        throbber_updates_process.start()
+        progress_updater_process.start()
+
+        throbber_updater_process = Process(
+            target=self._throbber_updater,
+            args=(throbber_updates_receiver, throbber_ack_sender)
+        )
+        throbber_updater_process.start()
 
         pool = Pool(
             processes=max_workers
         )
         for strategy_index in range(len(self._strategies)):
-            self._evaluate_strategy(pool, form_updates_sender, strategy_index)
+            self._evaluate_strategy(pool, progress_updates_sender, strategy_index)
         pool.close()
         pool.join()
 
-        throbber_form_pipe.send(None)
-        throbber_form_pipe.close()
-        throbber_updates_process.join()
+        progress_updates_sender.send(None)
+        progress_updater_process.join()
 
-        form_updates_sender.send(None)
-        form_updates_sender.close()
-        form_updates_process.join()
+        throbber_updates_sender.send(None)
+        throbber_updater_process.join()
+
+        progress_updates_receiver.close()
+        progress_updates_sender.close()
+        throbber_updates_receiver.close()
+        throbber_updates_sender.close()
+        throbber_ack_receiver.close()
+        throbber_ack_sender.close()
 
         summary = self._summarize(shared_list)
 
