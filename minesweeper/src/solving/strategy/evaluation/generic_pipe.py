@@ -2,6 +2,9 @@ from multiprocessing.connection import Connection, Pipe, PipeConnection
 from typing import Literal, Tuple, cast, overload
 
 
+# TODO: make it work
+
+
 class _Pipe:
     def __init__(self, connection: Connection | PipeConnection) -> None:
         self._connection = connection

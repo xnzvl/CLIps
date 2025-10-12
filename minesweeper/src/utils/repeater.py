@@ -2,7 +2,7 @@ from threading import Timer
 from typing import Callable
 
 
-class Repeater:
+class Repeater:  # TODO: doesn't work properly when execution time is longer than interval
     def __init__[**P, R](
             self,
             interval: float,
@@ -19,6 +19,9 @@ class Repeater:
         self._is_running = False
 
     def _repeat(self) -> None:
+        if not self._is_running:
+            return
+
         self._function(*self._args, **self._kwargs)
 
         self._timer = Timer(self._interval, self._repeat)

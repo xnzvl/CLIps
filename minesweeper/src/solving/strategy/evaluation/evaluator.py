@@ -1,14 +1,14 @@
 from dataclasses import dataclass
 from enum import Enum, unique
 from functools import partial
-from multiprocessing import Process, Queue, Pipe
+from multiprocessing import Process, Pipe
+from multiprocessing.connection import Connection
 from multiprocessing.managers import SharedMemoryManager
-from multiprocessing.queues import Queue as MpQueue
 from multiprocessing.pool import Pool
 from multiprocessing.shared_memory import ShareableList
-from random import randint
+from random import randint, choice
 from time import sleep
-from typing import Dict, Final, List, Tuple, TYPE_CHECKING
+from typing import Dict, Final, List, Tuple
 
 from blessed.terminal import Terminal
 
@@ -16,7 +16,6 @@ from src.common import Dimensions, SweeperConfiguration
 from src.game.sweeper import Result, GameState
 from src.solving.bot import BotFactory
 from src.solving.strategy import Strategy
-from src.solving.strategy.evaluation.generic_pipe import DuplexPipe, ReceiverPipe, SenderPipe, GenericPipe
 from src.solving.strategy.evaluation.throbber import Throbber
 from src.utils import Repeater
 
@@ -50,13 +49,13 @@ class Difficulty(Enum):
 
 
 @dataclass(frozen=True)
-class FormLocation:   # TODO: better name (+ queue)
+class FormLocation:   # TODO: better name
     strategy_index: int
     difficulty_index: int
 
 
 @dataclass(frozen=True)
-class FormUpdate(FormLocation):   # TODO: better name (+ queue)
+class FormUpdate(FormLocation):   # TODO: better name
     result: Result
 
 
@@ -129,13 +128,13 @@ class Evaluator:
         Evaluator._move_from_record(form_location.strategy_index)
 
     @staticmethod
-    def _submit_form_update(
-            form_updates: SenderPipe[FormUpdate | None],
+    def _submit_progress_update(
+            progress_updates_sender: Connection,
             strategy_index: int,
             difficulty_index: int,
             result: Result
     ) -> None:
-        form_updates.send(
+        progress_updates_sender.send(
             FormUpdate(
                 strategy_index=strategy_index,
                 difficulty_index=difficulty_index,
@@ -159,9 +158,9 @@ class Evaluator:
     @staticmethod
     def _create_active_throbber(form_location: FormLocation) -> Repeater:
         repeater = Repeater(
-            0.1,
-            lambda throbber: Evaluator._write_throbber_char(form_location, throbber.get_and_increment()),
-            Throbber()
+            0.05,
+            lambda throbber: Evaluator._write_throbber_char(form_location, throbber.get_and_progress()),
+            Throbber(2)
         )
 
         repeater.start()
@@ -184,8 +183,8 @@ class Evaluator:
 
     def _throbber_updater(
             self,
-            throbber_updates_receiver: DuplexPipe[FormLocation | None],
-            throbber_ack_sender: DuplexPipe[FormLocation | None]
+            throbber_updates_receiver: Connection,
+            throbber_ack_sender: Connection
     ) -> None:
         diff_len = len(Difficulty)
 
@@ -202,15 +201,16 @@ class Evaluator:
         update = throbber_updates_receiver.recv()
         while update is not None:
             throbbers[update.strategy_index * diff_len + update.difficulty_index].stop()
+            sleep(0.075)
             throbber_ack_sender.send(None)
 
             update = throbber_updates_receiver.recv()
 
     def _progress_updater(
             self,
-            progress_updates_receiver: ReceiverPipe[FormUpdate | None],
-            throbber_updates_sender: DuplexPipe[FormLocation | None],
-            throbber_ack_receiver: DuplexPipe[FormLocation | None],
+            progress_updates_receiver: Connection,
+            throbber_updates_sender: Connection,
+            throbber_ack_receiver: Connection,
             shared_list: ShareableList[int]
     ) -> None:
         diff_len = len(Difficulty)
@@ -263,7 +263,7 @@ class Evaluator:
     def _evaluate_strategy(
             self,
             pool: Pool,
-            form_updates: SenderPipe[FormUpdate | None],
+            progress_updates_sender: Connection,
             strategy_index: int
     ) -> None:
         strategy_name, strategy = self._strategies[strategy_index]
@@ -285,8 +285,8 @@ class Evaluator:
                 pool.apply_async(
                     func=demanding_calculation,  # bot.solve,  # TODO: uncomment
                     callback=partial(
-                        Evaluator._submit_form_update,
-                        form_updates,
+                        Evaluator._submit_progress_update,
+                        progress_updates_sender,
                         strategy_index,
                         diff_index
                     )
@@ -359,7 +359,7 @@ class Evaluator:
             Evaluator._write_md(
                 f'{INDENT * ' '}{difficulty.name.capitalize()} {LEADING_CHAR * (15 - len(difficulty.name))}' +
                 f'{Evaluator._attempts_str(0, self.testing_batch_size)}' +
-                f' {TERMINAL.bright_black('⠿')}',
+                f' {TERMINAL.blue('⠿')}',
                 RECORD_WIDTH - INDENT
             )
 
@@ -394,4 +394,4 @@ class Evaluator:
 
 def demanding_calculation() -> Result:
     sleep(randint(1, 10) / 10)
-    return GameState.VICTORY
+    return choice([GameState.VICTORY, GameState.FAILURE])
