@@ -358,8 +358,9 @@ class Evaluator:
         for difficulty in Difficulty:
             Evaluator._write_md(
                 f'{INDENT * ' '}{difficulty.name.capitalize()} {LEADING_CHAR * (15 - len(difficulty.name))}' +
-                f'{Evaluator._attempts_str(0, self.testing_batch_size)}',
-                RECORD_WIDTH - 2 * INDENT
+                f'{Evaluator._attempts_str(0, self.testing_batch_size)}' +
+                f' {TERMINAL.bright_black('⠿')}',
+                RECORD_WIDTH - INDENT
             )
 
         Evaluator._write(TERMINAL.move_up(RECORD_HEIGHT))
