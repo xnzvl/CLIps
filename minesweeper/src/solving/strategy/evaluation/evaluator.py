@@ -384,10 +384,23 @@ class Evaluator:
 
         Evaluator._flush()
 
+    def _summarize(self, evaluations: List[Tuple[str, Dict[Difficulty, float]]]) -> Tuple[Dict[Difficulty, Tuple[float, List[str]]], Tuple[float, List[str]]]:
+        best_per_difficulty: Dict[Difficulty, Tuple[float, List[str]]] = dict(
+            [(difficulty, (0.0, list())) for difficulty in Difficulty]
+        )
+        most_versatile = 0.0, list()
+
+        for strategy_name, results in evaluations:
+            continue  # TODO: implement
+
+        return best_per_difficulty, most_versatile
+
     def run(self, max_workers: int = 16) -> None:
         self._prepare_form()
 
-        summary = self._evaluate_strategies(max_workers)
+        summary = self._summarize(
+            self._evaluate_strategies(max_workers)
+        )
 
         Evaluator._write(TERMINAL.move_down(RECORD_HEIGHT_SPACED * self._strategy_rows - 1))
 
