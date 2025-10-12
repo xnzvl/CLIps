@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum, unique
 from functools import partial
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Pipe
 from multiprocessing.managers import SharedMemoryManager
 from multiprocessing.queues import Queue as MpQueue
 from multiprocessing.pool import Pool
@@ -16,6 +16,7 @@ from src.common import Dimensions, SweeperConfiguration
 from src.game.sweeper import Result, GameState
 from src.solving.bot import BotFactory
 from src.solving.strategy import Strategy
+from src.solving.strategy.evaluation.generic_pipe import DuplexPipe, ReceiverPipe, SenderPipe, GenericPipe
 from src.solving.strategy.evaluation.throbber import Throbber
 from src.utils import Repeater
 
@@ -138,12 +139,12 @@ class Evaluator:
 
     @staticmethod
     def _submit_form_update(
-            form_updates: FormUpdatesQueue,
+            form_updates: SenderPipe[FormUpdate | None],
             strategy_index: int,
             difficulty_index: int,
             result: Result
     ) -> None:
-        form_updates.put(
+        form_updates.send(
             FormUpdate(
                 strategy_index=strategy_index,
                 difficulty_index=difficulty_index,
@@ -152,12 +153,24 @@ class Evaluator:
         )
 
     @staticmethod
-    def _create_active_throbber(index: int) -> Repeater:
-        throbber = Throbber()
+    def _write_throbber_char(form_location: FormLocation, char: str) -> None:
+        Evaluator._move_to_record_difficulty(form_location)
 
+        horizontal_move = RECORD_WIDTH - 21
+        Evaluator._write(
+            TERMINAL.move_right(horizontal_move) +
+            TERMINAL.blue(char)
+        )
+
+        Evaluator._move_from_record_difficulty(form_location)
+        Evaluator._flush()
+
+    @staticmethod
+    def _create_active_throbber(form_location: FormLocation) -> Repeater:
         repeater = Repeater(
-            1,
-            lambda: None
+            0.1,
+            lambda throbber: Evaluator._write_throbber_char(form_location, throbber.get_and_increment()),
+            Throbber()
         )
 
         repeater.start()
@@ -178,26 +191,32 @@ class Evaluator:
         self.dimensions = dimensions
         self.testing_batch_size = testing_batch_size
 
-    def _throbber_updater(self, throbber_updates: FormLocationQueue) -> None:
+    def _throbber_manager(self, throbber_updates: DuplexPipe[FormLocation | None]) -> None:  # TODO: separate pipes for updates and acks
         diff_len = len(Difficulty)
 
         throbbers = [
-            Evaluator._create_active_throbber(i)
+            Evaluator._create_active_throbber(
+                FormLocation(
+                    strategy_index=i // diff_len,
+                    difficulty_index=i % diff_len,
+                )
+            )
             for i in range(len(self._strategies) * diff_len)
         ]
 
-        update = throbber_updates.get()
+        update = throbber_updates.recv()
         while update is not None:
             throbbers[update.strategy_index * diff_len + update.difficulty_index].stop()
+            throbber_updates.send(update)
 
-            update = throbber_updates.get()
+            update = throbber_updates.recv()
 
-    def _form_progress_updater(self, form_updates: FormUpdatesQueue, throbber_updates: FormLocationQueue, shared_list: ShareableList[int]) -> None:
+    def _form_progress_updater(self, form_updates: ReceiverPipe[FormUpdate | None], throbber_updates: DuplexPipe[FormLocation | None], shared_list: ShareableList[int]) -> None:
         diff_len = len(Difficulty)
 
         tests_completed = [ 0 for _ in range(len(self._strategies) * diff_len) ]
 
-        update = form_updates.get()
+        update = form_updates.recv()
         while update is not None:
             Evaluator._move_to_record_difficulty(update)
 
@@ -215,14 +234,16 @@ class Evaluator:
                     TERMINAL.move_right(2)
                 )
             else:
-                throbber_updates.put(update)
+                throbber_updates.send(update)
+                throbber_updates.recv()
+
                 just_width = RECORD_WIDTH - 2 * INDENT - 16
                 Evaluator._write(f' {round(shared_list[i] / self.testing_batch_size * 100, 2):.2f}%'.rjust(just_width, LEADING_CHAR), )
 
             Evaluator._move_from_record_difficulty(update)
             Evaluator._flush()
 
-            update = form_updates.get()
+            update = form_updates.recv()
 
     def _summarize(self, shared_list: ShareableList[int]) -> List[Tuple[str, Dict[Difficulty, float]]]:
         summary: List[Tuple[str, Dict[Difficulty, float]]] = list()
@@ -241,7 +262,7 @@ class Evaluator:
     def _evaluate_strategy(
             self,
             pool: Pool,
-            form_updates: FormUpdatesQueue,
+            form_updates: SenderPipe[FormUpdate | None],
             strategy_index: int
     ) -> None:
         strategy_name, strategy = self._strategies[strategy_index]
@@ -277,18 +298,19 @@ class Evaluator:
         shared_list = smm.ShareableList(
             [0 for _ in range(len(self._strategies) * len(Difficulty))]
         )
-        form_updates: FormUpdatesQueue = Queue()
-        throbber_updates: FormUpdatesQueue = Queue()
+                                                                  # TODO:
+        form_updates_receiver, form_updates_sender = Pipe(False)  # GenericPipe[FormUpdate | None].create(False)
+        throbber_form_pipe, throbber_process_pipe = Pipe()        # GenericPipe[FormLocation | None].create()
 
         form_updates_process = Process(
             target=self._form_progress_updater,
-            args=(form_updates, throbber_updates, shared_list)
+            args=(form_updates_receiver, throbber_form_pipe, shared_list)
         )
         form_updates_process.start()
 
         throbber_updates_process = Process(
-            target=self._throbber_updater,
-            args=(throbber_updates,)
+            target=self._throbber_manager,
+            args=(throbber_process_pipe,)
         )
         throbber_updates_process.start()
 
@@ -296,14 +318,16 @@ class Evaluator:
             processes=max_workers
         )
         for strategy_index in range(len(self._strategies)):
-            self._evaluate_strategy(pool, form_updates, strategy_index)
+            self._evaluate_strategy(pool, form_updates_sender, strategy_index)
         pool.close()
         pool.join()
 
-        throbber_updates.put(None)
+        throbber_form_pipe.send(None)
+        throbber_form_pipe.close()
         throbber_updates_process.join()
 
-        form_updates.put(None)
+        form_updates_sender.send(None)
+        form_updates_sender.close()
         form_updates_process.join()
 
         summary = self._summarize(shared_list)
@@ -352,7 +376,7 @@ class Evaluator:
 
         Evaluator._flush()
 
-    def run(self, max_workers = 16) -> None:
+    def run(self, max_workers: int = 16) -> None:
         self._prepare_form()
 
         summary = self._evaluate_strategies(max_workers)
@@ -361,5 +385,5 @@ class Evaluator:
 
 
 def demanding_calculation() -> Result:
-    sleep(randint(1, 4))
+    sleep(randint(1, 10) / 10)
     return GameState.VICTORY
