@@ -49,6 +49,12 @@ class Difficulty(Enum):
 
 
 @dataclass(frozen=True)
+class Evaluation:
+    strategy_name: str
+    winrate_per_difficulty: Dict[Difficulty, float]
+
+
+@dataclass(frozen=True)
 class FormLocation:   # TODO: better name
     strategy_index: int
     difficulty_index: int
@@ -57,6 +63,19 @@ class FormLocation:   # TODO: better name
 @dataclass(frozen=True)
 class FormUpdate(FormLocation):   # TODO: better name
     result: Result
+
+
+@dataclass(frozen=True)
+class SummaryEntry:
+    strategy_name: str
+    winrate: float
+    is_alone_at_top: bool
+
+
+@dataclass(frozen=True)
+class Summary:
+    best_per_difficulty: Dict[Difficulty, SummaryEntry]
+    best_overall: SummaryEntry
 
 
 class Evaluator:
@@ -175,9 +194,6 @@ class Evaluator:
         self._strategies = strategies
         self._strategy_rows = (len(strategies) + ENTRIES_PER_ROW - 1) // ENTRIES_PER_ROW
 
-        self._cursor_x = 0
-        self._cursor_y = 0
-
         self.dimensions = dimensions
         self.testing_batch_size = testing_batch_size
 
@@ -206,12 +222,12 @@ class Evaluator:
 
             update = throbber_updates_receiver.recv()
 
-    def _progress_updater(
+    def _progress_updater(  # TODO: refactor
             self,
             progress_updates_receiver: Connection,
             throbber_updates_sender: Connection,
             throbber_ack_receiver: Connection,
-            shared_list: ShareableList[int]
+            victories: ShareableList[int]
     ) -> None:
         diff_len = len(Difficulty)
 
@@ -224,7 +240,7 @@ class Evaluator:
             i = update.strategy_index * diff_len + update.difficulty_index
 
             if update.result == GameState.VICTORY:
-                shared_list[i] += 1
+                victories[i] += 1
 
             tests_completed[i] += 1
             tests_done = tests_completed[i]
@@ -239,26 +255,31 @@ class Evaluator:
                 throbber_ack_receiver.recv()
 
                 just_width = RECORD_WIDTH - 2 * INDENT - 16
-                Evaluator._write(f' {round(shared_list[i] / self.testing_batch_size * 100, 2):.2f}%'.rjust(just_width, LEADING_CHAR), )
+                Evaluator._write(f' {round(victories[i] / self.testing_batch_size * 100, 2):.2f}%'.rjust(just_width, LEADING_CHAR), )
 
             Evaluator._move_from_record_difficulty(update)
             Evaluator._flush()
 
             update = progress_updates_receiver.recv()
 
-    def _summarize(self, shared_list: ShareableList[int]) -> List[Tuple[str, Dict[Difficulty, float]]]:
-        summary: List[Tuple[str, Dict[Difficulty, float]]] = list()
+    def _to_evaluations(self, victories: ShareableList[int]) -> List[Evaluation]:
+        evaluations: List[Evaluation] = list()
         diff_len = len(Difficulty)
 
         for strategy_index, (strategy_name, _) in enumerate(self._strategies):
-            per_strategy: Dict[Difficulty, float] = dict()
+            per_difficulty: Dict[Difficulty, float] = dict()
 
             for difficulty_index, difficulty in enumerate(Difficulty):
-                per_strategy[difficulty] = shared_list[strategy_index * diff_len + difficulty_index] / self.testing_batch_size * 100
+                per_difficulty[difficulty] = victories[strategy_index * diff_len + difficulty_index] / self.testing_batch_size * 100
 
-            summary.append((strategy_name, per_strategy))
+            evaluations.append(
+                Evaluation(
+                    strategy_name=strategy_name,
+                    winrate_per_difficulty=per_difficulty
+                )
+            )
 
-        return summary
+        return evaluations
 
     def _evaluate_strategy(
             self,
@@ -292,11 +313,11 @@ class Evaluator:
                     )
                 )
 
-    def _evaluate_strategies(self, max_workers: int) -> List[Tuple[str, Dict[Difficulty, float]]]:
+    def _evaluate_strategies(self, max_workers: int) -> List[Evaluation]:  # TODO: refactor
         smm = SharedMemoryManager()
         smm.start()
 
-        shared_list = smm.ShareableList(
+        victories = smm.ShareableList(
             [0 for _ in range(len(self._strategies) * len(Difficulty))]
         )
 
@@ -306,7 +327,7 @@ class Evaluator:
 
         progress_updater_process = Process(
             target=self._progress_updater,
-            args=(progress_updates_receiver, throbber_updates_sender, throbber_ack_receiver, shared_list)
+            args=(progress_updates_receiver, throbber_updates_sender, throbber_ack_receiver, victories)
         )
         progress_updater_process.start()
 
@@ -337,12 +358,12 @@ class Evaluator:
         throbber_ack_receiver.close()
         throbber_ack_sender.close()
 
-        summary = self._summarize(shared_list)
+        evaluations = self._to_evaluations(victories)
 
         smm.shutdown()
         smm.join()
 
-        return summary
+        return evaluations
 
     def _prepare_strategy_record(self, index: int) -> None:
         name, strategy = self._strategies[index]
@@ -384,24 +405,57 @@ class Evaluator:
 
         Evaluator._flush()
 
-    def _summarize(self, evaluations: List[Tuple[str, Dict[Difficulty, float]]]) -> Tuple[Dict[Difficulty, Tuple[float, List[str]]], Tuple[float, List[str]]]:
-        best_per_difficulty: Dict[Difficulty, Tuple[float, List[str]]] = dict(
-            [(difficulty, (0.0, list())) for difficulty in Difficulty]
+    def _summarise(self, evaluations: List[Evaluation]) -> Summary:  # TODO: refactor
+        best_per_difficulty: Dict[Difficulty, SummaryEntry] = dict()
+        best_overall: SummaryEntry | None = None
+
+        for evaluation in evaluations:
+            winrate_sum = 0
+
+            for difficulty, winrate in evaluation.winrate_per_difficulty.items():
+                best_so_far = best_per_difficulty.get(difficulty)
+
+                if best_so_far is None or best_so_far.winrate < winrate:
+                    best_per_difficulty[difficulty] = SummaryEntry(
+                        strategy_name=evaluation.strategy_name,
+                        winrate=winrate,
+                        is_alone_at_top=True
+                    )
+                elif best_so_far.winrate == winrate:
+                    best_per_difficulty[difficulty] = SummaryEntry(
+                        strategy_name=best_so_far.strategy_name,
+                        winrate=best_so_far.winrate,
+                        is_alone_at_top=False
+                    )
+
+                winrate_sum += winrate
+
+            winrate_overall = winrate_sum / 3
+
+            if best_overall is None or best_overall.winrate < winrate_overall:
+                best_overall = SummaryEntry(
+                    strategy_name=evaluation.strategy_name,
+                    winrate=winrate_overall,
+                    is_alone_at_top=True
+                )
+            elif best_overall.winrate == winrate_overall:
+                best_overall = SummaryEntry(
+                    strategy_name=best_overall.strategy_name,
+                    winrate=best_overall.winrate,
+                    is_alone_at_top=False
+                )
+
+        return Summary(
+            best_per_difficulty=best_per_difficulty,
+            best_overall=best_overall
         )
-        most_versatile = 0.0, list()
-
-        for strategy_name, results in evaluations:
-            continue  # TODO: implement
-
-        return best_per_difficulty, most_versatile
 
     def run(self, max_workers: int = 16) -> None:
         self._prepare_form()
 
-        summary = self._summarize(
+        summary = self._summarise(
             self._evaluate_strategies(max_workers)
         )
-
         Evaluator._write(TERMINAL.move_down(RECORD_HEIGHT_SPACED * self._strategy_rows - 1))
 
 

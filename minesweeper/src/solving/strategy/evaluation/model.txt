@@ -24,16 +24,24 @@
     Hard .............................
 
   ××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
+                                      SUMMARY
+  ××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××××
 
   Best strategy per difficulty:
   ===============================================
     Difficulty                Strategy  Winrate
     -------------------------------------------
-    Easy .................... random_1  33.43%
-                             random_30  33.43%
-    Intermediate ............ random_5
-    Hard .................... random_3
+    Easy .................. random_1 *  33.43%
+    Intermediate ............ random_5  23.05%
+    Hard .................... random_3  12.57%
 
-  Most versatile strategy:
+    * multiple strategies
+      achieved the same winrate,
+      but only the first one is listed
+
+
+  Most versatile strategy:              random_23
+  Overall winrate:                         94.32%
+  ===============================================
 
 ⠏⠛⠹⠼⠶⠧
