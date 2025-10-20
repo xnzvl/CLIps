@@ -23,6 +23,8 @@ from src.utils import Repeater
 # TODO: remove magic constants in this module
 # TODO: separate print funcs to separate class?
 # TODO: refactor the whole module
+# TODO: fix bug - overall winrate is wrong
+# TODO: hide cursor
 
 
 ENTRIES_PER_ROW: Final = 2
@@ -197,44 +199,89 @@ class Evaluator:
         return repeater
 
     @staticmethod
-    def _write_summary(summary: Summary) -> None:  # TODO: refactor
-        indent = ' ' * INDENT
-        pad = ' ' * PADDING
-        width = RECORD_WIDTH_SPACED + RECORD_WIDTH - 2 * PADDING
+    def _get_note_position(summary: Summary) -> NotePosition:
+        if not summary.best_overall.is_alone_at_top:
+            return NotePosition.AT_THE_END
 
-        print('\n\n')
+        for entry in summary.best_per_difficulty.values():
+            if not entry.is_alone_at_top:
+                return NotePosition.AFTER_PER_DIFFICULTY
+
+        return NotePosition.NONE
+
+    @staticmethod
+    def _write_summary_per_difficulty(
+            indent: str,
+            pad: str,
+            width: int,
+            best_per_difficulty: Dict[Difficulty, SummaryEntry]
+    ) -> None:
         print(f'{indent}{pad}Best strategy per difficulty:')
         print(f'{indent}{pad}{'=' * width}')
         print(f'{indent * 2}{pad}Difficulty{' ' * (width - 2 * INDENT - 27)}Strategy  Winrate')
         print(f'{indent * 2}{pad}{'-' * (width - 2 * INDENT)}')
 
         for difficulty in Difficulty:
-            best_per_difficulty = summary.best_per_difficulty[difficulty]
+            best_per_this_diff = best_per_difficulty[difficulty]
             strategy_name = Evaluator._truncate_str(
-                best_per_difficulty.strategy_name,
-                width - 2 * INDENT - 12 - 14 - (
-                    0 if best_per_difficulty.is_alone_at_top else 2
-                )
+                best_per_this_diff.strategy_name,
+                width - 2 * INDENT - 12 - 14
             )
 
             print(
                 f'{indent * 2}{pad}{difficulty.name.capitalize()} ' +
-                f'{LEADING_CHAR * (width - 2 * INDENT - len(difficulty.name) - len(strategy_name) - 11 - (0 if best_per_difficulty.is_alone_at_top else 2))} ' +
-                f'{strategy_name}{'' if best_per_difficulty.is_alone_at_top else TERMINAL.bright_black(' *')}  ' +
-                f'{best_per_difficulty.winrate:.2f}'.rjust(6) + '%'
+                f'{LEADING_CHAR * (width - 2 * INDENT - len(difficulty.name) - len(strategy_name) - 11)} ' +
+                f'{strategy_name}{' ' if best_per_this_diff.is_alone_at_top else TERMINAL.bright_black('*')} ' +
+                f'{best_per_this_diff.winrate:.2f}'.rjust(6) + '%'
             )
 
+    @staticmethod
+    def _write_summary_overall_best(
+            indent: str,
+            pad: str,
+            width: int,
+            best_overall: SummaryEntry
+    ) -> None:
+        name_width = width - 27
         best_strategy_name = Evaluator._truncate_str(
-            summary.best_overall.strategy_name,
-            width - 27 - (0 if summary.best_overall.is_alone_at_top else 2)
-        )
+            best_overall.strategy_name,
+            name_width
+        ).rjust(name_width)
 
-        print()
-        print(f'{indent}{pad}Most versatile strategy:   {TERMINAL.bright_blue(best_strategy_name)}{'' if summary.best_overall.is_alone_at_top else TERMINAL.bright_black(' *')}')
-        print(f'{indent}{pad}Overall winrate: {' ' * (width - 24)}' +
-            TERMINAL.bright_blue(f'{summary.best_overall.winrate:.2f}%'.rjust(7))
-        )
+        print(f'{indent}{pad}Most versatile strategy:   {TERMINAL.bright_blue(best_strategy_name)}{'' if best_overall.is_alone_at_top else TERMINAL.bright_black('*')}')
+        print(f'{indent}{pad}Overall winrate: {' ' * (width - 24)}' + TERMINAL.bright_blue(f'{best_overall.winrate:.2f}%'.rjust(7)))
         print(f'{indent}{pad}{'=' * width}')
+
+    @staticmethod
+    def _write_summary_note(indent: str) -> None:
+        print(TERMINAL.bright_black, end='')
+        print(f'{indent}* multiple strategies')
+        print(f'{indent}  achieved the same winrate,')
+        print(f'{indent}  but only the first one is listed')
+        print(TERMINAL.normal, end='')
+
+    @staticmethod
+    def _write_summary(summary: Summary) -> None:  # TODO: refactor & use colours (bright white)
+        indent = ' ' * INDENT
+        pad = ' ' * PADDING
+        width = RECORD_WIDTH_SPACED + RECORD_WIDTH - 2 * PADDING
+
+        note_position = Evaluator._get_note_position(summary)
+        note_indent = pad + indent + ' ' * (2 * INDENT)
+
+        print('\n\n')
+        Evaluator._write_summary_per_difficulty(indent, pad, width, summary.best_per_difficulty)
+
+        if note_position == NotePosition.AFTER_PER_DIFFICULTY:
+            print()
+            Evaluator._write_summary_note(note_indent)
+        print('\n')
+
+        Evaluator._write_summary_overall_best(indent, pad, width, summary.best_overall)
+
+        if note_position == NotePosition.AT_THE_END:
+            print()
+            Evaluator._write_summary_note(note_indent)
         print('\n')
 
     def __init__(
