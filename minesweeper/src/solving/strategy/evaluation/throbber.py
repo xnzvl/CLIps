@@ -1,7 +1,7 @@
 class Throbber:
     _stages = ['⠏', '⠛', '⠹', '⠼', '⠶', '⠧']
 
-    def __init__(self, progress_stages: int = 1) -> None:
+    def __init__(self, progress_stages: int = 1) -> None:  # TODO: remove stages
         self._index = 0
         self._progress = 0
 

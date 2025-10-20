@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from enum import Enum, unique
+from enum import Enum, unique, auto
 from functools import partial
 from multiprocessing import Process, Pipe
 from multiprocessing.connection import Connection
@@ -22,6 +22,7 @@ from src.utils import Repeater
 
 # TODO: remove magic constants in this module
 # TODO: separate print funcs to separate class?
+# TODO: refactor the whole module
 
 
 ENTRIES_PER_ROW: Final = 2
@@ -31,13 +32,16 @@ RECORD_HEIGHT: Final = 7
 RECORD_WIDTH_SPACED:  Final = RECORD_WIDTH + 4
 RECORD_HEIGHT_SPACED: Final = RECORD_HEIGHT + 1
 
-assert RECORD_HEIGHT_SPACED - RECORD_HEIGHT > 0
-
 INDENT: Final = 2
+PADDING: Final = 16
 
 LEADING_CHAR: Final = '.'
 
 TERMINAL: Final = Terminal()
+
+assert RECORD_WIDTH_SPACED  - RECORD_WIDTH  > 0
+assert RECORD_HEIGHT_SPACED - RECORD_HEIGHT > 0
+assert 2 * PADDING < RECORD_WIDTH_SPACED
 
 
 @unique
@@ -46,6 +50,13 @@ class Difficulty(Enum):
     EASY         = (0, 8.1)
     INTERMEDIATE = (1, 6.4)
     HARD         = (2, 4.8)
+
+
+@unique
+class NotePosition(Enum):
+    NONE                 = auto()
+    AFTER_PER_DIFFICULTY = auto()
+    AT_THE_END           = auto()
 
 
 @dataclass(frozen=True)
@@ -97,9 +108,9 @@ class Evaluator:
         print(end='', flush=True)
 
     @staticmethod
-    def _truncate_strategy_name(strategy_name: str) -> str:
-        return TERMINAL.truncate(strategy_name, RECORD_WIDTH - 13) + '...' \
-            if len(strategy_name) > RECORD_WIDTH - 10 \
+    def _truncate_str(strategy_name: str, max_length: int) -> str:
+        return TERMINAL.truncate(strategy_name, max_length - 3) + '...' \
+            if len(strategy_name) > max_length \
             else strategy_name
 
     @staticmethod
@@ -184,6 +195,47 @@ class Evaluator:
 
         repeater.start()
         return repeater
+
+    @staticmethod
+    def _write_summary(summary: Summary) -> None:  # TODO: refactor
+        indent = ' ' * INDENT
+        pad = ' ' * PADDING
+        width = RECORD_WIDTH_SPACED + RECORD_WIDTH - 2 * PADDING
+
+        print('\n\n')
+        print(f'{indent}{pad}Best strategy per difficulty:')
+        print(f'{indent}{pad}{'=' * width}')
+        print(f'{indent * 2}{pad}Difficulty{' ' * (width - 2 * INDENT - 27)}Strategy  Winrate')
+        print(f'{indent * 2}{pad}{'-' * (width - 2 * INDENT)}')
+
+        for difficulty in Difficulty:
+            best_per_difficulty = summary.best_per_difficulty[difficulty]
+            strategy_name = Evaluator._truncate_str(
+                best_per_difficulty.strategy_name,
+                width - 2 * INDENT - 12 - 14 - (
+                    0 if best_per_difficulty.is_alone_at_top else 2
+                )
+            )
+
+            print(
+                f'{indent * 2}{pad}{difficulty.name.capitalize()} ' +
+                f'{LEADING_CHAR * (width - 2 * INDENT - len(difficulty.name) - len(strategy_name) - 11 - (0 if best_per_difficulty.is_alone_at_top else 2))} ' +
+                f'{strategy_name}{'' if best_per_difficulty.is_alone_at_top else TERMINAL.bright_black(' *')}  ' +
+                f'{best_per_difficulty.winrate:.2f}'.rjust(6) + '%'
+            )
+
+        best_strategy_name = Evaluator._truncate_str(
+            summary.best_overall.strategy_name,
+            width - 27 - (0 if summary.best_overall.is_alone_at_top else 2)
+        )
+
+        print()
+        print(f'{indent}{pad}Most versatile strategy:   {TERMINAL.bright_blue(best_strategy_name)}{'' if summary.best_overall.is_alone_at_top else TERMINAL.bright_black(' *')}')
+        print(f'{indent}{pad}Overall winrate: {' ' * (width - 24)}' +
+            TERMINAL.bright_blue(f'{summary.best_overall.winrate:.2f}%'.rjust(7))
+        )
+        print(f'{indent}{pad}{'=' * width}')
+        print('\n')
 
     def __init__(
             self,
@@ -370,7 +422,7 @@ class Evaluator:
 
         Evaluator._move_to_record(index)
 
-        truncated_name = Evaluator._truncate_strategy_name(name)
+        truncated_name = Evaluator._truncate_str(name, RECORD_WIDTH - 10)
         Evaluator._write_md(f'{TERMINAL.bright_white('Strategy:')} {TERMINAL.bright_blue(truncated_name)}', 10 + len(truncated_name))
         Evaluator._write_md(f'{TERMINAL.bright_white('=' * RECORD_WIDTH)}', RECORD_WIDTH)
         Evaluator._write_md(f'{INDENT * ' '}Difficulty{'Winrate'.rjust(RECORD_WIDTH - 2 * INDENT - 10, ' ')}')
@@ -389,12 +441,11 @@ class Evaluator:
 
     def _prepare_blank_page(self) -> None:
         print()
-        for _ in range(self._strategy_rows):
-            for _ in range(RECORD_HEIGHT_SPACED):
-                print()
+        for _ in range(self._strategy_rows * RECORD_HEIGHT_SPACED - 1):
+            print()
         Evaluator._write(
             TERMINAL.move_right(2) +
-            TERMINAL.move_up(self._strategy_rows * RECORD_HEIGHT_SPACED)
+            TERMINAL.move_up(self._strategy_rows * RECORD_HEIGHT_SPACED - 1)
         )
 
     def _prepare_form(self) -> None:
@@ -457,6 +508,8 @@ class Evaluator:
             self._evaluate_strategies(max_workers)
         )
         Evaluator._write(TERMINAL.move_down(RECORD_HEIGHT_SPACED * self._strategy_rows - 1))
+
+        Evaluator._write_summary(summary)
 
 
 def demanding_calculation() -> Result:
