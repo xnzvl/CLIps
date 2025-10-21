@@ -216,8 +216,8 @@ class Evaluator:
             width: int,
             best_per_difficulty: Dict[Difficulty, SummaryEntry]
     ) -> None:
-        print(f'{indent}{pad}Best strategy per difficulty:')
-        print(f'{indent}{pad}{'=' * width}')
+        print(f'{indent}{pad}{TERMINAL.bright_white('Best strategy per difficulty:')}')
+        print(f'{indent}{pad}{TERMINAL.bright_white('=' * width)}')
         print(f'{indent * 2}{pad}Difficulty{' ' * (width - 2 * INDENT - 27)}Strategy  Winrate')
         print(f'{indent * 2}{pad}{'-' * (width - 2 * INDENT)}')
 
@@ -248,9 +248,16 @@ class Evaluator:
             name_width
         ).rjust(name_width)
 
-        print(f'{indent}{pad}Most versatile strategy:   {TERMINAL.bright_blue(best_strategy_name)}{'' if best_overall.is_alone_at_top else TERMINAL.bright_black('*')}')
-        print(f'{indent}{pad}Overall winrate: {' ' * (width - 24)}' + TERMINAL.bright_blue(f'{best_overall.winrate:.2f}%'.rjust(7)))
-        print(f'{indent}{pad}{'=' * width}')
+        print(
+            f'{indent}{pad}{TERMINAL.bright_white('Most versatile strategy:   ')}' +
+            f'{TERMINAL.bright_blue(best_strategy_name)}' +
+            f'{'' if best_overall.is_alone_at_top else TERMINAL.bright_black('*')}'
+        )
+        print(
+            f'{indent}{pad}{TERMINAL.bright_white('Overall winrate:')} {' ' * (width - 24)}' +
+            TERMINAL.bright_blue(f'{best_overall.winrate:.2f}%'.rjust(7))
+        )
+        print(f'{indent}{pad}{TERMINAL.bright_white('=' * width)}')
 
     @staticmethod
     def _write_summary_note(indent: str) -> None:
@@ -261,7 +268,7 @@ class Evaluator:
         print(TERMINAL.normal, end='')
 
     @staticmethod
-    def _write_summary(summary: Summary) -> None:  # TODO: refactor & use colours (bright white)
+    def _write_summary(summary: Summary) -> None:  # TODO: refactor
         indent = ' ' * INDENT
         pad = ' ' * PADDING
         width = RECORD_WIDTH_SPACED + RECORD_WIDTH - 2 * PADDING
