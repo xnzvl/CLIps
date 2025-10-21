@@ -6,7 +6,7 @@ from blessed import Terminal
 
 from src.solving.strategy import Strategy
 
-from .types import FormLocation, Difficulty, Summary, SummaryEntry
+from .types import RecordPosition, Difficulty, Summary, SummaryEntry
 
 
 ENTRIES_PER_ROW: Final = 2
@@ -73,19 +73,19 @@ class ConsoleOutput:
             ('' if row == 0 else TERMINAL.move_up(row * RECORD_HEIGHT_SPACED))
         )
 
-    def move_to_record_difficulty(self, form_location: FormLocation) -> None:
-        self.move_to_record(form_location.strategy_index)
+    def move_to_record_difficulty(self, record_position: RecordPosition) -> None:
+        self.move_to_record(record_position.strategy_index)
         self.write(
             TERMINAL.move_right(18) +
-            TERMINAL.move_down(4 + form_location.difficulty_index)
+            TERMINAL.move_down(4 + record_position.difficulty_index)
         )
 
-    def move_from_record_difficulty(self, form_location: FormLocation) -> None:
+    def move_from_record_difficulty(self, record_position: RecordPosition) -> None:
         self.write(
             TERMINAL.move_left(RECORD_WIDTH - INDENT) +
-            TERMINAL.move_up(4 + form_location.difficulty_index)
+            TERMINAL.move_up(4 + record_position.difficulty_index)
         )
-        self.move_from_record(form_location.strategy_index)
+        self.move_from_record(record_position.strategy_index)
 
     def write_progress(self, tests_done: int) -> None:
         self.write(
@@ -97,8 +97,8 @@ class ConsoleOutput:
         just_width = RECORD_WIDTH - 2 * INDENT - 16
         self.write(f' {winrate:.2f}%'.rjust(just_width, LEADING_CHAR))
 
-    def write_throbber_char(self, form_location: FormLocation, char: str) -> None:
-        self.move_to_record_difficulty(form_location)
+    def write_throbber_char(self, record_position: RecordPosition, char: str) -> None:
+        self.move_to_record_difficulty(record_position)
 
         horizontal_move = RECORD_WIDTH - 21
         self.write(
@@ -106,7 +106,7 @@ class ConsoleOutput:
             TERMINAL.blue(char)
         )
 
-        self.move_from_record_difficulty(form_location)
+        self.move_from_record_difficulty(record_position)
         self.flush()
 
     def write_summary_per_difficulty(

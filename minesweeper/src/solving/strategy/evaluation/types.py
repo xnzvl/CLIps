@@ -20,13 +20,13 @@ class Evaluation:
 
 
 @dataclass(frozen=True)
-class FormLocation:   # TODO: better name
+class RecordPosition:   # TODO: better name
     strategy_index: int
     difficulty_index: int
 
 
 @dataclass(frozen=True)
-class FormUpdate(FormLocation):   # TODO: better name
+class RecordUpdate(RecordPosition):   # TODO: better name
     result: Result
 
 

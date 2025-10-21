@@ -19,7 +19,7 @@ from .console_output import ConsoleOutput
 from .types import (
     Difficulty,
     Evaluation,
-    FormLocation, FormUpdate,
+    RecordPosition, RecordUpdate,
     Summary, SummaryEntry
 )
 
@@ -37,7 +37,7 @@ class Evaluator:
             result: Result
     ) -> None:
         progress_updates_sender.send(
-            FormUpdate(
+            RecordUpdate(
                 strategy_index=strategy_index,
                 difficulty_index=difficulty_index,
                 result=result
@@ -57,11 +57,11 @@ class Evaluator:
 
         self._console = ConsoleOutput(strategies, testing_batch_size)
 
-    def _create_active_throbber(self, form_location: FormLocation) -> Repeater:
+    def _create_active_throbber(self, record_position: RecordPosition) -> Repeater:
         repeater = Repeater(
             0.05,
             lambda throbber: self._console.write_throbber_char(
-                form_location,
+                record_position,
                 throbber.get_and_progress()
             ),
             Throbber(2)
@@ -79,7 +79,7 @@ class Evaluator:
 
         throbbers = [
             self._create_active_throbber(
-                FormLocation(
+                RecordPosition(
                     strategy_index=i // diff_len,
                     difficulty_index=i % diff_len,
                 )
