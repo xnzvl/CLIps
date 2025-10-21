@@ -15,14 +15,15 @@ from src.solving.strategy import Strategy
 from src.solving.strategy.evaluation.throbber import Throbber
 from src.utils import Repeater
 
-from .dataclasses import (
+from .types import (
+    Difficulty,
     Evaluation,
     FormLocation, FormUpdate,
     Summary, SummaryEntry
 )
-from .difficulty import Difficulty
-from .printing import (
+from .printing import (  # TODO: turn into class
     flush,
+    hidden_cursor,
     move_to_record_difficulty, move_from_record_difficulty,
     move_to_records_end,
     prepare_evaluation_records,
@@ -32,11 +33,8 @@ from .printing import (
 )
 
 
-# TODO: remove magic constants in this module
-# TODO: separate print funcs to separate class?
 # TODO: refactor the whole module
 # TODO: fix bug - overall winrate is wrong
-# TODO: hide cursor
 
 
 class Evaluator:
@@ -287,14 +285,15 @@ class Evaluator:
         )
 
     def run(self, max_workers: int = 16) -> None:
-        prepare_evaluation_records(self._strategies, self.testing_batch_size)
+        with hidden_cursor():
+            prepare_evaluation_records(self._strategies, self.testing_batch_size)
 
-        summary = self._summarise(
-            self._evaluate_strategies(max_workers)
-        )
+            summary = self._summarise(
+                self._evaluate_strategies(max_workers)
+            )
 
-        move_to_records_end(self._strategies)
-        write_summary(summary)
+            move_to_records_end(self._strategies)
+            write_summary(summary)
 
 
 def demanding_calculation() -> Result:

@@ -1,15 +1,12 @@
-from typing import List, Tuple, Dict, Final
+from contextlib import AbstractContextManager
+from enum import Enum, auto, unique
+from typing import Dict, Final, List, Tuple
 
 from blessed import Terminal
 
 from src.solving.strategy import Strategy
 
-from .dataclasses import (
-    FormLocation,
-    Summary, SummaryEntry
-)
-from .difficulty import Difficulty
-from .note_position import NotePosition
+from .types import FormLocation, Difficulty, Summary, SummaryEntry
 
 
 ENTRIES_PER_ROW: Final = 2
@@ -33,7 +30,16 @@ assert 2 * PADDING < RECORD_WIDTH_SPACED
 TERMINAL = Terminal()
 
 
+@unique
+class NotePosition(Enum):
+    NONE                 = auto()
+    AFTER_PER_DIFFICULTY = auto()
+    AT_THE_END           = auto()
+
+
+# TODO: this module name
 # TODO: reorder functions (group move_* and write_*)
+# TODO: go over func names and make them more self-explanatory
 
 
 def write(string: str) -> None:
@@ -273,3 +279,7 @@ def prepare_evaluation_records(
         prepare_strategy_record(strategy_name, i, testing_batch_size)
 
     flush()
+
+
+def hidden_cursor() -> AbstractContextManager[None, bool | None]:
+    return TERMINAL.hidden_cursor()

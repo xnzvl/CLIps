@@ -1,9 +1,16 @@
 from dataclasses import dataclass
+from enum import Enum, unique
 from typing import Dict
 
 from src.game.sweeper import Result
 
-from .difficulty import Difficulty
+
+@unique
+class Difficulty(Enum):
+    # difficulty | mine coefficient
+    EASY         = (0, 8.1)
+    INTERMEDIATE = (1, 6.4)
+    HARD         = (2, 4.8)
 
 
 @dataclass(frozen=True)
