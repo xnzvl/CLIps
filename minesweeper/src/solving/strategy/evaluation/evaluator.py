@@ -15,21 +15,12 @@ from src.solving.strategy import Strategy
 from src.solving.strategy.evaluation.throbber import Throbber
 from src.utils import Repeater
 
+from .console_output import ConsoleOutput
 from .types import (
     Difficulty,
     Evaluation,
     FormLocation, FormUpdate,
     Summary, SummaryEntry
-)
-from .printing import (  # TODO: turn into class
-    flush,
-    hidden_cursor,
-    move_to_record_difficulty, move_from_record_difficulty,
-    move_to_records_end,
-    prepare_evaluation_records,
-    update_progress, update_progress_done,
-    write_summary,
-    write_throbber_char
 )
 
 
@@ -53,17 +44,6 @@ class Evaluator:
             )
         )
 
-    @staticmethod
-    def _create_active_throbber(form_location: FormLocation) -> Repeater:
-        repeater = Repeater(
-            0.05,
-            lambda throbber: write_throbber_char(form_location, throbber.get_and_progress()),
-            Throbber(2)
-        )
-
-        repeater.start()
-        return repeater
-
     def __init__(
             self,
             strategies: List[Tuple[str, Strategy]],
@@ -72,8 +52,23 @@ class Evaluator:
     ) -> None:
         self._strategies = strategies
 
-        self.dimensions = dimensions
-        self.testing_batch_size = testing_batch_size
+        self._dimensions = dimensions
+        self._testing_batch_size = testing_batch_size
+
+        self._console = ConsoleOutput(strategies, testing_batch_size)
+
+    def _create_active_throbber(self, form_location: FormLocation) -> Repeater:
+        repeater = Repeater(
+            0.05,
+            lambda throbber: self._console.write_throbber_char(
+                form_location,
+                throbber.get_and_progress()
+            ),
+            Throbber(2)
+        )
+
+        repeater.start()
+        return repeater
 
     def _throbber_updater(
             self,
@@ -83,7 +78,7 @@ class Evaluator:
         diff_len = len(Difficulty)
 
         throbbers = [
-            Evaluator._create_active_throbber(
+            self._create_active_throbber(
                 FormLocation(
                     strategy_index=i // diff_len,
                     difficulty_index=i % diff_len,
@@ -113,7 +108,7 @@ class Evaluator:
 
         update = progress_updates_receiver.recv()
         while update is not None:
-            move_to_record_difficulty(update)
+            self._console.move_to_record_difficulty(update)
 
             i = update.strategy_index * diff_len + update.difficulty_index
 
@@ -123,16 +118,16 @@ class Evaluator:
             tests_completed[i] += 1
             tests_done = tests_completed[i]
 
-            if tests_done != self.testing_batch_size:
-                update_progress(tests_done, self.testing_batch_size)
+            if tests_done != self._testing_batch_size:
+                self._console.write_progress(tests_done)
             else:
                 throbber_updates_sender.send(update)
                 throbber_ack_receiver.recv()
 
-                update_progress_done(victories[i] / self.testing_batch_size * 100)
+                self._console.write_winrate(victories[i] / self._testing_batch_size * 100)
 
-            move_from_record_difficulty(update)
-            flush()
+            self._console.move_from_record_difficulty(update)
+            self._console.flush()
 
             update = progress_updates_receiver.recv()
 
@@ -144,7 +139,8 @@ class Evaluator:
             per_difficulty: Dict[Difficulty, float] = dict()
 
             for difficulty_index, difficulty in enumerate(Difficulty):
-                per_difficulty[difficulty] = victories[strategy_index * diff_len + difficulty_index] / self.testing_batch_size * 100
+                per_difficulty[difficulty] = victories[strategy_index * diff_len + difficulty_index] \
+                    / self._testing_batch_size * 100
 
             evaluations.append(
                 Evaluation(
@@ -168,15 +164,15 @@ class Evaluator:
 
             bot = BotFactory.get_minefield_bot(
                 SweeperConfiguration(
-                    dimensions=self.dimensions,
-                    mines=int((self.dimensions.width * self.dimensions.height) / diff_coefficient),
+                    dimensions=self._dimensions,
+                    mines=int((self._dimensions.width * self._dimensions.height) / diff_coefficient),
                     question_marks=False
                 ),
                 strategy,
                 f'evaluator::{strategy_name}',
             )
 
-            for _ in range(self.testing_batch_size):
+            for _ in range(self._testing_batch_size):
                 pool.apply_async(
                     func=demanding_calculation,  # bot.solve,  # TODO: uncomment
                     callback=partial(
@@ -285,15 +281,15 @@ class Evaluator:
         )
 
     def run(self, max_workers: int = 16) -> None:
-        with hidden_cursor():
-            prepare_evaluation_records(self._strategies, self.testing_batch_size)
+        with self._console.hidden_cursor():
+            self._console.prepare_evaluation_records()
 
             summary = self._summarise(
                 self._evaluate_strategies(max_workers)
             )
 
-            move_to_records_end(self._strategies)
-            write_summary(summary)
+            self._console.move_to_records_end()
+            self._console.write_summary(summary)
 
 
 def demanding_calculation() -> Result:
