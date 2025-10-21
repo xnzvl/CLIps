@@ -240,7 +240,7 @@ class Evaluator:
         best_overall: SummaryEntry | None = None
 
         for evaluation in evaluations:
-            winrate_sum = 0
+            winrate_sum = 0.0
 
             for difficulty, winrate in evaluation.winrate_per_difficulty.items():
                 best_so_far = best_per_difficulty.get(difficulty)
@@ -275,6 +275,7 @@ class Evaluator:
                     is_alone_at_top=False
                 )
 
+        assert best_overall is not None
         return Summary(
             best_per_difficulty=best_per_difficulty,
             best_overall=best_overall
