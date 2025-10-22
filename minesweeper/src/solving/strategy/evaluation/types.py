@@ -16,7 +16,7 @@ class Difficulty(Enum):
 @dataclass(frozen=True)
 class Evaluation:
     strategy_name: str
-    winrate_per_difficulty: Dict[Difficulty, float]
+    winrate_per_difficulty: Dict[Difficulty, float | None]
 
 
 @dataclass(frozen=True)

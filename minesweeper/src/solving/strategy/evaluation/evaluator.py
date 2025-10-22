@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple
 
 from src.common import Dimensions, SweeperConfiguration
 from src.game.sweeper import Result, GameState
-from src.solving.bot import BotFactory
+from src.solving.bot import BotFactory, Bot
 from src.solving.strategy import Strategy
 from src.solving.strategy.evaluation.throbber import Throbber
 from src.utils import Repeater
@@ -100,7 +100,8 @@ class Evaluator:
             progress_updates_receiver: Connection,
             throbber_updates_sender: Connection,
             throbber_ack_receiver: Connection,
-            victories: ShareableList[int]
+            victories: ShareableList[int],
+            errors: ShareableList[bool]
     ) -> None:
         diff_len = len(Difficulty)
 
@@ -112,26 +113,31 @@ class Evaluator:
 
             i = update.strategy_index * diff_len + update.difficulty_index
 
-            if update.result == GameState.VICTORY:
+            if update.result is None:
+                errors[i] = True
+            elif update.result == GameState.VICTORY:
                 victories[i] += 1
 
             tests_completed[i] += 1
             tests_done = tests_completed[i]
 
             if tests_done != self._testing_batch_size:
-                self._console.write_progress(tests_done)
+                self._console.write_difficulty_progress(tests_done)
             else:
                 throbber_updates_sender.send(update)
                 throbber_ack_receiver.recv()
 
-                self._console.write_winrate(victories[i] / self._testing_batch_size * 100)
+                if errors[i]:
+                    self._console.write_difficulty_error()
+                else:
+                    self._console.write_difficulty_winrate(victories[i] / self._testing_batch_size * 100)
 
             self._console.move_from_record_difficulty(update)
             self._console.flush()
 
             update = progress_updates_receiver.recv()
 
-    def _to_evaluations(self, victories: ShareableList[int]) -> List[Evaluation]:
+    def _to_evaluations(self, victories: ShareableList[int], errors: ShareableList[bool]) -> List[Evaluation]:
         evaluations: List[Evaluation] = list()
         diff_len = len(Difficulty)
 
@@ -139,8 +145,10 @@ class Evaluator:
             per_difficulty: Dict[Difficulty, float] = dict()
 
             for difficulty_index, difficulty in enumerate(Difficulty):
-                per_difficulty[difficulty] = victories[strategy_index * diff_len + difficulty_index] \
-                    / self._testing_batch_size * 100
+                i = strategy_index * diff_len + difficulty_index
+                per_difficulty[difficulty] = victories[i] / self._testing_batch_size * 100 \
+                    if not errors[i] \
+                    else None
 
             evaluations.append(
                 Evaluation(
@@ -174,7 +182,10 @@ class Evaluator:
 
             for _ in range(self._testing_batch_size):
                 pool.apply_async(
-                    func=demanding_calculation,  # bot.solve,  # TODO: uncomment
+                    func=partial(
+                        guarded_bot_solve,
+                        bot
+                    ),
                     callback=partial(
                         Evaluator._submit_progress_update,
                         progress_updates_sender,
@@ -188,7 +199,10 @@ class Evaluator:
         smm.start()
 
         victories = smm.ShareableList(
-            [0 for _ in range(len(self._strategies) * len(Difficulty))]
+            [ 0 for _ in range(len(self._strategies) * len(Difficulty)) ]
+        )
+        errors = smm.ShareableList(
+            [ False for _ in range(len(self._strategies) * len(Difficulty)) ]
         )
 
         progress_updates_receiver, progress_updates_sender = Pipe(False)
@@ -197,7 +211,7 @@ class Evaluator:
 
         progress_updater_process = Process(
             target=self._progress_updater,
-            args=(progress_updates_receiver, throbber_updates_sender, throbber_ack_receiver, victories)
+            args=(progress_updates_receiver, throbber_updates_sender, throbber_ack_receiver, victories, errors)
         )
         progress_updater_process.start()
 
@@ -228,7 +242,7 @@ class Evaluator:
         throbber_ack_receiver.close()
         throbber_ack_sender.close()
 
-        evaluations = self._to_evaluations(victories)
+        evaluations = self._to_evaluations(victories, errors)
 
         smm.shutdown()
         smm.join()
@@ -243,6 +257,9 @@ class Evaluator:
             winrate_sum = 0.0
 
             for difficulty, winrate in evaluation.winrate_per_difficulty.items():
+                if winrate is None:
+                    continue
+
                 best_so_far = best_per_difficulty.get(difficulty)
 
                 if best_so_far is None or best_so_far.winrate < winrate:
@@ -295,4 +312,15 @@ class Evaluator:
 
 def demanding_calculation() -> Result:
     sleep(randint(1, 10) / 10)
+
+    if randint(1, 15) == 1:
+        raise Exception()
+
     return choice([GameState.VICTORY, GameState.FAILURE])
+
+
+def guarded_bot_solve(bot: Bot) -> Result | None:
+    try:
+        return demanding_calculation()  # bot.solve()  # TODO: uncomment
+    except Exception:  # TODO: perhaps StrategyError?
+        return None

@@ -87,15 +87,23 @@ class ConsoleOutput:
         )
         self.move_from_record(record_position.strategy_index)
 
-    def write_progress(self, tests_done: int) -> None:
+    def write_difficulty_progress(self, tests_done: int) -> None:
         self.write(
             attempts_str(tests_done, self._testing_batch_size) +
             TERMINAL.move_right(2)
         )
 
-    def write_winrate(self, winrate: float) -> None:
+    def write_difficulty_winrate(self, winrate: float) -> None:
         just_width = RECORD_WIDTH - 2 * INDENT - 16
         self.write(f' {winrate:.2f}%'.rjust(just_width, LEADING_CHAR))
+
+    def write_difficulty_error(self) -> None:
+        just_width = RECORD_WIDTH - 2 * INDENT - 16
+
+        self.write(
+            LEADING_CHAR * (just_width - 7) +
+            f' {TERMINAL.red('ERROR!')}'
+        )
 
     def write_throbber_char(self, record_position: RecordPosition, char: str) -> None:
         self.move_to_record_difficulty(record_position)
