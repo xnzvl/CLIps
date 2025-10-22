@@ -20,13 +20,13 @@ class Evaluation:
 
 
 @dataclass(frozen=True)
-class RecordPosition:   # TODO: better name
+class RecordPosition:
     strategy_index: int
     difficulty_index: int
 
 
 @dataclass(frozen=True)
-class RecordUpdate(RecordPosition):   # TODO: better name
+class RecordUpdate(RecordPosition):
     result: Result
 
 

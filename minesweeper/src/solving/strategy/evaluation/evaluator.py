@@ -24,10 +24,6 @@ from .types import (
 )
 
 
-# TODO: refactor the whole module
-# TODO: fix bug - overall winrate is wrong
-
-
 class Evaluator:
     def __init__(
             self,
@@ -44,12 +40,12 @@ class Evaluator:
 
     def _create_active_throbber(self, record_position: RecordPosition) -> Repeater:
         repeater = Repeater(
-            0.05,
+            0.125,
             lambda throbber: self._console.write_throbber_char(
                 record_position,
                 throbber.get_and_progress()
             ),
-            Throbber(2)
+            Throbber()
         )
 
         repeater.start()
@@ -75,7 +71,7 @@ class Evaluator:
         update = throbber_updates_receiver.recv()
         while update is not None:
             throbbers[update.strategy_index * diff_len + update.difficulty_index].stop()
-            sleep(0.075)
+            sleep(0.05)
             throbber_ack_sender.send(None)
 
             update = throbber_updates_receiver.recv()
