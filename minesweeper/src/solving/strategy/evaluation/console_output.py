@@ -122,7 +122,7 @@ class ConsoleOutput:
             indent: str,
             pad: str,
             width: int,
-            best_per_difficulty: Dict[Difficulty, SummaryEntry]
+            best_per_difficulty: Dict[Difficulty, SummaryEntry | None]
     ) -> None:
         print(f'{indent}{pad}{TERMINAL.bright_white('Best strategy per difficulty:')}')
         print(f'{indent}{pad}{TERMINAL.bright_white('=' * width)}')
@@ -130,17 +130,17 @@ class ConsoleOutput:
         print(f'{indent * 2}{pad}{'-' * (width - 2 * INDENT)}')
 
         for difficulty in Difficulty:
-            best_per_this_diff = best_per_difficulty[difficulty]
-            strategy_name = truncate_str(
-                best_per_this_diff.strategy_name,
-                width - 2 * INDENT - 12 - 14
-            )
+            best_per_this_diff = best_per_difficulty.get(difficulty)
+
+            strategy_name, is_alone_at_top, winrate_str = unpack_or_default(best_per_this_diff)
+            truncated_strategy_name = truncate_str(strategy_name, width - 2 * INDENT - 12 - 14)
 
             print(
                 f'{indent * 2}{pad}{difficulty.name.capitalize()} ' +
-                f'{LEADING_CHAR * (width - 2 * INDENT - len(difficulty.name) - len(strategy_name) - 11)} ' +
-                f'{strategy_name}{' ' if best_per_this_diff.is_alone_at_top else TERMINAL.bright_black('*')} ' +
-                f'{best_per_this_diff.winrate:.2f}'.rjust(6) + '%'
+                f'{LEADING_CHAR * (width - 2 * INDENT - len(difficulty.name) - TERMINAL.length(truncated_strategy_name) - 11)} ' +
+                f'{truncated_strategy_name}' +
+                f'{' ' if is_alone_at_top else TERMINAL.bright_black('*')} ' +
+                winrate_str
             )
 
     def write_summary_overall_best(
@@ -148,22 +148,25 @@ class ConsoleOutput:
             indent: str,
             pad: str,
             width: int,
-            best_overall: SummaryEntry
+            best_overall: SummaryEntry | None
     ) -> None:
+        strategy_name, is_alone_at_top, winrate_str = unpack_or_default(best_overall)
+
         name_width = width - 27
-        best_strategy_name = truncate_str(
-            best_overall.strategy_name,
+        truncated_strategy_name = truncate_str(
+            strategy_name,
             name_width
-        ).rjust(name_width)
+        )
 
         print(
             f'{indent}{pad}{TERMINAL.bright_white('Most versatile strategy:   ')}' +
-            f'{TERMINAL.bright_blue(best_strategy_name)}' +
-            f'{'' if best_overall.is_alone_at_top else TERMINAL.bright_black('*')}'
+            f'{' ' * (name_width - TERMINAL.length(truncated_strategy_name))}' +
+            f'{TERMINAL.bright_blue(truncated_strategy_name)}' +
+            f'{'' if is_alone_at_top else TERMINAL.bright_black('*')}'
         )
         print(
             f'{indent}{pad}{TERMINAL.bright_white('Overall winrate:')} {' ' * (width - 24)}' +
-            TERMINAL.bright_blue(f'{best_overall.winrate:.2f}%'.rjust(7))
+            TERMINAL.bright_blue(winrate_str)
         )
         print(f'{indent}{pad}{TERMINAL.bright_white('=' * width)}')
 
@@ -256,16 +259,34 @@ def attempts_str(attempt: int, from_attempts: int) -> str:  # TODO: better func 
 
 def truncate_str(strategy_name: str, max_length: int) -> str:
     return TERMINAL.truncate(strategy_name, max_length - 3) + '...' \
-        if len(strategy_name) > max_length \
+        if TERMINAL.length(strategy_name) > max_length \
         else strategy_name
 
 
 def get_note_position(summary: Summary) -> NotePosition:
-    if not summary.best_overall.is_alone_at_top:
+    if summary.best_overall is not None and not summary.best_overall.is_alone_at_top:
         return NotePosition.AT_THE_END
 
-    for entry in summary.best_per_difficulty.values():
+    for entry in (
+            summary.best_per_difficulty.values()
+            if summary.best_per_difficulty is not None
+            else []
+    ):
         if not entry.is_alone_at_top:
             return NotePosition.AFTER_PER_DIFFICULTY
 
     return NotePosition.NONE
+
+
+def unpack_or_default(entry: SummaryEntry | None) -> Tuple[str, bool, str]:
+    return (
+        TERMINAL.bright_black('None'),
+        True,
+        TERMINAL.bright_black('-------')
+    ) \
+        if entry is None \
+        else (
+            entry.strategy_name,
+            entry.is_alone_at_top,
+            f'{entry.winrate:.2f}'.rjust(6) + '%'
+        )

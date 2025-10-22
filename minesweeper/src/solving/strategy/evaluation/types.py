@@ -39,5 +39,5 @@ class SummaryEntry:
 
 @dataclass(frozen=True)
 class Summary:
-    best_per_difficulty: Dict[Difficulty, SummaryEntry]
-    best_overall: SummaryEntry
+    best_per_difficulty: Dict[Difficulty, SummaryEntry | None]
+    best_overall: SummaryEntry | None

@@ -29,21 +29,6 @@ from .types import (
 
 
 class Evaluator:
-    @staticmethod
-    def _submit_progress_update(
-            progress_updates_sender: Connection,
-            strategy_index: int,
-            difficulty_index: int,
-            result: Result
-    ) -> None:
-        progress_updates_sender.send(
-            RecordUpdate(
-                strategy_index=strategy_index,
-                difficulty_index=difficulty_index,
-                result=result
-            )
-        )
-
     def __init__(
             self,
             strategies: List[Tuple[str, Strategy]],
@@ -187,7 +172,7 @@ class Evaluator:
                         bot
                     ),
                     callback=partial(
-                        Evaluator._submit_progress_update,
+                        submit_progress_update,
                         progress_updates_sender,
                         strategy_index,
                         diff_index
@@ -250,49 +235,32 @@ class Evaluator:
         return evaluations
 
     def _summarise(self, evaluations: List[Evaluation]) -> Summary:  # TODO: refactor
-        best_per_difficulty: Dict[Difficulty, SummaryEntry] = dict()
+        best_per_difficulty: Dict[Difficulty, SummaryEntry | None] = dict()
         best_overall: SummaryEntry | None = None
 
         for evaluation in evaluations:
             winrate_sum = 0.0
+            only_valid_winrates = True
 
             for difficulty, winrate in evaluation.winrate_per_difficulty.items():
                 if winrate is None:
+                    only_valid_winrates = False
                     continue
 
-                best_so_far = best_per_difficulty.get(difficulty)
-
-                if best_so_far is None or best_so_far.winrate < winrate:
-                    best_per_difficulty[difficulty] = SummaryEntry(
-                        strategy_name=evaluation.strategy_name,
-                        winrate=winrate,
-                        is_alone_at_top=True
-                    )
-                elif best_so_far.winrate == winrate:
-                    best_per_difficulty[difficulty] = SummaryEntry(
-                        strategy_name=best_so_far.strategy_name,
-                        winrate=best_so_far.winrate,
-                        is_alone_at_top=False
-                    )
-
+                best_per_difficulty[difficulty] = keep_better_summary_entry(
+                    evaluation.strategy_name,
+                    winrate,
+                    best_per_difficulty.get(difficulty)
+                )
                 winrate_sum += winrate
 
-            winrate_overall = winrate_sum / 3
-
-            if best_overall is None or best_overall.winrate < winrate_overall:
-                best_overall = SummaryEntry(
-                    strategy_name=evaluation.strategy_name,
-                    winrate=winrate_overall,
-                    is_alone_at_top=True
-                )
-            elif best_overall.winrate == winrate_overall:
-                best_overall = SummaryEntry(
-                    strategy_name=best_overall.strategy_name,
-                    winrate=best_overall.winrate,
-                    is_alone_at_top=False
+            if only_valid_winrates:
+                best_overall = keep_better_summary_entry(
+                    evaluation.strategy_name,
+                    winrate_sum / 3,
+                    best_overall
                 )
 
-        assert best_overall is not None
         return Summary(
             best_per_difficulty=best_per_difficulty,
             best_overall=best_overall
@@ -310,17 +278,49 @@ class Evaluator:
             self._console.write_summary(summary)
 
 
-def demanding_calculation() -> Result:
-    sleep(randint(1, 10) / 10)
-
-    if randint(1, 15) == 1:
-        raise Exception()
-
-    return choice([GameState.VICTORY, GameState.FAILURE])
+def submit_progress_update(
+        progress_updates_sender: Connection,
+        strategy_index: int,
+        difficulty_index: int,
+        result: Result
+) -> None:
+    progress_updates_sender.send(
+        RecordUpdate(
+            strategy_index=strategy_index,
+            difficulty_index=difficulty_index,
+            result=result
+        )
+    )
 
 
 def guarded_bot_solve(bot: Bot) -> Result | None:
+    def demanding_calculation() -> Result:  # TODO: remove
+        sleep(randint(1, 10) / 10)
+
+        if randint(1, 10) == 1:
+            raise Exception()
+
+        return choice([GameState.VICTORY, GameState.FAILURE])
+
     try:
         return demanding_calculation()  # bot.solve()  # TODO: uncomment
     except Exception:  # TODO: perhaps StrategyError?
         return None
+
+
+def keep_better_summary_entry(strategy_name: str, winrate: float, target: SummaryEntry | None) -> SummaryEntry:
+    if target is None or target.winrate < winrate:
+        return SummaryEntry(
+            strategy_name=strategy_name,
+            winrate=winrate,
+            is_alone_at_top=True
+        )
+
+    if target.winrate == winrate:
+        return SummaryEntry(
+            strategy_name=target.strategy_name,
+            winrate=target.winrate,
+            is_alone_at_top=False
+        )
+
+    return target
