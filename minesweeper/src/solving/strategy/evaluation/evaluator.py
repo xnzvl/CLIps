@@ -123,7 +123,7 @@ class Evaluator:
         diff_len = len(Difficulty)
 
         for strategy_index, (strategy_name, _) in enumerate(self._strategies):
-            per_difficulty: Dict[Difficulty, float] = dict()
+            per_difficulty: Dict[Difficulty, float | None] = dict()
 
             for difficulty_index, difficulty in enumerate(Difficulty):
                 i = strategy_index * diff_len + difficulty_index

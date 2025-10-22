@@ -1,6 +1,6 @@
 from contextlib import AbstractContextManager
 from enum import Enum, auto, unique
-from typing import Dict, Final, List, Tuple
+from typing import Dict, Final, List, Tuple, cast
 
 from blessed import Terminal
 
@@ -270,9 +270,9 @@ def get_note_position(summary: Summary) -> NotePosition:
     for entry in (
             summary.best_per_difficulty.values()
             if summary.best_per_difficulty is not None
-            else []
+            else cast(List[SummaryEntry | None], [])
     ):
-        if not entry.is_alone_at_top:
+        if entry is not None and not entry.is_alone_at_top:
             return NotePosition.AFTER_PER_DIFFICULTY
 
     return NotePosition.NONE
