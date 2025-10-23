@@ -1,7 +1,6 @@
 from functools import partial
-from multiprocessing import Process, Pipe
+from multiprocessing import Process
 from multiprocessing.connection import Connection
-from multiprocessing.managers import SharedMemoryManager
 from multiprocessing.pool import Pool
 from multiprocessing.shared_memory import ShareableList
 from random import randint, choice
@@ -15,6 +14,7 @@ from src.solving.strategy import Strategy
 from src.solving.strategy.evaluation.throbber import Throbber
 from src.utils import Repeater
 
+from .chunks import PipeChunk, SharableListChunk
 from .console_output import ConsoleOutput
 from .types import (
     Difficulty,
@@ -175,62 +175,59 @@ class Evaluator:
                     )
                 )
 
-    def _evaluate_strategies(self, max_workers: int) -> List[Evaluation]:  # TODO: refactor
-        smm = SharedMemoryManager()
-        smm.start()
-
-        victories = smm.ShareableList(
-            [ 0 for _ in range(len(self._strategies) * len(Difficulty)) ]
-        )
-        errors = smm.ShareableList(
-            [ False for _ in range(len(self._strategies) * len(Difficulty)) ]
-        )
-
-        progress_updates_receiver, progress_updates_sender = Pipe(False)
-        throbber_updates_receiver, throbber_updates_sender = Pipe(False)
-        throbber_ack_receiver,     throbber_ack_sender     = Pipe(False)
-
-        progress_updater_process = Process(
+    def _create_progress_updater_process(self, pipes: PipeChunk, shared_lists: SharableListChunk) -> Process:
+        return Process(
             target=self._progress_updater,
-            args=(progress_updates_receiver, throbber_updates_sender, throbber_ack_receiver, victories, errors)
+            args=(
+                pipes.progress_updates_receiver,
+                pipes.throbber_updates_sender,
+                pipes.throbber_ack_receiver,
+                shared_lists.victories,
+                shared_lists.errors
+            )
         )
-        progress_updater_process.start()
 
-        throbber_updater_process = Process(
+    def _create_throbber_updater_process(self, pipes: PipeChunk) -> Process:
+        return Process(
             target=self._throbber_updater,
-            args=(throbber_updates_receiver, throbber_ack_sender)
+            args=(
+                pipes.throbber_updates_receiver,
+                pipes.throbber_ack_sender
+            )
         )
+
+    def _evaluate_strategies(self, max_workers: int) -> List[Evaluation]:
+        shared_lists = SharableListChunk(len(self._strategies) * len(Difficulty))
+        pipes = PipeChunk()
+
+        progress_updater_process = self._create_progress_updater_process(pipes, shared_lists)
+        progress_updater_process.start()
+        throbber_updater_process = self._create_throbber_updater_process(pipes)
         throbber_updater_process.start()
 
         pool = Pool(
             processes=max_workers
         )
+
         for strategy_index in range(len(self._strategies)):
-            self._evaluate_strategy(pool, progress_updates_sender, strategy_index)
+            self._evaluate_strategy(pool, pipes.progress_updates_sender, strategy_index)
+
         pool.close()
         pool.join()
 
-        progress_updates_sender.send(None)
+        pipes.progress_updates_sender.send(None)
         progress_updater_process.join()
-
-        throbber_updates_sender.send(None)
+        pipes.throbber_updates_sender.send(None)
         throbber_updater_process.join()
 
-        progress_updates_receiver.close()
-        progress_updates_sender.close()
-        throbber_updates_receiver.close()
-        throbber_updates_sender.close()
-        throbber_ack_receiver.close()
-        throbber_ack_sender.close()
+        evaluations = self._to_evaluations(shared_lists.victories, shared_lists.errors)
 
-        evaluations = self._to_evaluations(victories, errors)
-
-        smm.shutdown()
-        smm.join()
+        shared_lists.dispose()
+        pipes.dispose()
 
         return evaluations
 
-    def _summarise(self, evaluations: List[Evaluation]) -> Summary:  # TODO: refactor
+    def _summarise(self, evaluations: List[Evaluation]) -> Summary:
         best_per_difficulty: Dict[Difficulty, SummaryEntry | None] = dict()
         best_overall: SummaryEntry | None = None
 
