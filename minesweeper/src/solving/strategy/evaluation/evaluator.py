@@ -23,6 +23,7 @@ from .types import (
 )
 
 
+# TODO: timeout per solve?
 class Evaluator:
     def __init__(
             self,
