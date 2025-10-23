@@ -2,7 +2,6 @@ from functools import partial
 from multiprocessing import Process
 from multiprocessing.pool import Pool
 from multiprocessing.shared_memory import ShareableList
-from random import randint, choice
 from time import sleep
 from typing import Dict, List, Tuple, Literal
 
@@ -29,7 +28,7 @@ class Evaluator:
             self,
             strategies: List[Tuple[str, Strategy]],
             dimensions: Dimensions = Dimensions(24, 24),
-            testing_batch_size: int = 10
+            testing_batch_size: int = 16
     ) -> None:
         self._strategies = strategies
 
@@ -172,7 +171,7 @@ class Evaluator:
                         progress_updates_sender,
                         strategy_index,
                         diff_index
-                    )
+                    ),
                 )
 
     def _create_progress_updater_process(self, pipes: PipeChunk, shared_lists: SharableListChunk) -> Process:
@@ -255,16 +254,8 @@ def submit_progress_update(
 
 
 def guarded_bot_solve(bot: Bot) -> Result | None:
-    def demanding_calculation() -> Result:  # TODO: remove
-        sleep(randint(1, 10) / 10)
-
-        if randint(1, 10) == 1:
-            raise Exception()
-
-        return choice([GameState.VICTORY, GameState.FAILURE])
-
     try:
-        return demanding_calculation()  # bot.solve()  # TODO: uncomment
+        return bot.solve()
     except Exception:  # TODO: perhaps StrategyError?
         return None
 

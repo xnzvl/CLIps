@@ -10,7 +10,8 @@ def main() -> None:
             ('random_3', StrategyFactory.get_random_strategy()),
             ('random_4', StrategyFactory.get_random_strategy()),
             ('random_5', StrategyFactory.get_random_strategy()),
-        ]
+        ],
+        testing_batch_size=126,
     )
     evaluator.run()
 
