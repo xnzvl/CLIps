@@ -1,11 +1,10 @@
 from functools import partial
 from multiprocessing import Process
-from multiprocessing.connection import Connection
 from multiprocessing.pool import Pool
 from multiprocessing.shared_memory import ShareableList
 from random import randint, choice
 from time import sleep
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Literal
 
 from src.common import Dimensions, SweeperConfiguration
 from src.game.sweeper import Result, GameState
@@ -16,6 +15,7 @@ from src.utils import Repeater
 
 from .chunks import PipeChunk, SharableListChunk
 from .console_output import ConsoleOutput
+from .typed_pipe import ReceiverPipe, SenderPipe
 from .types import (
     Difficulty,
     Evaluation,
@@ -53,8 +53,8 @@ class Evaluator:
 
     def _throbber_updater(
             self,
-            throbber_updates_receiver: Connection,
-            throbber_ack_sender: Connection
+            throbber_updates_receiver: ReceiverPipe[RecordPosition | None],
+            throbber_ack_sender: SenderPipe[Literal[None]],
     ) -> None:
         diff_len = len(Difficulty)
 
@@ -78,9 +78,9 @@ class Evaluator:
 
     def _progress_updater(  # TODO: refactor
             self,
-            progress_updates_receiver: Connection,
-            throbber_updates_sender: Connection,
-            throbber_ack_receiver: Connection,
+            progress_updates_receiver: ReceiverPipe[RecordUpdate | None],
+            throbber_updates_sender: SenderPipe[RecordPosition | None],
+            throbber_ack_receiver: ReceiverPipe[Literal[None]],
             victories: ShareableList[int],
             errors: ShareableList[bool]
     ) -> None:
@@ -143,7 +143,7 @@ class Evaluator:
     def _evaluate_strategy(
             self,
             pool: Pool,
-            progress_updates_sender: Connection,
+            progress_updates_sender: SenderPipe[RecordUpdate | None],
             strategy_index: int
     ) -> None:
         strategy_name, strategy = self._strategies[strategy_index]
@@ -240,7 +240,7 @@ class Evaluator:
 
 
 def submit_progress_update(
-        progress_updates_sender: Connection,
+        progress_updates_sender: SenderPipe[RecordUpdate | None],
         strategy_index: int,
         difficulty_index: int,
         result: Result

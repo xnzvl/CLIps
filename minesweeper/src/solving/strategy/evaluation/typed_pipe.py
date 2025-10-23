@@ -1,11 +1,18 @@
-from multiprocessing.connection import Connection, Pipe, PipeConnection
-from typing import Literal, Tuple, cast, overload
+from multiprocessing import Pipe, reduction
+from multiprocessing.connection import Connection, PipeConnection
+from typing import Callable, Literal, Tuple, cast, overload
 
 
-# TODO: make it work
+class _ConnectionWrapper:
+    @staticmethod
+    def reduction[T: _ConnectionWrapper](
+            wrapper: T
+    ) -> Tuple[Callable[[Connection | PipeConnection], T], Tuple[Connection | PipeConnection]]:
+        return (
+            wrapper.__class__,
+            (wrapper._connection,)
+        )
 
-
-class _Pipe:
     def __init__(self, connection: Connection | PipeConnection) -> None:
         self._connection = connection
 
@@ -13,7 +20,7 @@ class _Pipe:
         self._connection.close()
 
 
-class SenderPipe[T](_Pipe):
+class SenderPipe[T](_ConnectionWrapper):
     def __init__(self, connection: Connection | PipeConnection) -> None:
         super().__init__(connection)
 
@@ -21,7 +28,7 @@ class SenderPipe[T](_Pipe):
         self._connection.send(obj)
 
 
-class ReceiverPipe[T](_Pipe):
+class ReceiverPipe[T](_ConnectionWrapper):
     def __init__(self, connection: Connection | PipeConnection) -> None:
         super().__init__(connection)
 
@@ -34,7 +41,7 @@ class DuplexPipe[T](SenderPipe[T], ReceiverPipe[T]):
         super().__init__(connection)
 
 
-class GenericPipe[T]:
+class PipeFactory[T]:
     @staticmethod
     @overload
     def create(duplex: Literal[False]) -> Tuple[ReceiverPipe[T], SenderPipe[T]]:
@@ -51,4 +58,12 @@ class GenericPipe[T]:
 
         return (DuplexPipe[T](conn1), DuplexPipe[T](conn2)) \
             if duplex \
-            else (ReceiverPipe[T](conn2), SenderPipe[T](conn1))
+            else (ReceiverPipe[T](conn1), SenderPipe[T](conn2))
+
+    def __init__(self) -> None:
+        raise NotImplementedError('not meant to be instantiated')
+
+
+reduction.register(DuplexPipe, _ConnectionWrapper.reduction)
+reduction.register(ReceiverPipe, _ConnectionWrapper.reduction)
+reduction.register(SenderPipe, _ConnectionWrapper.reduction)
