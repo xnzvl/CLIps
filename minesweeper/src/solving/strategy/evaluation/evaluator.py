@@ -227,43 +227,11 @@ class Evaluator:
 
         return evaluations
 
-    def _summarise(self, evaluations: List[Evaluation]) -> Summary:
-        best_per_difficulty: Dict[Difficulty, SummaryEntry | None] = dict()
-        best_overall: SummaryEntry | None = None
-
-        for evaluation in evaluations:
-            winrate_sum = 0.0
-            only_valid_winrates = True
-
-            for difficulty, winrate in evaluation.winrate_per_difficulty.items():
-                if winrate is None:
-                    only_valid_winrates = False
-                    continue
-
-                best_per_difficulty[difficulty] = keep_better_summary_entry(
-                    evaluation.strategy_name,
-                    winrate,
-                    best_per_difficulty.get(difficulty)
-                )
-                winrate_sum += winrate
-
-            if only_valid_winrates:
-                best_overall = keep_better_summary_entry(
-                    evaluation.strategy_name,
-                    winrate_sum / 3,
-                    best_overall
-                )
-
-        return Summary(
-            best_per_difficulty=best_per_difficulty,
-            best_overall=best_overall
-        )
-
     def run(self, max_workers: int = 16) -> None:
         with self._console.hidden_cursor():
             self._console.prepare_evaluation_records()
 
-            summary = self._summarise(
+            summary = summarise(
                 self._evaluate_strategies(max_workers)
             )
 
@@ -299,6 +267,39 @@ def guarded_bot_solve(bot: Bot) -> Result | None:
         return demanding_calculation()  # bot.solve()  # TODO: uncomment
     except Exception:  # TODO: perhaps StrategyError?
         return None
+
+
+def summarise(evaluations: List[Evaluation]) -> Summary:
+    best_per_difficulty: Dict[Difficulty, SummaryEntry | None] = dict()
+    best_overall: SummaryEntry | None = None
+
+    for evaluation in evaluations:
+        winrate_sum = 0.0
+        only_valid_winrates = True
+
+        for difficulty, winrate in evaluation.winrate_per_difficulty.items():
+            if winrate is None:
+                only_valid_winrates = False
+                continue
+
+            best_per_difficulty[difficulty] = keep_better_summary_entry(
+                evaluation.strategy_name,
+                winrate,
+                best_per_difficulty.get(difficulty)
+            )
+            winrate_sum += winrate
+
+        if only_valid_winrates:
+            best_overall = keep_better_summary_entry(
+                evaluation.strategy_name,
+                winrate_sum / 3,
+                best_overall
+            )
+
+    return Summary(
+        best_per_difficulty=best_per_difficulty,
+        best_overall=best_overall
+    )
 
 
 def keep_better_summary_entry(strategy_name: str, winrate: float, target: SummaryEntry | None) -> SummaryEntry:
