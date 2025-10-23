@@ -1,5 +1,5 @@
-from pipe_chunk import PipeChunk
-from shareable_list_chunk import SharableListChunk
+from .pipe_chunk import PipeChunk
+from .shareable_list_chunk import SharableListChunk
 
 
 __all__ = [
