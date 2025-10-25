@@ -3,6 +3,7 @@ from .strategy import Strategy
 from .strategy_factory import StrategyFactory
 from .strategy_error   import StrategyError
 
+# TODO: export somehow CompositeStrategy
 
 __all__ = [
     'Strategy',
