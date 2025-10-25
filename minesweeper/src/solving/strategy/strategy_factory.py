@@ -1,19 +1,18 @@
-from src.solving.strategy import Strategy
-from src.solving.strategy.steps import LeastDangerGuess, RandomStep, CertainStep
+from .impl.certain_step       import CertainStep
+from .impl.composite_strategy import CompositeStrategy
+from .impl.least_danger_guess import LeastDangerShallowGuess, LeastDangerDeeperGuess
+from .impl.random_step        import RandomStep
+from .strategy import Strategy
 
 
 class StrategyFactory:
     @staticmethod
     def get_random_strategy() -> Strategy:
-        return Strategy(
-            [
-                RandomStep()
-            ]
-        )
+        return RandomStep()
 
     @staticmethod
     def get_certain_strategy() -> Strategy:
-        return Strategy(
+        return CompositeStrategy(
             [
                 CertainStep(),
                 RandomStep()
@@ -22,10 +21,20 @@ class StrategyFactory:
 
     @staticmethod
     def get_least_danger_strategy() -> Strategy:
-        return Strategy(
+        return CompositeStrategy(
             [
                 CertainStep(),
-                LeastDangerGuess(),
+                LeastDangerShallowGuess(),
+                RandomStep()
+            ]
+        )
+
+    @staticmethod
+    def get_least_danger_strategy_plus() -> Strategy:
+        return CompositeStrategy(
+            [
+                CertainStep(),
+                LeastDangerDeeperGuess(),
                 RandomStep()
             ]
         )

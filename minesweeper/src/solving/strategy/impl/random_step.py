@@ -4,12 +4,13 @@ from typing import List, override
 from src.common import Action, Move
 from src.game.grids import Grid
 from src.game.tiles import Tile
-from src.solving.strategy.steps import Step
+
+from ..strategy import Strategy
 
 
-class RandomStep(Step):  # TODO: more customizable! (only edge ones, only COVERED)
+class RandomStep(Strategy):  # TODO: more customizable! (only edge ones, only COVERED)
     @override
-    def get_moves[T: Tile](self, grid: Grid[T]) -> List[Move]:
+    def apply[T: Tile](self, grid: Grid[T]) -> List[Move]:
         random_moves: List[Move] = list()
 
         for point, tile in grid:
