@@ -46,11 +46,7 @@ class Tile(ABC):
 
     def is_covered(self, include_question_marks: bool = True) -> bool:
         symbol = self.get_symbol()
-
-        if symbol == Symbol.COVER or symbol == Symbol.FLAG:
-            return True
-
-        return symbol == Symbol.QUESTION_MARK and include_question_marks
+        return symbol == Symbol.COVER or (include_question_marks and symbol == Symbol.QUESTION_MARK)
 
 
 def tile_to_char(tile: Tile) -> str:
