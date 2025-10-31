@@ -10,7 +10,7 @@ from ..strategy import Strategy
 class CertainStep(Strategy):  # TODO: implement fix_certain_wrong_flags() or smth like that
     @override
     def apply[T: Tile](self, grid: Grid[T]) -> List[Move]:
-        certain_moves: List[Move] = certain_flags(grid)
+        certain_moves = certain_flags(grid)
         certain_moves.extend(certain_uncovers(grid))
 
         return certain_moves

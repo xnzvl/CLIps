@@ -37,19 +37,31 @@ class Bot:
 
         return game_state
 
-    def batch_solve(self, count: int, result_consumer: Callable[[int, Result], None] | None = None) -> int:
+    def batch_solve(
+            self,
+            count: int,
+            result_consumer: Callable[[int, Result], None] | None = None,
+            exception_consumer: Callable[[int, Exception], None] | None = None
+    ) -> int:
         if count < 1:
             raise ValueError('\'count\' must be a positive integer')
 
         victories = 0
 
         for i in range(count):
-            result = self.solve()
+            try:
+                result = self.solve()
 
-            if result_consumer is not None:
-                result_consumer(i, result)
+                if result_consumer is not None:
+                    result_consumer(i, result)
 
-            if result == GameState.VICTORY:
-                victories += 1
+                if result == GameState.VICTORY:
+                    victories += 1
+
+            except Exception as e:
+                if exception_consumer is not None:
+                    exception_consumer(i, e)
+                else:
+                    raise e
 
         return victories

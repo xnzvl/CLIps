@@ -1,20 +1,23 @@
-import sys
-
-from src.clip.runner import Runner
-from src.game.sweeper import WebPageSweeper
-from src.ui import BlessedTUI
-from src.utils import parse_web_page_configuration
+from src.common import Dimensions, SweeperConfiguration
+from src.game.sweeper import Minefield
+from src.solving.bot import Bot, logging_batch_solve
+from src.solving.strategy import StrategyFactory
 
 
 def main() -> None:
-    configuration = parse_web_page_configuration(sys.argv)
-    sweeper_configuration = configuration.sweeper_configuration
+    bot = Bot(
+        Minefield(
+            SweeperConfiguration(
+                Dimensions(24, 24),
+                90,
+                False
+            )
+        ),
+        StrategyFactory.get_certain_strategy(),
+        ''
+    )
 
-    sweeper = WebPageSweeper(sweeper_configuration)
-    ui = BlessedTUI(sweeper_configuration.dimensions, configuration.username)
-
-    runner = Runner(sweeper, ui)
-    runner.run()
+    logging_batch_solve(bot, 10)
 
 
 if __name__ == '__main__':

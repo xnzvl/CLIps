@@ -78,6 +78,10 @@ class Minefield(Sweeper[SweeperConfiguration]):
             if point != exploded_mine:
                 self._field[point].reveal(False)
 
+    def _check_for_victory(self) -> None:
+        if self._to_uncover <= 0:  # TODO: fix
+            self._state = GameState.VICTORY
+
     def _uncover_point(self, point: Point) -> None:
         # assumes that tile at point is covered
 
@@ -90,8 +94,10 @@ class Minefield(Sweeper[SweeperConfiguration]):
             case Symbol.NUMBER:
                 tile.reveal()
                 self._to_uncover -= 1
+                self._check_for_victory()
             case Symbol.EMPTY:
                 self._uncover_flood(point)
+                self._check_for_victory()
             case Symbol.MINE:
                 tile.reveal()
                 self._reveal_other_mines(point)
