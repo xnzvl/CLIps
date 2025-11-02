@@ -21,7 +21,7 @@ SMALL_DEFAULT_SHAPE = [
 
 
 @fixture
-def opened_minefield() -> Minefield:
+def opened_minefield() -> Minefield:  # TODO: would be worth to create a Minefield from data symbols?
     minefield = Minefield(
         SweeperConfiguration(
             dimensions=Dimensions(9, 9),
