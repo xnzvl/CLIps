@@ -1,49 +1,15 @@
-from pytest import fixture
-
-from src.common import Action, Dimensions, Move, Point, SweeperConfiguration
+from src.common import Action, Move, Point
 from src.game.sweeper import Minefield
 
-from .utils import compare_grid_with_shape
-
-
-SEED = 'testing'
-SMALL_DEFAULT_SHAPE = [
-    'OOOOOOOOO',
-    'OOOOOOOOO',
-    'OOO222OOO',
-    'OOO1 112O',
-    'OOO1   11',
-    'OOO1     ',
-    'OOO1     ',
-    'OOO1 111 ',
-    'OOO1 1O1 '
-]
-
-
-@fixture
-def opened_minefield() -> Minefield:  # TODO: would be worth to create a Minefield from data symbols?
-    minefield = Minefield(
-        SweeperConfiguration(
-            dimensions=Dimensions(9, 9),
-            mines=10,
-            question_marks=False
-        ),
-        SEED
-    )
-    minefield.play(
-        Move(
-            action=Action.UNCOVER,
-            point=Point(4, 4),
-        )
-    )
-    return minefield
+from .constant import OPENED_SHAPE
+from .utils    import compare_grid_with_shape
 
 
 class TestPlay:
     def test_seeding(self, opened_minefield: Minefield) -> None:
         assert compare_grid_with_shape(
             opened_minefield.obtain_grid(),
-            SMALL_DEFAULT_SHAPE
+            OPENED_SHAPE
         )
 
     def test_uncover_on_empty(self, opened_minefield: Minefield) -> None:
@@ -56,7 +22,7 @@ class TestPlay:
 
         assert compare_grid_with_shape(
             opened_minefield.obtain_grid(),
-            SMALL_DEFAULT_SHAPE
+            OPENED_SHAPE
         )
 
     def test_uncover_on_number(self, opened_minefield: Minefield) -> None:
@@ -69,7 +35,7 @@ class TestPlay:
 
         assert compare_grid_with_shape(
             opened_minefield.obtain_grid(),
-            SMALL_DEFAULT_SHAPE
+            OPENED_SHAPE
         )
 
     def test_uncover_on_covered(self, opened_minefield: Minefield) -> None:
@@ -105,7 +71,7 @@ class TestPlay:
 
         assert compare_grid_with_shape(
             opened_minefield.obtain_grid(),
-            SMALL_DEFAULT_SHAPE
+            OPENED_SHAPE
         )
 
     def test_flag_on_number(self, opened_minefield: Minefield) -> None:
@@ -118,7 +84,7 @@ class TestPlay:
 
         assert compare_grid_with_shape(
             opened_minefield.obtain_grid(),
-            SMALL_DEFAULT_SHAPE
+            OPENED_SHAPE
         )
 
     def test_flag_on_covered(self, opened_minefield: Minefield) -> None:
@@ -143,3 +109,15 @@ class TestPlay:
                 'OOO1 1F1 '
             ]
         )
+
+
+class TestPlayAfterFailure:
+    pass
+
+
+class TestPlayAfterVictory:
+    pass
+
+
+class TestGameState:
+    pass
