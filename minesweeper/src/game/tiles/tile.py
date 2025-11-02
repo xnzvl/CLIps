@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Literal, assert_never, cast, overload
+from typing import Literal, Set, assert_never, cast, overload
 
 from src.game.tiles import Symbol
 
@@ -22,6 +22,12 @@ type TileChar = Literal[
     'O', '*', '+', 'X', 'F', '?', ' ',
     '1', '2', '3', '4', '5', '6', '7', '8'
 ]
+
+
+TileChars: Set[TileChar] = {
+    'O', '*', '+', 'X', 'F', '?', ' ',
+    '1', '2', '3', '4', '5', '6', '7', '8'
+}
 
 
 class Tile(ABC):
