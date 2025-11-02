@@ -2,7 +2,7 @@ from time import time
 from typing import List, Literal, Set, assert_never, cast, override
 from random import randint, seed
 
-from src.common import Move, Point, SweeperConfiguration, Action
+from src.common import Action, Move, Point, SweeperConfiguration
 from src.game.grids import FrozenGrid, GenericGrid, Grid
 from src.game.sweeper import GameState, Sweeper
 from src.game.tiles import Tile, RevealTile, Symbol, MineCount
@@ -70,8 +70,8 @@ class Minefield(Sweeper[SweeperConfiguration]):
 
             if tile.get_symbol() != Symbol.EMPTY:
                 continue
-            for n, _ in self._field.neighbourhood_of(point.x, point.y):
-                if n not in marked_to_visit:
+            for n, t in self._field.neighbourhood_of(point.x, point.y):
+                if n not in marked_to_visit and t.is_covered():
                     to_visit.append(n)
                     marked_to_visit.add(n)
 
@@ -81,7 +81,7 @@ class Minefield(Sweeper[SweeperConfiguration]):
                 self._field[point].reveal(False)
 
     def _check_for_victory(self) -> None:
-        if self._to_uncover <= 0:  # TODO: fix
+        if self._to_uncover == 0:
             self._state = GameState.VICTORY
 
     def _uncover_point(self, point: Point) -> None:
