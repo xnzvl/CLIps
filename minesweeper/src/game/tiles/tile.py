@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Literal, assert_never, overload
+from typing import Literal, assert_never, cast, overload
 
 from src.game.tiles import Symbol
 
@@ -18,6 +18,10 @@ type NonNumberSymbol = Literal[
 ]
 
 type MineCount = Literal[1, 2, 3, 4, 5, 6, 7, 8]
+type TileChar = Literal[
+    'O', '*', '+', 'X', 'F', '?', ' ',
+    '1', '2', '3', '4', '5', '6', '7', '8'
+]
 
 
 class Tile(ABC):
@@ -49,7 +53,7 @@ class Tile(ABC):
         return symbol == Symbol.COVER or (include_question_marks and symbol == Symbol.QUESTION_MARK)
 
 
-def tile_to_char(tile: Tile) -> str:
+def tile_to_char(tile: Tile) -> TileChar:
     symbol = tile.get_symbol()
 
     match symbol:
@@ -66,7 +70,7 @@ def tile_to_char(tile: Tile) -> str:
         case Symbol.QUESTION_MARK:
             return '?'
         case Symbol.NUMBER:
-            return str(tile.get_count())
+            return cast(TileChar, str(tile.get_count()))
         case Symbol.EMPTY:
             return ' '
         case _:

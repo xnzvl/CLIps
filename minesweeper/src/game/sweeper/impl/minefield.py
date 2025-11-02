@@ -1,6 +1,6 @@
 from time import time
 from typing import List, Literal, Set, assert_never, cast, override
-from random import randint
+from random import randint, seed
 
 from src.common import Move, Point, SweeperConfiguration, Action
 from src.game.grids import FrozenGrid, GenericGrid, Grid
@@ -16,8 +16,10 @@ type CoverModifierSymbol = Literal[
 
 
 class Minefield(Sweeper[SweeperConfiguration]):
-    def __init__(self, configuration: SweeperConfiguration) -> None:
+    def __init__(self, configuration: SweeperConfiguration, seed_value: str | None = None) -> None:
         super().__init__(configuration)
+
+        seed(seed_value)
 
         self._field: Grid[RevealTile] = GenericGrid(self._configuration.dimensions, RevealTile)
 

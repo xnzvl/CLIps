@@ -80,7 +80,7 @@ class GenericGrid[T: Tile](Grid[T]):
     def __iter__(self) -> GridIterator[T]:
         return GenericGridIterator(self, self._dimensions)
 
-    def _validate_position(self, x: int, y: int) -> None:
+    def _validate_position(self, x: int, y: int) -> None:  # TODO: decorator?
         if x < 0:
             raise IndexError('x cannot be lower than 0')
         if x >= self._dimensions.width:
