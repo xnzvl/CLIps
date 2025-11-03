@@ -1,6 +1,6 @@
 from .impl.certain_step       import CertainStep
 from .impl.composite_strategy import CompositeStrategy
-from .impl.least_danger_guess import LeastDangerShallowGuess, LeastDangerDeeperGuess
+from .impl.safest_random_step import SafestRandomStep
 from .impl.random_step        import RandomStep
 from .strategy import Strategy
 
@@ -24,17 +24,7 @@ class StrategyFactory:
         return CompositeStrategy(
             [
                 CertainStep(),
-                LeastDangerShallowGuess(),
-                RandomStep()
-            ]
-        )
-
-    @staticmethod
-    def get_least_danger_strategy_plus() -> Strategy:
-        return CompositeStrategy(
-            [
-                CertainStep(),
-                LeastDangerDeeperGuess(),
+                SafestRandomStep(),
                 RandomStep()
             ]
         )
