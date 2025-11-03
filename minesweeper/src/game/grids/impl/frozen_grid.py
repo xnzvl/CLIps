@@ -36,16 +36,8 @@ class FrozenGrid(Grid[Tile]):
         return FrozenGridIterator(self._grid.neighbourhood_of(x, y))
 
     @override
-    def neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator[Tile]:
-        return FrozenGridIterator(self._grid.neighbourhood_with_symbol_of(x, y, *desired_symbols))
-
-    @override
-    def wide_neighbourhood_of(self, x: int, y: int) -> GridIterator[Tile]:
-        return FrozenGridIterator(self._grid.wide_neighbourhood_of(x, y))
-
-    @override
-    def wide_neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator[Tile]:
-        return FrozenGridIterator(self._grid.wide_neighbourhood_with_symbol_of(x, y, *desired_symbols))
+    def neighbourhood_with_symbol_of(self, x: int, y: int, *symbols: Symbol) -> GridIterator[Tile]:
+        return FrozenGridIterator(self._grid.neighbourhood_with_symbol_of(x, y, *symbols))
 
     @override
     def is_valid(self) -> bool:

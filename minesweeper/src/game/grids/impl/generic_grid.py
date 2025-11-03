@@ -106,16 +106,6 @@ class GenericGrid[T: Tile](Grid[T]):
         return GenericGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 1, desired_symbols)
 
     @override
-    def wide_neighbourhood_of(self, x: int, y: int) -> GridIterator[T]:
-        self._validate_position(x, y)
-        return GenericGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 2)
-
-    @override
-    def wide_neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator[T]:
-        self._validate_position(x, y)
-        return GenericGridNeighbourhoodIterator(self, self._dimensions, Point(x, y), 2, desired_symbols)
-
-    @override
     def is_valid(self) -> bool:
         # TODO: seems easy, but it's quite tough
         #       also, it's optional

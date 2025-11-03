@@ -35,15 +35,7 @@ class Grid[T: Tile](ABC):
         ...
 
     @abstractmethod
-    def neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator[T]:
-        ...
-
-    @abstractmethod
-    def wide_neighbourhood_of(self, x: int, y: int) -> GridIterator[T]:
-        ...
-
-    @abstractmethod
-    def wide_neighbourhood_with_symbol_of(self, x: int, y: int, *desired_symbols: Symbol) -> GridIterator[T]:
+    def neighbourhood_with_symbol_of(self, x: int, y: int, *symbols: Symbol) -> GridIterator[T]:
         ...
 
     @abstractmethod
@@ -60,11 +52,13 @@ class Grid[T: Tile](ABC):
     def get_height(self) -> int:
         return self.get_dimensions().height
 
-    def count_symbol_in_neighbourhood(self, x: int, y: int, symbol: Symbol) -> int:
+    def count_symbol_in_neighbourhood(self, x: int, y: int, *symbols: Symbol) -> int:
+        interesting_symbols = set(symbols)
+
         return len(
             [
                 None
                 for _, t in self.neighbourhood_of(x, y)
-                if t.get_symbol() == symbol
+                if t.get_symbol() in interesting_symbols
             ]
         )
