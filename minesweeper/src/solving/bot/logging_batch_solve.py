@@ -50,10 +50,12 @@ def logging_batch_solve(bot: Bot, batch_size: int) -> None:
         partial(exception_consumer, results, digits)
     )
 
+    victories_percentage  = f'{victories          / batch_size * 100:.3f}%'
+    failures_percentage   = f'{results.failures   / batch_size * 100:.3f}%'
+    exceptions_percentage = f'{results.exceptions / batch_size * 100:.3f}%'
+
     print()
-    print(f'  {TERMINAL.bright_white(f'Victories:  {victories          / batch_size * 100:.3f}%')}')
-    print(f'  {TERMINAL.bright_white(f'Failures:   {results.failures   / batch_size * 100:.3f}%')}')
-    print(f'  {TERMINAL.bright_white(f'Exceptions: {results.exceptions / batch_size * 100:.3f}%')}')
-    print()
-    print(f'  {TERMINAL.bright_white(f'Winrate: {victories / (batch_size - results.exceptions) * 100:.3f}%')}')
+    print(f'  {TERMINAL.bright_white(f'Victories:  { victories_percentage.rjust(8)}')}')
+    print(f'  {TERMINAL.bright_white(f'Failures:   {  failures_percentage.rjust(8)}')}')
+    print(f'  {TERMINAL.bright_white(f'Exceptions: {exceptions_percentage.rjust(8)}')}')
     print()
