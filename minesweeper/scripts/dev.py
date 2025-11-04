@@ -11,13 +11,14 @@ def main() -> None:
                 Dimensions(24, 24),
                 90,
                 False
-            )
+            ),
+            'SEED'
         ),
         StrategyFactory.get_certain_strategy(),
         ''
     )
 
-    logging_batch_solve(bot, 10)
+    logging_batch_solve(bot, 512)
 
 
 if __name__ == '__main__':

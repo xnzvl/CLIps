@@ -26,16 +26,18 @@ def compute_danger_ratios[T: Tile](grid: Grid[T]) -> Dict[Point, Tuple[int, int]
         if tile.get_symbol() != Symbol.NUMBER:
             continue
 
-        covers = grid.count_symbol_in_neighbourhood(point.x, point.y, Symbol.COVER, Symbol.QUESTION_MARK)
+        available_covers = grid.count_symbol_in_neighbourhood(point.x, point.y, Symbol.COVER, Symbol.QUESTION_MARK)
         flags = grid.count_symbol_in_neighbourhood(point.x, point.y, Symbol.FLAG)
-        mines = tile.get_count()
+        mines_to_be_placed = tile.get_count() - flags
 
-        if mines - flags > covers:
+        if mines_to_be_placed > available_covers or mines_to_be_placed < 0:
             raise StrategyError('invalid state of the grid')
+        if mines_to_be_placed == 0:
+            continue
 
-        for neighbourhood_point, _ in grid.neighbourhood_of(point.x, point.y):
+        for neighbourhood_point, neighbourhood_tile in grid.neighbourhood_with_symbol_of(point.x, point.y, Symbol.COVER, Symbol.QUESTION_MARK):
             x, y = danger_ratios.get(neighbourhood_point, (0, 0))
-            danger_ratios[neighbourhood_point] = (x + mines - flags, y + covers)
+            danger_ratios[neighbourhood_point] = (x + mines_to_be_placed, y + available_covers)
 
     return danger_ratios
 
