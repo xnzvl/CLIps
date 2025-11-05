@@ -1,5 +1,6 @@
 from .impl.certain_step       import CertainStep
 from .impl.composite_strategy import CompositeStrategy
+from .impl.foresight_step     import ForesightStep
 from .impl.safest_random_step import SafestRandomStep
 from .impl.random_step        import RandomStep
 from .strategy import Strategy
@@ -25,6 +26,16 @@ class StrategyFactory:
             [
                 CertainStep(),
                 SafestRandomStep(),
+                RandomStep()
+            ]
+        )
+
+    @staticmethod
+    def get_foresight_strategy() -> Strategy:
+        return CompositeStrategy(
+            [
+                CertainStep(),
+                ForesightStep(),
                 RandomStep()
             ]
         )
