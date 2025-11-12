@@ -1,18 +1,18 @@
 # TODO: guarantee minimal window size on Unix
 # from signal import signal, SIGWINCH  # https://blessed.readthedocs.io/en/latest/measuring.html#resizing
 
-from typing import Dict, Final, Literal, assert_never, override
+from typing import Dict, Final, Literal, assert_never, override, Callable, Tuple
 
 from blessed.terminal import Terminal
 
-from src.common import Dimensions
+from src.common import Dimensions, Action
 from src.game.grids import Grid
 from src.game.sweeper import GameState, Result
 from src.game.tiles import MineCount, Tile, Symbol
 from src.ui import Input, UI
 from src.ui.ui_error import UIError
 from src.ui.utils import obtain_tui_input
-
+from src.utils import Attempt, attempt
 
 type Shape = Literal['─', '│', '┐', '┘', '└', '┌', '┼', '┬', '┤', '┴', '├']
 
@@ -180,8 +180,6 @@ class BlessedTUI(UI):
             case 8:
                 return self._term.silver(num_str)
 
-        assert_never(number)
-
     def _tile_representation(self, tile: Tile) -> str:
         symbol = tile.get_symbol()
 
@@ -206,7 +204,50 @@ class BlessedTUI(UI):
 
                 return f' {self._dye_number(mines)} '
 
-        assert_never(symbol)
+    def _render_error_message(self, message: str, with_help: bool) -> None:
+        print(
+            self._term.bright_black +
+            '\n' +
+            '  Invalid input:\n' +
+            f'    {message}'
+        )
+
+        if with_help:
+            print(
+                '\n' +
+                '  Try:\n' +
+                '    [u |uncover ] <column> <row>\n' +
+                '    [f |flag    ] <column> <row>\n' +
+                '    [qm|question] <column> <row>\n' +
+                '    [c |clear   ] <column> <row>\n' +
+                '    [r |reset   ]\n' +
+                '    [q |quit    ]'
+            )
+
+        print(self._term.normal)
+
+    def _clear_error_message(self) -> None:
+        # TODO
+        pass
+
+    def _validate_input_attempt(self, attempt: Attempt[Input, str]) -> Attempt[Input, Tuple[str, bool]]:
+        if not attempt.is_successful:
+            return Attempt.failure((attempt.error, True))
+
+        provided_input = attempt.result
+
+        if provided_input.action == Action.QUIT or provided_input.action == Action.QUIT:
+            return Attempt.success(provided_input)
+
+        input_point = provided_input.move.point
+        x, y = input_point.x, input_point.y
+
+        if x < 0 or self._dimensions.width - 1 < x:
+            return Attempt.failure((f'<row> has must be from range <0, {self._dimensions.width - 1}>', False))
+        if y < 0 or self._dimensions.height - 1 < y:
+            return Attempt.failure((f'<column> has must be from range <0, {self._dimensions.height - 1}>', False))
+
+        return Attempt.success(provided_input)
 
     @override
     def render_remaining_mines(self, remaining_mines: int) -> None:
@@ -237,7 +278,6 @@ class BlessedTUI(UI):
 
     @override
     def render_game_state(self, game_state: GameState) -> None:
-        formatter = None
         match game_state:
             case GameState.IN_PROGRESS:
                 formatter = self._term.bright_yellow
@@ -268,6 +308,7 @@ class BlessedTUI(UI):
 
     @override
     def render_result(self, result: Result) -> None:
+        # TODO: implement
         pass
 
     @override
@@ -282,10 +323,12 @@ class BlessedTUI(UI):
                 sep=''
             )
 
-            input_attempt = obtain_tui_input(game_state == GameState.IN_PROGRESS)
+            validated_input = self._validate_input_attempt(
+                obtain_tui_input(game_state == GameState.IN_PROGRESS)
+            )
 
-            if input_attempt.is_successful:
-                # TODO: + clear error msg
-                return input_attempt.result
+            if validated_input.is_successful:
+                return validated_input.result
 
-            print(input_attempt.error)  # TODO: better error msg
+            error_message, should_render_help = validated_input.error
+            self._render_error_message(error_message, should_render_help)

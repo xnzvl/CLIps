@@ -32,6 +32,7 @@ class Minefield(Sweeper[SweeperConfiguration]):
         self._state: GameState = GameState.IN_PROGRESS
 
     def _plant_mines(self, safe_spot: Point) -> None:
+        # TODO: add safe zone around the safe spot!
         width, height = self._configuration.dimensions.width, self._configuration.dimensions.height
 
         while len(self._planted_mines) < self._configuration.mines:
